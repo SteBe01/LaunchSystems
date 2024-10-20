@@ -42,9 +42,9 @@ Delta_V_id = DV1 + DV2; % [m/s] Tsiolkovsky Delta V
 
 % Losses: 
 
-Delta_V_g = (1500+2000)/2; % m/s from Space mission analysis design, also confirmed by A study of air launch methods for RLVs
+Delta_V_g = 1500; % m/s from Space mission analysis design (upper bound, medium-large missiles), also confirmed by A study of air launch methods for RLVs
 
-Delta_V_d = 0.03 * Delta_V_id;% m/s from Space mission analysis design about 3% of total budget
+Delta_V_d = 0.03 * Delta_V_id;% m/s from Space mission analysis design about 3% of total budget (upper bound)
 
 Delta_V_s = (30.48+182.88)/2; % m/s from A study of air launch methods for RLVs btw 100 300 fps
 
