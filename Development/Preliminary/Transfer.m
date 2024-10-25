@@ -7,7 +7,7 @@ close all
 mu = astroConstants(13);
 R_e = astroConstants(23);
 
-Delta_V_base = 8165;                            % [m/s] This one is from the Pegsus baseline to try and validate
+Delta_V_baseline = 8165;                        % [m/s] This one is from the Pegsus baseline to try and validate
 
 h_airplane = 10.668e3;                          % [m] LauncherOne service guide august 2020
 M_carrier = 0.62;                               % [-]  LauncherOne service guide august 2020
@@ -39,7 +39,7 @@ Delta_V_id = DV1 + DV2;                         % [m/s] Tsiolkovsky Delta V
 
 % Losses: 
 Delta_V_g = 750;                % [m/s] from Space mission analysis design (lower bound, medium-large missiles), also confirmed by A study of air launch methods for RLVs
-Delta_V_d = 0.03 * Delta_V_id;  % [m/s] from Space mission analysis design about 3% of total budget (upper bound)
+Delta_V_d = 0.02 * Delta_V_id;  % [m/s] from Space mission analysis design about 3% of total budget (upper bound)
 Delta_V_s = 30.48;              % [m/s] from A study of air launch methods for RLVs btw 100 300 fps (lower bound taken)
 
 % Total: 
@@ -47,5 +47,5 @@ Delta_V_tot = Delta_V_id + Delta_V_g + Delta_V_d + Delta_V_s;
 
 % Error wrt Baseline: 
 
-Err_DV_perc = ((abs(Delta_V_base - Delta_V_tot))/Delta_V_tot) * 100; % [%] Error between baseline and computed DV
+Err_DV_perc = ((abs(Delta_V_baseline - Delta_V_tot))/Delta_V_baseline) * 100; % [%] Error between baseline and computed DV
 
