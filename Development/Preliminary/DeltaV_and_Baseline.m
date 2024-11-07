@@ -165,21 +165,6 @@ El.rho_fair_El = El.M_fair_El/(El.V_fair_El.V_fair_tot - El.V_fair_El.V_fair_tot
 %L1.rho_fair_L1 = L1.M_fair_L1/(L1.V_fair_L1.V_fair_tot - L1.V_fair_L1.V_fair_tot_int);
 P.rho_fair_P = P.M_fair_P/(P.V_fair_P.V_fair_tot - P.V_fair_P.V_fair_tot_int);
 
-x_pay_eq = [El.V_fair_El.V_fair_tot;L1.V_fair_L1.V_fair_tot;P.V_fair_P.V_fair_tot];
-y_pay_eq = [El.M_pay_max_El,L1.M_pay_max_L1,P.M_pay_max_P];
-rho_pay_eq = polyfit(x_pay_eq,y_pay_eq,1);
-y_pay_line = @(x) rho_pay_eq(1)*x + rho_pay_eq(2);
-x_vec = linspace(0,10,300);
-
-figure()
-plot(x_vec,y_pay_line(x_vec));
-hold on;
-plot(x_pay_eq,y_pay_eq,'o');
-xlabel('Volume of Fairing $[m^3]$',Interpreter='latex');
-ylabel('Mass of Payload [kg]',Interpreter='latex');
-title('Linear Interpolation of Payload Mass and Fairing Volume');
-
-
 % Volume fairing of our launcher:
 
 TR.M_pay_max_mission = 400; % [kg]
@@ -208,3 +193,35 @@ TR.Diameter = ((4*TR.V_launcher)/(pi*TR.fn_ratio) )^(1/3);  % [m]
 TR.Length = TR.fn_ratio * TR.Diameter; % [m]
 
 TR.fair_length = (TR.V_fair*4)/(pi*(TR.Diameter^2)); % [m]
+
+x_pay_eq = [El.V_fair_El.V_fair_tot;L1.V_fair_L1.V_fair_tot;P.V_fair_P.V_fair_tot];
+y_pay_eq = [El.M_pay_max_El,L1.M_pay_max_L1,P.M_pay_max_P];
+rho_pay_eq = polyfit(x_pay_eq,y_pay_eq,1);
+y_pay_line = @(x) rho_pay_eq(1)*x + rho_pay_eq(2);
+x_vec = linspace(0,10,300);
+
+figure()
+plot(x_vec,y_pay_line(x_vec));
+hold on;
+plot(x_pay_eq,y_pay_eq,'o');
+hold on;
+plot(TR.V_fair,TR.M_pay,'^');
+xlabel('Volume of Fairing $[m^3]$',Interpreter='latex');
+ylabel('Mass of Payload [kg]',Interpreter='latex');
+title('Linear Interpolation of Payload Mass and Fairing Volume');
+
+x_mass_eq = [L1.V_launcher;P.V_launcher];
+y_mass_eq = [L1.M01,P.M01];
+V_mass_eq = polyfit(x_mass_eq,y_mass_eq,1);
+y_mass_line = @(x) V_mass_eq(1)*x + V_mass_eq(2);
+x_vec = linspace(0,100,300);
+
+figure()
+plot(x_vec,y_mass_line(x_vec));
+hold on;
+plot(x_mass_eq,y_mass_eq,'o');
+hold on;
+plot(TR.V_launcher,TR.M.M01,'^');
+xlabel('Volume of Launcher $[m^3]$',Interpreter='latex');
+ylabel('GLOM [kg]',Interpreter='latex');
+title('Linear Interpolation of GLOM and Launcher Volume');
