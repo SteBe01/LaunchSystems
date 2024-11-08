@@ -207,12 +207,14 @@ TR.M_fair = P.rho_fair_P * (TR.V_fair - TR.V_fair_empty); % [kg]
 
 L1.fn_ratio1 = 12; % [-] fineness ratio of LauncherOne
 L1.fn_ratio2 = 14; % [-] fineness ratio of LauncherOne
+L1.V_empty = (0.356*(9.31+1.87)*pi*(((1.8+1.5)/2)^2)/4); % [m^3] Maggi ex
 L1.V_fair_L1.Ltot = 3.63; % [m]
 L1.fn_nose = L1.V_fair_L1.Ltot/L1.D_fair_base_ext_L1; % [-] Fineness ratio of nose of LauncherOne
 L1.rho_launcher = 614.9798737; % [kg/m^3]
 L1.V_launcher = 42.04040019; % [m^3]
 
 P.fn_ratio = 13.31; % [-] fineness ratio of Pegasus
+P.V_empty = 0.805*pi*(1.27^2)/4 + (1.905*pi*(1.27^2)/4); % [kg/m^3]
 P.V_fair_P.Ltot = 2.65; % [m]
 P.fn_nose = P.V_fair_P.Ltot/P.D_fair_base_ext_P; % [-] Fineness ratio of nose of Pegasus
 P.rho_launcher = 1041.647642; % [kg/m^3]
@@ -223,9 +225,9 @@ El.fn_nose = El.V_fair_El.Ltot/El.D_fair_base_ext_El; % [-]
 
 % Choose one baseline for the density and compute Volume of our Launcher:
 
-TR.V_launcher = TR.M.M01/P.rho_launcher; % [m^3]
+TR.V_launcher = TR.M.M01/P.rho_launcher; % [m^3] Pegasus density??
 
-TR.fn_ratio = P.fn_ratio; % [-] L/D=f (Pegasus Baseline) imposed
+TR.fn_ratio = P.fn_ratio1; % [-] L/D=f (Pegasus Baseline) imposed ??
 
 TR.Diameter = ((4*TR.V_launcher)/(pi*TR.fn_ratio) )^(1/3);  % [m]
 TR.Length = TR.fn_ratio * TR.Diameter; % [m] Whole body length
