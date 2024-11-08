@@ -227,7 +227,7 @@ El.fn_nose = El.V_fair_El.Ltot/El.D_fair_base_ext_El; % [-]
 
 TR.V_launcher = TR.M.M01/P.rho_launcher; % [m^3] Pegasus density??
 
-TR.fn_ratio = P.fn_ratio1; % [-] L/D=f (Pegasus Baseline) imposed ??
+TR.fn_ratio = P.fn_ratio; % [-] L/D=f (Pegasus Baseline) imposed ??
 
 TR.Diameter = ((4*TR.V_launcher)/(pi*TR.fn_ratio) )^(1/3);  % [m]
 TR.Length = TR.fn_ratio * TR.Diameter; % [m] Whole body length
