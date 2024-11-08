@@ -43,19 +43,19 @@ Delta_V_id_2 = DV1 + DV2;
 
 Err = Delta_V_id_1/Delta_V_id_2;
 
-Delta_V_id = Delta_V_id_1; 
+TR.DV.Delta_V_id = Delta_V_id_1; 
 
 % Losses: 
 
-Delta_V_g = 750; % m/s from Space mission analysis design, also confirmed by A study of air launch methods for RLVs
+TR.DV.Delta_V_g = 750; % m/s from Space mission analysis design, also confirmed by A study of air launch methods for RLVs
 
-Delta_V_d = 0.03 * Delta_V_id;% m/s from Space mission analysis design about 3% of total budget
+TR.DV.Delta_V_d = 0.03 * TR.DV.Delta_V_id;% m/s from Space mission analysis design about 3% of total budget
 
-Delta_V_s = 30.48; % m/s from A study of air launch methods for RLVs btw 100 300 fps-> 30.48 91.44 m/s
+TR.DV.Delta_V_s = 30.48; % m/s from A study of air launch methods for RLVs btw 100 300 fps-> 30.48 91.44 m/s
 
 % Total: (TR struct is Team Rocket Struct)
 
-TR.Delta_V_tot = Delta_V_id + Delta_V_g + Delta_V_d + Delta_V_s;
+TR.Delta_V_tot = TR.DV.Delta_V_id + TR.DV.Delta_V_g + TR.DV.Delta_V_d + TR.DV.Delta_V_s;
 
 %Err_DV_perc = ((abs(Delta_V_base - TR.Delta_V_tot))/TR.Delta_V_tot) * 100; % [%] Error between baseline and computed DV
 
@@ -280,6 +280,10 @@ xlabel('Volume of Launcher $[m^3]$',Interpreter='latex');
 ylabel('GLOM [kg]',Interpreter='latex');
 title('Linear Interpolation of GLOM and Launcher Volume');
 legend('-','Baseline','Team rocket');
+
+%% Mass Budget:
+
+
 
 
 %% Function for 2 stages:
