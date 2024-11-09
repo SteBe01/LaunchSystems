@@ -130,7 +130,7 @@ figure()
 plot(lambda_vec,y);
 hold on
 plot(lambda_a,f(lambda_a),'o');
-xlabel('\lambda [-]');
+xlabel('\lambda',Interpreter='tex');
 ylabel('Cost Function');
 legend('Cost Function','Fsolve solution');
 
@@ -262,7 +262,7 @@ plot(TR.V_fair,TR.M_pay,'^');
 xlabel('Volume of Fairing $[m^3]$',Interpreter='latex');
 ylabel('Mass of Payload [kg]',Interpreter='latex');
 title('Linear Interpolation of Payload Mass and Fairing Volume');
-legend('-','Baseline','Team rocket');
+legend('','Baseline','Team rocket');
 
 x_mass_eq = [L1.V_launcher;P.V_launcher];
 y_mass_eq = [L1.M01,P.M01];
@@ -276,17 +276,90 @@ hold on;
 plot(x_mass_eq,y_mass_eq,'o');
 hold on;
 plot(TR.V_launcher,TR.M.M01,'^');
-xlabel('Volume of Launcher $[m^3]$',Interpreter='latex');
-ylabel('GLOM [kg]',Interpreter='latex');
+xlabel('Volume of Launcher $ [m^3] $',Interpreter='latex');
+ylabel('GLOM [kg] ');
 title('Linear Interpolation of GLOM and Launcher Volume');
-legend('-','Baseline','Team rocket');
+legend('','Baseline','Team rocket');
 
 %% Mass Budget:
 
+TR.Mtot_Inert_Budget = TR.M.Ms1 + TR.M.Ms2 + TR.M.Ms3 + TR.M_pay; % [kg] Total inert mass budget, check that we do not go over or stay in small margin (not 1 order more)
+
+M_cables = 1.058*(TR.Length^(0.25))*sqrt(TR.M.M01); % [kg] Empirical formula slides Maggi 06, structures part 1
+
+M_avionics = 10*(TR.M.M01)^(0.361); % [kg] Empirical formula slides Maggi 06, structures part 1
+
+M_fairing = TR.M_fair; % [kg] calculated above 
 
 
+P.Engine3.Ms3 = 126; % [kg] from Northrop Grumman Orion Series, Orion 38
+P.Engine2.Ms2 = 416; % [kg] from Northrop Grumman Orion Series, Orion 50
+P.Engine1.Ms1 = 1369; % [kg] from Northrop Grumman Orion Series, Orion 50S
+P.Engine3.Mp3 = 770; % [kg]
+P.Engine2.Mp2 = 3925; % [kg]
+P.Engine3.Mp3 = 15014; % [kg]
+P.Engine3.T3 = 36933.58; % [N]
+P.Engine2.T2 = 131462.74; % [N]
+P.Engine1.T1 = 563327.232; % [N]
+P.Engine3.A_exit3 = pi*(0.52578^2)/4;
+P.Engine2.A_exit2 = pi*(0.86106^2)/4;
+P.Engine1.A_exit1 = pi*(1.4224^2)/4;
+P.Engine1.eps_c = 10; % HYP
+P.Engine3.A_t3 = (pi*(0.52578^2)/4)/10;
+P.Engine2.A_t2 = (pi*(0.86106^2)/4)/10;
+P.Engine1.A_t1 = (pi*(1.4224^2)/4)/10;
 
-%% Function for 2 stages:
+
+L1.Engine1.Ms1 = 1308; % [kg]
+L1.Engine2.Ms2 = 176; % [kg]
+L1.Engine1.Mp1 = 20496; % [kg]
+L1.Engine2.Mp2 = 2764; % [kg]
+L1.Engine1.T1 = 345162.888; % [N]
+L1.Engine2.T2 = 24704.632; % [N]
+
+TR.Engine1.T1 = P.Engine1.T1;
+TR.Engine2.T2 = P.Engine2.T2;
+TR.Engine3.T3 = P.Engine3.T3;
+TR.Engine1.A_exit1 = P.Engine1.A_exit1;
+TR.Engine2.A_exit2 = P.Engine2.A_exit2;
+TR.Engine3.A_exit3 = P.Engine3.A_exit3;
+TR.Engine1.A_t1 = P.Engine1.A_t1;
+TR.Engine2.A_t2 = P.Engine2.A_t2;
+TR.Engine3.A_t3 = P.Engine3.A_t3;
+
+M_struct1 = (2.55*(10^-4))* TR.Engine1.T1; % [kg] Empirical formula slides Maggi 06, structures part 1
+M_struct2 = (2.55*(10^-4))* TR.Engine2.T2; % [kg] Empirical formula slides Maggi 06, structures part 1
+M_struct3 = (2.55*(10^-4))* TR.Engine3.T3; % [kg] Empirical formula slides Maggi 06, structures part 1
+
+M_engine1 = (7.81*(10^-4))* TR.Engine1.T1 + (3.37*(10^-5))*TR.Engine1.T1*(sqrt(TR.Engine1.A_exit1/TR.Engine1.A_t1)) + 59; % [kg] Empirical formula slides Maggi 06, structures part 1
+M_engine2 = (7.81*(10^-4))* TR.Engine2.T2 + (3.37*(10^-5))*TR.Engine2.T2*(sqrt(TR.Engine2.A_exit2/TR.Engine2.A_t2)) + 59; % [kg] Empirical formula slides Maggi 06, structures part 1
+M_engine3 = (7.81*(10^-4))* TR.Engine3.T3 + (3.37*(10^-5))*TR.Engine3.T3*(sqrt(TR.Engine3.A_exit3/TR.Engine3.A_t3)) + 59; % [kg] Empirical formula slides Maggi 06, structures part 1
+
+M_parachute1 = 0.1*TR.M.Ms1; %[kg] Ele's law
+M_parachute2 = 0.1*TR.M.Ms2; %[kg] Ele's law
+
+M_inert_tot_real = M_cables + M_avionics + M_fairing + TR.M_pay + M_struct1 + M_struct2 + M_struct3 +  M_engine1+  M_engine2+  M_engine3 +M_parachute1 +M_parachute2;
+
+Delta_inert_mass = TR.Mtot_Inert_Budget - M_inert_tot_real;
+
+if Delta_inert_mass <=0 
+
+    fprintf('Mass Overbudget: \n Delta_inert_mass = %d \n ',abs(Delta_inert_mass));
+
+else
+
+figure()
+bar([TR.Mtot_Inert_Budget 0; M_inert_tot_real Delta_inert_mass],'stacked');
+grid on;
+xticklabels('Team Rocket', 'Actual Masses');
+ylabel('Inert Mass');
+legend('Inert Mass', 'Available Mass');
+title('Inert Mass Budget');
+
+end
+
+
+%% Functions
 
 function [M,n,lambda_c] = initialmass_opt_2stage(c1c,c2c,eps_1c,eps_2c,M_pay,Delta_V,lambda0)
 
@@ -328,3 +401,66 @@ elseif n.n2c<1 | isreal(n.n2c)==0
 end
 
 end
+
+% function [P] = Pegasus_baseline()
+% 
+% P.M01 = 23130; % [kg] Real M01
+% 
+% P.Engine1.Is1 = 290.2; % [s]
+% P.Engine2.Is2 = 289.4; % [s]
+% P.Engine3.Is3 = 287.4; % [s]
+% 
+% P.Engine1.eps1 = 0.08; % [-]
+% P.Engine2.eps2 = 0.09; % [-]
+% P.Engine3.eps3 = 0.14; % [-]
+% 
+% P.Fair.D_fair_base_int_P = 1.153; % [m]
+% P.Fair.D_fair_base_ext_P = 1.27; % [m]
+% P.Fair.H_fair_base_P = 1.11 + 0.4; % [m]
+% P.Fair.D_fair_conetrap_int_P = 0.709;
+% P.Fair.D_fair_conetrap_ext_P = (1.27-1.153) + 0.709;
+% P.Fair.H_fair_conetrap_int_P = 2.656 - 1.11 + 0.4; 
+% P.Fair.H_fair_nose_P = 3.63 - 3.5433;
+% P.Fair.M_fair_P = 170; % [kg] Maggi's ex
+% P.Fair.M_pay_max_P = 443; % [kg]
+% 
+% end
+% 
+% function [L1] = LauncherOne_baseline()
+% 
+% L1.M01 = 25854; % [kg]
+% 
+% L1.Engine1.Is1 = 309; % [s]
+% L1.Engine2.Is2= 328; % [s]
+% L1.Engine1.eps1 = 0.06; % [-]
+% L1.Engine2.eps2 = 0.06; % [-]
+% 
+% L1.Fair.D_fair_base_int_L1 = 1.2624; % [m]
+% L1.Fair.D_fair_base_ext_L1 = 1.2624 + (2*0.11176); % [m]
+% L1.Fair.H_fair_base_L1 = 2.1234 + (4*0.00635); % [m]
+% L1.Fair.D_fair_conetrap_int_L1 = 0.44196;
+% L1.Fair.D_fair_conetrap_ext_L1 = 0.44196 + (2*0.11176);
+% L1.Fair.H_fair_conetrap_int_L1 = 3.5433-2.1234; 
+% L1.Fair.H_fair_nose_L1 = 3.63 - 3.5433;
+% %L1.Fair.M_fair_L1 = ;
+% L1.M_pay_max_L1 = 500; % [kg]
+% 
+% 
+% 
+% end
+% 
+% function [El] = Electron_baseline()
+% 
+% 
+% El.Fair.D_fair_base_int_El = 1.070; % [m]
+% El.Fair.D_fair_base_ext_El = 1.200; % [m]
+% El.Fair.H_fair_base_El = 0.566 + 0.385 + 0.0705; % [m]
+% El.Fair.D_fair_conetrap_int_El = 0.2783; % [m]
+% El.Fair.D_fair_conetrap_ext_El = 0.2783 + (0.13); % [m]
+% El.Fair.H_fair_conetrap_int_El = 1.3586;  % [m]
+% El.Fair.H_fair_nose_El = 0.119; % [m]
+% El.Fair.M_fair_El = 44; % [kg]
+% El.Fair.M_pay_max_El = 300;% [kg]
+% 
+% 
+% end
