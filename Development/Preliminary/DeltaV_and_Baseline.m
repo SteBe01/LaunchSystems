@@ -197,6 +197,7 @@ P.rho_fair_P = P.M_fair_P/(P.V_fair_P.V_fair_tot - P.V_fair_P.V_fair_tot_int);
 TR.M_pay_max_mission = 400; % [kg]
 
 TR.V_fair = TR.M_pay_max_mission/P.rho_pay_P; % [m^3] Whole volume
+
 TR.V_fair_empty = TR.M_pay_max_mission/ P.rho_pay_P_empty; % [m^3] Empty volume
 
 TR.M_fair = P.rho_fair_P * (TR.V_fair - TR.V_fair_empty); % [kg]
@@ -208,13 +209,15 @@ TR.M_fair = P.rho_fair_P * (TR.V_fair - TR.V_fair_empty); % [kg]
 L1.fn_ratio1 = 12; % [-] fineness ratio of LauncherOne
 L1.fn_ratio2 = 14; % [-] fineness ratio of LauncherOne
 L1.V_empty = (0.356*(9.31+1.87)*pi*(((1.8+1.5)/2)^2)/4); % [m^3] Maggi ex
+L1.rho_empty = L1.M01/L1.V_empty; % [kg/m^3]
 L1.V_fair_L1.Ltot = 3.63; % [m]
 L1.fn_nose = L1.V_fair_L1.Ltot/L1.D_fair_base_ext_L1; % [-] Fineness ratio of nose of LauncherOne
 L1.rho_launcher = 614.9798737; % [kg/m^3]
 L1.V_launcher = 42.04040019; % [m^3]
 
 P.fn_ratio = 13.31; % [-] fineness ratio of Pegasus
-P.V_empty = 0.805*pi*(1.27^2)/4 + (1.905*pi*(1.27^2)/4); % [kg/m^3]
+P.V_empty = 0.805*pi*(1.27^2)/4 + (1.905*pi*(1.27^2)/4); % [m^3]
+P.rho_empty = P.M01/P.V_empty; % [kg/m^3]
 P.V_fair_P.Ltot = 2.65; % [m]
 P.fn_nose = P.V_fair_P.Ltot/P.D_fair_base_ext_P; % [-] Fineness ratio of nose of Pegasus
 P.rho_launcher = 1041.647642; % [kg/m^3]
@@ -225,7 +228,9 @@ El.fn_nose = El.V_fair_El.Ltot/El.D_fair_base_ext_El; % [-]
 
 % Choose one baseline for the density and compute Volume of our Launcher:
 
-TR.V_launcher = TR.M.M01/P.rho_launcher; % [m^3] Pegasus density??
+TR.V_launcher = TR.M.M01/P.rho_launcher; % [m^3]
+TR.V_launcher_empty = TR.M.M01/P.rho_empty; % [m^3]
+TR.V_launcher_effective = TR.V_launcher - TR.V_launcher_empty; % [m^3]
 
 TR.fn_ratio = P.fn_ratio; % [-] L/D=f (Pegasus Baseline) imposed ??
 
@@ -251,8 +256,8 @@ x_pay_eq = [El.V_fair_El.V_fair_tot;L1.V_fair_L1.V_fair_tot;P.V_fair_P.V_fair_to
 y_pay_eq = [El.M_pay_max_El,L1.M_pay_max_L1,P.M_pay_max_P];
 rho_pay_eq = polyfit(x_pay_eq,y_pay_eq,1);
 y_pay_line = @(x) rho_pay_eq(1)*x + rho_pay_eq(2);
-x_vec = linspace(0,10,300);
 
+x_vec = linspace(0,10,300);
 figure()
 plot(x_vec,y_pay_line(x_vec));
 hold on;
@@ -268,8 +273,8 @@ x_mass_eq = [L1.V_launcher;P.V_launcher];
 y_mass_eq = [L1.M01,P.M01];
 V_mass_eq = polyfit(x_mass_eq,y_mass_eq,1);
 y_mass_line = @(x) V_mass_eq(1)*x + V_mass_eq(2);
-x_vec = linspace(0,100,300);
 
+x_vec = linspace(0,100,300);
 figure()
 plot(x_vec,y_mass_line(x_vec));
 hold on;
@@ -280,6 +285,24 @@ xlabel('Volume of Launcher $ [m^3] $',Interpreter='latex');
 ylabel('GLOM [kg] ');
 title('Linear Interpolation of GLOM and Launcher Volume');
 legend('','Baseline','Team rocket');
+
+x_empty_eq = [L1.V_empty;P.V_empty];
+y_empty_eq = [L1.M01,P.M01];
+V_empty_eq = polyfit(x_empty_eq,y_empty_eq,1);
+y_empty_line = @(x) V_empty_eq(1)*x + V_empty_eq(2);
+
+x_vec = linspace(0,10,300);
+figure()
+plot(x_vec,y_empty_line(x_vec));
+hold on;
+plot(x_empty_eq,y_empty_eq,'o');
+hold on;
+plot(TR.V_launcher_empty,TR.M.M01,'^');
+xlabel('Empty volume of Launcher $ [m^3] $',Interpreter='latex');
+ylabel('GLOM [kg] ');
+title('Linear Interpolation of GLOM and Launcher Empty Volume');
+legend('','Baseline','Team rocket');
+
 
 %% Mass Budget:
 
