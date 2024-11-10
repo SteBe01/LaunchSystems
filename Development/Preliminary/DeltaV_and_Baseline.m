@@ -53,6 +53,8 @@ TR.DV.Delta_V_d = 0.03 * TR.DV.Delta_V_id;% m/s from Space mission analysis desi
 
 TR.DV.Delta_V_s = 30.48; % m/s from A study of air launch methods for RLVs btw 100 300 fps-> 30.48 91.44 m/s
 
+%TR.DV.Delta_V_e = 350; % m/s speed of equator
+
 % Total: (TR struct is Team Rocket Struct)
 
 TR.Delta_V_tot = TR.DV.Delta_V_id + TR.DV.Delta_V_g + TR.DV.Delta_V_d + TR.DV.Delta_V_s;
