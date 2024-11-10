@@ -79,48 +79,59 @@ P.Err_M01_P = (abs(MP_model.M01 - P.M01))/P.M01; % error of our model wrt Real P
 L1.M01 = 25854; % [kg]
 [ML1_model,~,~] = initialmass_opt_2stage(309*g0,328*g0,0.06,0.06,500,8462.129169,lambda0);
 
-L1.Err_M01_L1 = (abs(ML1_model.M01c - L1.M01))/L1.M01; % error of our model wrt Real LauncherOne data
+L1.Err_M01_L1 = (abs(ML1_model.M01 - L1.M01))/L1.M01; % error of our model wrt Real LauncherOne data
 
 % Our Launcher:
 
 % Hyp: 3 stages
 % Pegasus is chosen for eps and Is of engine:
 
-% Specific impulse: from Pegasus
-Is1 = 290.2; % [s]
-Is2 = 289.4; % [s]
-Is3 = 287.4; % [s]
+% % Specific impulse: from Pegasus
+% Is1 = 290.2; % [s]
+% Is2 = 289.4; % [s]
+% Is3 = 287.4; % [s]
 
-% % Specific Impulse: from LauncherOne
-% Is1 = 309; % [s]
-% Is2 = 328; % [s]
+% Specific Impulse: from LauncherOne
+Is1 = 309; % [s]
+Is2 = 328; % [s]
 
-% Structural mass index: from Pegasus
-eps_1 = 0.08; % [-]
-eps_2 = 0.09; % [-]
-eps_3 = 0.14; % [-]
+% % Specific Impulse: from Electron
+% Is1 = 303; % [s]
+% Is2 = 333; % [s]
+
+% % Structural mass index: from Pegasus
+% eps_1 = 0.08; % [-]
+% eps_2 = 0.09; % [-]
+% eps_3 = 0.14; % [-]
 
 % % Structural mass index: from LauncherOne
 % eps_1 = 0.06; % [-]
 % eps_2 = 0.06; % [-]
 
-
-TR.M_pay = 400; % HELP [kg] Payload mass, do we use maximum: 400 or do we put 250??? HELP
+% Structural mass index: from Electron
+eps_1 = 0.09; % [-]
+eps_2 = 0.11; % [-]
 
 c1 = Is1*g0; % [m/s]
 c2 = Is2*g0; % [m/s]
-c3 = Is3*g0; % [m/s]
+%c3 = Is3*g0; % [m/s]
 
 % Computation of our GLOM with the assumed values:
 
-[TR.M,TR.n,lambda_a] = initialmass_opt(c1,c2,c3,eps_1,eps_2,eps_3,TR.M_pay,TR.Delta_V_tot,lambda0);
+%[TR.M,TR.n,lambda_a] = initialmass_opt(c1,c2,c3,eps_1,eps_2,eps_3,TR.M_pay,TR.Delta_V_tot,lambda0);
+
+TR.M_pay = 250; % HELP [kg] Payload mass, do we use maximum: 400 or do we put 250??? HELP
+
+[TR.M,TR.n,lambda_a] = initialmass_opt_2stage(c1,c2,eps_1,eps_2,TR.M_pay,TR.Delta_V_tot,lambda0);
 
 % TR.M.M01 = TR.M.M01/(1 - P.Err_M01_P); % [kg] Corrected mass of our launcher according to erro of our model
 % TR.M.M01 = TR.M.M01/(1 - L1.Err_M01_L1);  % [kg] Corrected mass of our launcher according to erro of our model
 
 % Plot function to see min:
 
-f = @(x) c1*log(c1*x -1) + c2*log(c2*x -1) + c3*log(c3*x -1) - log(x)*(c1+c2+c3) - c1*log(c1*eps_1) - c2*log(c2*eps_2) - c3*log(c3*eps_3) - TR.Delta_V_tot;
+%f = @(x) c1*log(c1*x -1) + c2*log(c2*x -1) + c3*log(c3*x -1) - log(x)*(c1+c2+c3) - c1*log(c1*eps_1) - c2*log(c2*eps_2) - c3*log(c3*eps_3) - TR.Delta_V_tot;
+
+f = @(x) c1*log(c1*x -1) + c2*log(c2*x -1) - log(x)*(c1+c2) - c1*log(c1*eps_1) - c2*log(c2*eps_2) - TR.Delta_V_tot;
 lambda_vec = ((10^-4):0.000001:(10^-3));
 lambda_vec = lambda_vec';
 y = zeros(length(lambda_vec),1);
@@ -161,7 +172,7 @@ L1.D_fair_conetrap_int_L1 = 0.44196;
 L1.D_fair_conetrap_ext_L1 = 0.44196 + (2*0.11176);
 L1.H_fair_conetrap_int_L1 = 3.5433-2.1234; 
 L1.H_fair_nose_L1 = 3.63 - 3.5433;
-%L1.M_fair_L1 = ;
+L1.M_fair_L1 = 145;
 L1.M_pay_max_L1 = 500; % [kg]
 
 L1.V_fair_L1 = V_fair_approx(L1.D_fair_base_int_L1,L1.D_fair_base_ext_L1,L1.H_fair_base_L1,L1.D_fair_conetrap_int_L1,L1.D_fair_conetrap_ext_L1,L1.H_fair_conetrap_int_L1,L1.H_fair_nose_L1);
@@ -191,18 +202,27 @@ L1.rho_pay_L1_empty = L1.M_pay_max_L1/L1.V_fair_L1.V_fair_tot_int;
 P.rho_pay_P_empty = P.M_pay_max_P/P.V_fair_P.V_fair_tot_int;
 
 El.rho_fair_El = El.M_fair_El/(El.V_fair_El.V_fair_tot - El.V_fair_El.V_fair_tot_int);
-%L1.rho_fair_L1 = L1.M_fair_L1/(L1.V_fair_L1.V_fair_tot - L1.V_fair_L1.V_fair_tot_int);
+L1.rho_fair_L1 = L1.M_fair_L1/(L1.V_fair_L1.V_fair_tot - L1.V_fair_L1.V_fair_tot_int);
 P.rho_fair_P = P.M_fair_P/(P.V_fair_P.V_fair_tot - P.V_fair_P.V_fair_tot_int);
 
 % Volume and mass of fairing of our launcher:
 
 TR.M_pay_max_mission = 400; % [kg]
 
-TR.V_fair = TR.M_pay_max_mission/P.rho_pay_P; % [m^3] Whole volume
+x_rhop_eq = [L1.M_pay_max_L1,P.M_pay_max_P,El.M_pay_max_El];
+y_rhop_eq = [L1.rho_pay_L1,P.rho_pay_P,El.rho_pay_El];
+V_rhop_eq = polyfit(x_rhop_eq,y_rhop_eq,1);
+y_rhop_line = @(x) V_rhop_eq(1)*x + V_rhop_eq(2);
 
-TR.V_fair_empty = TR.M_pay_max_mission/ P.rho_pay_P_empty; % [m^3] Empty volume
+x_rhope_eq = [L1.M_pay_max_L1,P.M_pay_max_P,El.M_pay_max_El];
+y_rhope_eq = [L1.rho_pay_L1_empty,P.rho_pay_P_empty,El.rho_pay_El_empty];
+V_rhope_eq = polyfit(x_rhope_eq,y_rhope_eq,1);
+y_rhope_line = @(x) V_rhope_eq(1)*x + V_rhope_eq(2);
 
-TR.M_fair = P.rho_fair_P * (TR.V_fair - TR.V_fair_empty); % [kg]
+TR.V_fair = TR.M_pay_max_mission/(V_rhop_eq(1)*TR.M_pay_max_mission + V_rhop_eq(2));
+TR.V_fair_empty = TR.M_pay_max_mission/(V_rhope_eq(1)*TR.M_pay_max_mission + V_rhope_eq(2)); % [m^3] Empty volume
+
+TR.M_fair = mean([L1.rho_fair_L1;El.rho_fair_El;P.rho_fair_P]) * (TR.V_fair - TR.V_fair_empty); % [kg]
 
 %% Volume of launcher: From Excel on Baseline: 
 
@@ -210,6 +230,7 @@ TR.M_fair = P.rho_fair_P * (TR.V_fair - TR.V_fair_empty); % [kg]
 
 L1.fn_ratio1 = 12; % [-] fineness ratio of LauncherOne
 L1.fn_ratio2 = 14; % [-] fineness ratio of LauncherOne
+L1.fn_avg = mean([L1.fn_ratio1;L1.fn_ratio2]);
 L1.V_empty = (0.356*(9.31+1.87)*pi*(((1.8+1.5)/2)^2)/4); % [m^3] Maggi ex
 L1.rho_empty = L1.M01/L1.V_empty; % [kg/m^3]
 L1.V_fair_L1.Ltot = 3.63; % [m]
@@ -225,16 +246,38 @@ P.fn_nose = P.V_fair_P.Ltot/P.D_fair_base_ext_P; % [-] Fineness ratio of nose of
 P.rho_launcher = 1041.647642; % [kg/m^3]
 P.V_launcher = 21.40839099; % [m^3]
 
+El.M01 = 12550;
+El.fn_ratio = 14;
+El.V_launcher = 19.226547; % [m^3]
+El.rho_launcher = El.M01/El.V_launcher;
+El.V_empty = 4.08099; % [m^3]
 El.V_fair_El.Ltot = 2.5; % [m]
 El.fn_nose = El.V_fair_El.Ltot/El.D_fair_base_ext_El; % [-]
 
 % Choose one baseline for the density and compute Volume of our Launcher:
 
-TR.V_launcher = TR.M.M01/P.rho_launcher; % [m^3]
-TR.V_launcher_empty = TR.M.M01/P.rho_empty; % [m^3]
+y_massl_eq = [L1.V_launcher;P.V_launcher;El.V_launcher];
+x_massl_eq = [L1.M01;P.M01;El.M01];
+V_massl_eq = polyfit(x_massl_eq,y_massl_eq,1);
+y_massl_line = @(x) V_massl_eq(1)*x + V_massl_eq(2);
+
+y_massle_eq = [L1.V_empty;P.V_empty;El.V_empty];
+x_massle_eq = [L1.M01;P.M01;El.M01];
+V_massle_eq = polyfit(x_massle_eq,y_massle_eq,1);
+y_massle_line = @(x) V_massle_eq(1)*x + V_massle_eq(2);
+
+TR.V_launcher = V_massl_eq(1)*TR.M.M01 + V_massl_eq(2);
+TR.V_launcher_empty = V_massle_eq(1)*TR.M.M01 + V_massle_eq(2);
+
 TR.V_launcher_effective = TR.V_launcher - TR.V_launcher_empty; % [m^3]
 
-TR.fn_ratio = P.fn_ratio; % [-] L/D=f (Pegasus Baseline) imposed ??
+y_fn_eq = [mean([L1.fn_ratio1;L1.fn_ratio2]);P.fn_ratio;El.fn_ratio];
+x_fn_eq = [L1.M01;P.M01;El.M01;];
+V_fn_eq = polyfit(x_fn_eq,y_fn_eq,1);
+y_fn_line = @(x) V_fn_eq(1)*x + V_fn_eq(2);
+
+%TR.fn_ratio = P.fn_ratio; % [-] L/D=f (Pegasus Baseline) imposed ??
+TR.fn_ratio = V_fn_eq(1)*TR.M.M01 + V_fn_eq(2);
 
 TR.Diameter = ((4*TR.V_launcher)/(pi*TR.fn_ratio) )^(1/3);  % [m]
 TR.Length = TR.fn_ratio * TR.Diameter; % [m] Whole body length
@@ -308,7 +351,8 @@ legend('','Baseline','Team rocket');
 
 %% Mass Budget:
 
-TR.Mtot_Inert_Budget = TR.M.Ms1 + TR.M.Ms2 + TR.M.Ms3 + TR.M_pay; % [kg] Total inert mass budget, check that we do not go over or stay in small margin (not 1 order more)
+%TR.Mtot_Inert_Budget = TR.M.Ms1 + TR.M.Ms2 + TR.M.Ms3 + TR.M_pay; % [kg] Total inert mass budget, check that we do not go over or stay in small margin (not 1 order more)
+TR.Mtot_Inert_Budget = TR.M.Ms1 + TR.M.Ms2 + TR.M_pay; % [kg] Total inert mass budget, check that we do not go over or stay in small margin (not 1 order more)
 
 M_cables = 1.058*(TR.Length^(0.25))*sqrt(TR.M.M01); % [kg] Empirical formula slides Maggi 06, structures part 1
 
@@ -342,28 +386,29 @@ L1.Engine2.Mp2 = 2764; % [kg]
 L1.Engine1.T1 = 345162.888; % [N]
 L1.Engine2.T2 = 24704.632; % [N]
 
-TR.Engine1.T1 = P.Engine1.T1;
-TR.Engine2.T2 = P.Engine2.T2;
-TR.Engine3.T3 = P.Engine3.T3;
+TR.Engine1.T1 = L1.Engine1.T1;
+TR.Engine2.T2 = L1.Engine2.T2;
+%TR.Engine3.T3 = P.Engine3.T3;
 TR.Engine1.A_exit1 = P.Engine1.A_exit1;
 TR.Engine2.A_exit2 = P.Engine2.A_exit2;
-TR.Engine3.A_exit3 = P.Engine3.A_exit3;
+%TR.Engine3.A_exit3 = P.Engine3.A_exit3;
 TR.Engine1.A_t1 = P.Engine1.A_t1;
 TR.Engine2.A_t2 = P.Engine2.A_t2;
-TR.Engine3.A_t3 = P.Engine3.A_t3;
+%TR.Engine3.A_t3 = P.Engine3.A_t3;
 
 M_struct1 = (2.55*(10^-4))* TR.Engine1.T1; % [kg] Empirical formula slides Maggi 06, structures part 1
 M_struct2 = (2.55*(10^-4))* TR.Engine2.T2; % [kg] Empirical formula slides Maggi 06, structures part 1
-M_struct3 = (2.55*(10^-4))* TR.Engine3.T3; % [kg] Empirical formula slides Maggi 06, structures part 1
+%M_struct3 = (2.55*(10^-4))* TR.Engine3.T3; % [kg] Empirical formula slides Maggi 06, structures part 1
 
 M_engine1 = (7.81*(10^-4))* TR.Engine1.T1 + (3.37*(10^-5))*TR.Engine1.T1*(sqrt(TR.Engine1.A_exit1/TR.Engine1.A_t1)) + 59; % [kg] Empirical formula slides Maggi 06, structures part 1
 M_engine2 = (7.81*(10^-4))* TR.Engine2.T2 + (3.37*(10^-5))*TR.Engine2.T2*(sqrt(TR.Engine2.A_exit2/TR.Engine2.A_t2)) + 59; % [kg] Empirical formula slides Maggi 06, structures part 1
-M_engine3 = (7.81*(10^-4))* TR.Engine3.T3 + (3.37*(10^-5))*TR.Engine3.T3*(sqrt(TR.Engine3.A_exit3/TR.Engine3.A_t3)) + 59; % [kg] Empirical formula slides Maggi 06, structures part 1
+%M_engine3 = (7.81*(10^-4))* TR.Engine3.T3 + (3.37*(10^-5))*TR.Engine3.T3*(sqrt(TR.Engine3.A_exit3/TR.Engine3.A_t3)) + 59; % [kg] Empirical formula slides Maggi 06, structures part 1
 
 M_parachute1 = 0.1*TR.M.Ms1; %[kg] Ele's law, anche 7%, tra 7-10%
 M_parachute2 = 0.1*TR.M.Ms2; %[kg] Ele's law
 
-M_inert_tot_real = M_cables + M_avionics + M_fairing + TR.M_pay + M_struct1 + M_struct2 + M_struct3 +  M_engine1+  M_engine2+  M_engine3 +M_parachute1 +M_parachute2;
+%M_inert_tot_real = M_cables + M_avionics + M_fairing + TR.M_pay + M_struct1 + M_struct2 + M_struct3 +  M_engine1+  M_engine2+  M_engine3 +M_parachute1 +M_parachute2;
+M_inert_tot_real = M_cables + M_avionics + M_fairing + TR.M_pay + M_struct1 + M_struct2 +  M_engine1+  M_engine2+ +M_parachute1 +M_parachute2;
 
 Delta_inert_mass = TR.Mtot_Inert_Budget - M_inert_tot_real;
 
@@ -386,42 +431,42 @@ end
 
 %% Functions
 
-function [M,n,lambda_c] = initialmass_opt_2stage(c1c,c2c,eps_1c,eps_2c,M_pay,Delta_V,lambda0)
+function [M,n,lambda] = initialmass_opt_2stage(c1,c2,eps_1,eps_2,M_pay,Delta_V,lambda0)
 
 options = optimoptions('fsolve', 'Display', 'none');
 
 
-f = @(x) c1c*log(c1c*x -1) + c2c*log(c2c*x -1) - log(x)*(c1c+c2c) - c1c*log(c1c*eps_1c) - c2c*log(c2c*eps_2c) - Delta_V;
+f = @(x) c1*log(c1*x -1) + c2*log(c2*x -1) - log(x)*(c1+c2) - c1*log(c1*eps_1) - c2*log(c2*eps_2) - Delta_V;
 
-lambda_c = fsolve(f,lambda0,options);
+lambda = fsolve(f,lambda0,options);
 
-n.n1c = (c1c*lambda_c - 1)/(c1c*eps_1c*lambda_c); % [-] 1/MR1 % must be larger than 1
-n.n2c = (c2c*lambda_c - 1)/(c2c*eps_2c*lambda_c); % [-] 1/MR2
+n.n1 = (c1*lambda - 1)/(c1*eps_1*lambda); % [-] 1/MR1 % must be larger than 1
+n.n2 = (c2*lambda - 1)/(c2*eps_2*lambda); % [-] 1/MR2
 
-M.M2c = ((n.n2c -1)/(1 - n.n2c*eps_2c)) * (M_pay); % [kg] Mass of stage 2
-M.M1c = ((n.n1c -1)/(1 - n.n1c*eps_1c)) * (M.M2c+ M_pay); % [kg] Mass of stage 1
+M.M2 = ((n.n2 -1)/(1 - n.n2*eps_2)) * (M_pay); % [kg] Mass of stage 2
+M.M1 = ((n.n1 -1)/(1 - n.n1*eps_1)) * (M.M2+ M_pay); % [kg] Mass of stage 1
 
-M.Ms1c = eps_1c*M.M1c; % [kg] Mass of structure of 1
-M.Ms2c = eps_2c*M.M2c; % [kg] Mass of structure of 2
+M.Ms1 = eps_1*M.M1; % [kg] Mass of structure of 1
+M.Ms2 = eps_2*M.M2; % [kg] Mass of structure of 2
 
-M.Mp1c = M.M1c - M.Ms1c; % [kg] Mass of propellaft of 1
-M.Mp2c = M.M2c - M.Ms2c; % [kg] Mass of propellant of 2
+M.Mp1 = M.M1 - M.Ms1; % [kg] Mass of propellaft of 1
+M.Mp2 = M.M2 - M.Ms2; % [kg] Mass of propellant of 2
 
-M.M02c = M_pay+ M.M2c; % [kg] Mass of stack 2
-M.M01c = M.M02c + M.M1c; % [kg] Mass of stack 1
+M.M02 = M_pay+ M.M2; % [kg] Mass of stack 2
+M.M01 = M.M02 + M.M1; % [kg] Mass of stack 1
 
 
-M.MR1c = 1/n.n1c;
-M.MR2c = 1/n.n2c;
+M.MR1 = 1/n.n1;
+M.MR2 = 1/n.n2;
 
-if n.n1c<1 | isreal(n.n1c)==0
-    M.M01c = NaN;
-     n.n1c = NaN;
-     M.MR1c = NaN;
-elseif n.n2c<1 | isreal(n.n2c)==0
- M.M01c = NaN;
-  n.n2c = NaN;
-  M.MR2c = NaN;
+if n.n1<1 | isreal(n.n1)==0
+    M.M01 = NaN;
+     n.n1 = NaN;
+     M.MR1 = NaN;
+elseif n.n2<1 | isreal(n.n2)==0
+ M.M01 = NaN;
+  n.n2 = NaN;
+  M.MR2 = NaN;
 
 end
 
