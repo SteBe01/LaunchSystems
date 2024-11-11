@@ -83,21 +83,23 @@ L1.Err_M01_L1 = (abs(ML1_model.M01 - L1.M01))/L1.M01; % error of our model wrt R
 
 % Our Launcher:
 
+Perc_loss =0.1; % error related to computation of parameters
+
 % Hyp: 3 stages
 % Pegasus is chosen for eps and Is of engine:
 
 % % Specific impulse: from Pegasus
-% Is1 = 290.2; % [s]
-% Is2 = 289.4; % [s]
-% Is3 = 287.4; % [s]
+% Is1 = 290.2*(1-Perc_loss); % [s]
+% Is2 = 289.4*(1-Perc_loss); % [s]
+% Is3 = 287.4*(1-Perc_loss); % [s]
 
 % Specific Impulse: from LauncherOne
-Is1 = 309; % [s]
-Is2 = 328; % [s]
+Is1 = 309*(1-Perc_loss); % [s]
+Is2 = 328*(1-Perc_loss); % [s]
 
 % % Specific Impulse: from Electron
-% Is1 = 303; % [s]
-% Is2 = 333; % [s]
+% Is1 = 303*(1-Perc_loss); % [s]
+% Is2 = 333*(1-Perc_loss); % [s]
 
 % % Structural mass index: from Pegasus
 % eps_1 = 0.08; % [-]
@@ -160,6 +162,7 @@ El.H_fair_conetrap_int_El = 1.3586;
 El.H_fair_nose_El = 0.119;
 El.M_fair_El = 44; % [kg]
 El.M_pay_max_El = 300;% [kg]
+El.fair_thick =  (1.200-1.070)/2;
 
 El.V_fair_El = V_fair_approx(El.D_fair_base_int_El,El.D_fair_base_ext_El,El.H_fair_base_El,El.D_fair_conetrap_int_El,El.D_fair_conetrap_ext_El,El.H_fair_conetrap_int_El,El.H_fair_nose_El);
 
@@ -174,6 +177,7 @@ L1.H_fair_conetrap_int_L1 = 3.5433-2.1234;
 L1.H_fair_nose_L1 = 3.63 - 3.5433;
 L1.M_fair_L1 = 145;
 L1.M_pay_max_L1 = 500; % [kg]
+L1.fair_thick = 0.11176;
 
 L1.V_fair_L1 = V_fair_approx(L1.D_fair_base_int_L1,L1.D_fair_base_ext_L1,L1.H_fair_base_L1,L1.D_fair_conetrap_int_L1,L1.D_fair_conetrap_ext_L1,L1.H_fair_conetrap_int_L1,L1.H_fair_nose_L1);
 
@@ -189,6 +193,7 @@ P.H_fair_conetrap_int_P = 2.656 - 1.11 + 0.4;
 P.H_fair_nose_P = 3.63 - 3.5433;
 P.M_fair_P = 170; % [kg] Maggi's ex
 P.M_pay_max_P = 443; % [kg]
+P.fair_thick = (1.27-1.153)/2;
 
 P.V_fair_P = V_fair_approx(P.D_fair_base_int_P,P.D_fair_base_ext_P,P.H_fair_base_P,P.D_fair_conetrap_int_P,P.D_fair_conetrap_ext_P,P.H_fair_conetrap_int_P,P.H_fair_nose_P);
 
@@ -297,6 +302,8 @@ TR.fn_ratio = round(V_fn_eq(1)*TR.M.M01 + V_fn_eq(2));
 TR.Diameter = ((4*TR.V_launcher)/(pi*TR.fn_ratio) )^(1/3);  % [m]
 TR.Length = TR.fn_ratio * TR.Diameter; % [m] Whole body length
 
+TR.fair_thick = mean([El.fair_thick;P.fair_thick;L1.fair_thick]);
+% TR.fair_length = TR.V_fair/( ((pi/4)*(TR.Diameter^2)) + ((pi/3)*(((TR.Diameter^2)/4)+(((TR.Diameter-2*TR.fair_thick)^2)/4)+((TR.Diameter*(TR.Diameter-2*TR.fair_thick))/4))) + ((pi/4)*((TR.Diameter-2*TR.fair_thick)^2)));
 TR.fair_length = (TR.V_fair*4)/(pi*(TR.Diameter^2)); % [m] Fairing length
 TR.body_length = TR.Length - TR.fair_length; % [m] Body length
 
@@ -458,9 +465,9 @@ else
 figure()
 bar([TR.Mtot_Inert_Budget 0; M_inert_tot_real Delta_inert_mass],'stacked');
 grid on;
-xticklabels('Team Rocket', 'Actual Masses');
+xticklabels({'Team Rocket', 'Actual Masses'});
 ylabel('Inert Mass');
-legend('Inert Mass', 'Available Mass');
+legend('Inert Mass', 'Available Mass',Location='bestoutside');
 title('Inert Mass Budget');
 
 end
