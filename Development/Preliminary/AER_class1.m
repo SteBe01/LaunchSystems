@@ -86,6 +86,12 @@ end
 
 
 
+%% CL and CD conversion:
+
+[CL, CD] = body2wind(Cn, Ca, alpha_v);
+
+
+
 %% PLOTS:
 
 
@@ -101,6 +107,7 @@ plot(Mach_v, Ca_w)
 xlabel('Mach')
 ylabel('Ca_w')
 
+
 subplot(2, 2, 3)
 plot(Mach_v, Ca_b)
 xlabel('Mach')
@@ -114,11 +121,35 @@ ylabel('Ca_f')
 
 
 figure
+subplot(2, 2, 1)
 plot(Mach_v, Cn)
 grid on
 xlabel('Mach')
 ylabel('Cn')
-title('Cn vs Mach , ogni linea un alpha diverso')
+legend('alpha: ',  int2str(alpha_v))
+
+
+subplot(2, 2, 2)
+plot(Mach_v, CL)
+grid on
+xlabel('Mach')
+ylabel('CL')
+legend('alpha: ',  int2str(alpha_v))
+
+subplot(2, 2, 3)
+plot(Mach_v, Ca)
+grid on
+xlabel('Mach')
+ylabel('Ca')
+legend('alpha: ',  int2str(alpha_v))
+
+subplot(2, 2, 4)
+plot(Mach_v, CD)
+grid on
+xlabel('Mach')
+ylabel('CD')
+legend('alpha: ',  int2str(alpha_v))
+
 
 
 
@@ -339,4 +370,13 @@ sigma = 2 * (180/pi) *atan(diameter/2/lenght);
 p =  (0.083  + 0.096/Mach^2) * (sigma/10)^1.69;
 lod2 = (lenght/diameter)^2;
 cdw = p * ( 1 - (196*lod2-16) / (14 * lod2 * (Mach+18)));
+end
+%% Body to Wind:
+function [CL, CD] = body2wind(Cn, Ca, alpha_v)
+
+CL = [];
+CD = [];
+
+CL = Cn .* cos(deg2rad(alpha_v)) - Ca .* sin(deg2rad(alpha_v));
+CD = Cn .* sin(deg2rad(alpha_v)) + Ca .* cos(deg2rad(alpha_v));
 end
