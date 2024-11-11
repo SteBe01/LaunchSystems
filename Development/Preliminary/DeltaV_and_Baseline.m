@@ -251,6 +251,7 @@ El.fn_ratio = 14;
 El.V_launcher = 19.226547; % [m^3]
 El.rho_launcher = El.M01/El.V_launcher;
 El.V_empty = 4.08099; % [m^3]
+El.rho_empty = El.M01/El.V_empty;
 El.V_fair_El.Ltot = 2.5; % [m]
 El.fn_nose = El.V_fair_El.Ltot/El.D_fair_base_ext_El; % [-]
 
@@ -261,13 +262,27 @@ x_massl_eq = [L1.M01;P.M01;El.M01];
 V_massl_eq = polyfit(x_massl_eq,y_massl_eq,1);
 y_massl_line = @(x) V_massl_eq(1)*x + V_massl_eq(2);
 
+y_rhol_eq = [L1.rho_launcher;P.rho_launcher;El.rho_launcher];
+x_rhol_eq = [L1.M01;P.M01;El.M01];
+V_rhol_eq = polyfit(x_rhol_eq,y_rhol_eq,1);
+y_rhol_line = @(x) V_rhol_eq(1)*x + V_rhol_eq(2);
+
+TR.V_launcher = TR.M.M01/(V_rhol_eq(1)*TR.M.M01 + V_rhol_eq(2));
+
 y_massle_eq = [L1.V_empty;P.V_empty;El.V_empty];
 x_massle_eq = [L1.M01;P.M01;El.M01];
 V_massle_eq = polyfit(x_massle_eq,y_massle_eq,1);
 y_massle_line = @(x) V_massle_eq(1)*x + V_massle_eq(2);
 
-TR.V_launcher = V_massl_eq(1)*TR.M.M01 + V_massl_eq(2);
-TR.V_launcher_empty = V_massle_eq(1)*TR.M.M01 + V_massle_eq(2);
+y_rhole_eq = [L1.rho_empty;P.rho_empty;El.rho_empty];
+x_rhole_eq = [L1.M01;P.M01;El.M01];
+V_rhole_eq = polyfit(x_rhole_eq,y_rhole_eq,1);
+y_rhole_line = @(x) V_rhole_eq(1)*x + V_rhole_eq(2);
+
+TR.V_launcher_empty = TR.M.M01/(V_rhole_eq(1)*TR.M.M01 + V_rhole_eq(2));
+
+% TR.V_launcher = V_massl_eq(1)*TR.M.M01 + V_massl_eq(2);
+% TR.V_launcher_empty = V_massle_eq(1)*TR.M.M01 + V_massle_eq(2);
 
 TR.V_launcher_effective = TR.V_launcher - TR.V_launcher_empty; % [m^3]
 
@@ -277,7 +292,7 @@ V_fn_eq = polyfit(x_fn_eq,y_fn_eq,1);
 y_fn_line = @(x) V_fn_eq(1)*x + V_fn_eq(2);
 
 %TR.fn_ratio = P.fn_ratio; % [-] L/D=f (Pegasus Baseline) imposed ??
-TR.fn_ratio = V_fn_eq(1)*TR.M.M01 + V_fn_eq(2);
+TR.fn_ratio = round(V_fn_eq(1)*TR.M.M01 + V_fn_eq(2));
 
 TR.Diameter = ((4*TR.V_launcher)/(pi*TR.fn_ratio) )^(1/3);  % [m]
 TR.Length = TR.fn_ratio * TR.Diameter; % [m] Whole body length
@@ -297,56 +312,78 @@ ylabel('Radius [m]');
 
 % Plot to see where we are wrt Baseline
 
-x_pay_eq = [El.V_fair_El.V_fair_tot;L1.V_fair_L1.V_fair_tot;P.V_fair_P.V_fair_tot];
-y_pay_eq = [El.M_pay_max_El,L1.M_pay_max_L1,P.M_pay_max_P];
-rho_pay_eq = polyfit(x_pay_eq,y_pay_eq,1);
-y_pay_line = @(x) rho_pay_eq(1)*x + rho_pay_eq(2);
-
-x_vec = linspace(0,10,300);
+x_vec = linspace(0,1000,300);
 figure()
-plot(x_vec,y_pay_line(x_vec));
+plot(x_vec,y_rhop_line(x_vec));
 hold on;
-plot(x_pay_eq,y_pay_eq,'o');
+plot(x_rhop_eq,y_rhop_eq,'o');
 hold on;
-plot(TR.V_fair,TR.M_pay,'^');
-xlabel('Volume of Fairing $[m^3]$',Interpreter='latex');
-ylabel('Mass of Payload [kg]',Interpreter='latex');
-title('Linear Interpolation of Payload Mass and Fairing Volume');
+plot(TR.M_pay_max_mission,(V_rhop_eq(1)*TR.M_pay_max_mission + V_rhop_eq(2)),'^');
+xlabel('Maximum Payload Mass $[kg]$',Interpreter='latex');
+ylabel('Density of Fairing $[\frac{kg}{m^3}]$',Interpreter='latex');
+title('Linear Interpolation of Payload Mass and Fairing Density');
 legend('','Baseline','Team rocket');
 
-x_mass_eq = [L1.V_launcher;P.V_launcher];
-y_mass_eq = [L1.M01,P.M01];
-V_mass_eq = polyfit(x_mass_eq,y_mass_eq,1);
-y_mass_line = @(x) V_mass_eq(1)*x + V_mass_eq(2);
-
-x_vec = linspace(0,100,300);
+x_vec = linspace(0,1000,300);
 figure()
-plot(x_vec,y_mass_line(x_vec));
+plot(x_vec,y_rhope_line(x_vec));
 hold on;
-plot(x_mass_eq,y_mass_eq,'o');
+plot(x_rhope_eq,y_rhope_eq,'o');
 hold on;
-plot(TR.V_launcher,TR.M.M01,'^');
-xlabel('Volume of Launcher $ [m^3] $',Interpreter='latex');
-ylabel('GLOM [kg] ');
+plot(TR.M_pay_max_mission,(V_rhope_eq(1)*TR.M_pay_max_mission + V_rhope_eq(2)),'^');
+xlabel('Maximum Payload Mass $[kg]$',Interpreter='latex');
+ylabel('Density of Empty Fairing $[\frac{kg}{m^3}]$',Interpreter='latex');
+title('Linear Interpolation of Payload Mass and Fairing Empty Density');
+legend('','Baseline','Team rocket');
+
+x_vec = linspace(0,50000,300);
+figure()
+plot(x_vec,y_massl_line(x_vec));
+hold on;
+plot(x_massl_eq,y_massl_eq,'o');
+hold on;
+plot(TR.M.M01,TR.V_launcher,'^');
+xlabel('GLOM $[kg]$',Interpreter='latex');
+ylabel('Volume of Launcher $[m^3]$',Interpreter='latex');
 title('Linear Interpolation of GLOM and Launcher Volume');
 legend('','Baseline','Team rocket');
 
-x_empty_eq = [L1.V_empty;P.V_empty];
-y_empty_eq = [L1.M01,P.M01];
-V_empty_eq = polyfit(x_empty_eq,y_empty_eq,1);
-y_empty_line = @(x) V_empty_eq(1)*x + V_empty_eq(2);
-
-x_vec = linspace(0,10,300);
+x_vec = linspace(0,50000,300);
 figure()
-plot(x_vec,y_empty_line(x_vec));
+plot(x_vec,y_massle_line(x_vec));
 hold on;
-plot(x_empty_eq,y_empty_eq,'o');
+plot(x_massle_eq,y_massle_eq,'o');
 hold on;
-plot(TR.V_launcher_empty,TR.M.M01,'^');
-xlabel('Empty volume of Launcher $ [m^3] $',Interpreter='latex');
-ylabel('GLOM [kg] ');
+plot(TR.M.M01,TR.V_launcher_empty,'^');
+xlabel('GLOM $[kg]$',Interpreter='latex');
+ylabel('Volume of Launcher $[m^3]$',Interpreter='latex');
 title('Linear Interpolation of GLOM and Launcher Empty Volume');
 legend('','Baseline','Team rocket');
+
+x_vec = linspace(0,50000,300);
+figure()
+plot(x_vec,y_rhol_line(x_vec));
+hold on;
+plot(x_rhol_eq,y_rhol_eq,'o');
+hold on;
+plot(TR.M.M01,(V_rhol_eq(1)*TR.M.M01 + V_rhol_eq(2)),'^');
+xlabel('GLOM $[kg]$',Interpreter='latex');
+ylabel('Density of Launcher $[\frac{kg}{m^3}]$',Interpreter='latex');
+title('Linear Interpolation of GLOM and Launcher Density');
+legend('','Baseline','Team rocket');
+
+x_vec = linspace(0,50000,300);
+figure()
+plot(x_vec,y_rhole_line(x_vec));
+hold on;
+plot(x_rhole_eq,y_rhole_eq,'o');
+hold on;
+plot(TR.M.M01,(V_rhole_eq(1)*TR.M.M01 + V_rhole_eq(2)),'^');
+xlabel('GLOM $[kg]$',Interpreter='latex');
+ylabel('Density of Empty Launcher $[\frac{kg}{m^3}]$',Interpreter='latex');
+title('Linear Interpolation of GLOM and Launcher Empty Density');
+legend('','Baseline','Team rocket');
+
 
 
 %% Mass Budget:
