@@ -5,7 +5,7 @@ close all
 
 input.vmag = 30;
 input.theta = deg2rad(45);
-input.tflight = 5;
+input.tflight = 50;
 
 target.x = 1000;
 target.y = 1000;
@@ -120,13 +120,20 @@ function dx_vect = dyn_fun(~, x_vect, param)
 dx_vect = zeros(size(x_vect));
 dx_vect(1:2,:) = x_vect(3:4,:);
 
-% % Speed 
-% vx = x_vect(3,:);
-% vy = x_vect(4,:);
-% v = sqrt(vx.*vx + vy.*vy); 
+% Speed 
+vx = x_vect(3,:);
+vy = x_vect(4,:);
+v = sqrt(vx.*vx + vy.*vy); 
+
+% rho = 1.225;
+% S= 1;
+% Cd = 0.7;
+% F_drag = @(v) 0.5*rho*norm(v)^2*S*Cd;
 
 % Forces
+% fx = -F_drag(vx);
 fx = 0;
+% fy = -param.g -F_drag(vy);
 fy = -param.g;
 
 % Derivative of velocity states
