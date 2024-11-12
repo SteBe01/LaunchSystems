@@ -362,30 +362,6 @@ legend('','Baseline','Team rocket');
 
 x_vec = linspace(0,50000,300);
 figure()
-plot(x_vec,y_massl_line(x_vec));
-hold on;
-plot(x_massl_eq,y_massl_eq,'o');
-hold on;
-plot(TR.M.M01,TR.V_launcher,'^');
-xlabel('GLOM $[kg]$',Interpreter='latex');
-ylabel('Volume of Launcher $[m^3]$',Interpreter='latex');
-title('Linear Interpolation of GLOM and Launcher Volume');
-legend('','Baseline','Team rocket');
-
-x_vec = linspace(0,50000,300);
-figure()
-plot(x_vec,y_massle_line(x_vec));
-hold on;
-plot(x_massle_eq,y_massle_eq,'o');
-hold on;
-plot(TR.M.M01,TR.V_launcher_empty,'^');
-xlabel('GLOM $[kg]$',Interpreter='latex');
-ylabel('Volume of Launcher $[m^3]$',Interpreter='latex');
-title('Linear Interpolation of GLOM and Launcher Empty Volume');
-legend('','Baseline','Team rocket');
-
-x_vec = linspace(0,50000,300);
-figure()
 plot(x_vec,y_rhol_line(x_vec));
 hold on;
 plot(x_rhol_eq,y_rhol_eq,'o');
