@@ -151,6 +151,15 @@ legend('Cost Function','Fsolve solution');
 
 %% Fairing Volume Evaluation:
 
+% Empirically compute the volume of the fairing by taking data from the
+% datasheets and approximating the volume to a cylinder + truncated cone +
+% small cylinder for the nose: 
+% Use base diameter, nose diameter and the heights of the 3 different parts
+
+% Inizialization of all the data from datasheets (state page and where are
+% found) and then use the function V_fair_approx to compute the
+% approximated voòume and empty one
+
 % Electron: payload user guide 7.0, pg 18,23; Carbon composite fairing
 
 El.D_fair_base_int_El = 1.070; % [m]
@@ -212,24 +221,36 @@ P.rho_fair_P = P.M_fair_P/(P.V_fair_P.V_fair_tot - P.V_fair_P.V_fair_tot_int);
 
 % Volume and mass of fairing of our launcher:
 
-TR.M_pay_max_mission = 400; % [kg]
+% Compute volume and mass of fairing of our launcher via interpolation of
+% data
 
+TR.M_pay_max_mission = 400; % [kg] constarint on max volume
+
+% Interpolation of data for whole volume of fairing:
 x_rhop_eq = [L1.M_pay_max_L1,P.M_pay_max_P,El.M_pay_max_El];
 y_rhop_eq = [L1.rho_pay_L1,P.rho_pay_P,El.rho_pay_El];
 V_rhop_eq = polyfit(x_rhop_eq,y_rhop_eq,1);
 y_rhop_line = @(x) V_rhop_eq(1)*x + V_rhop_eq(2);
 
+% Interpolation of data for empty volume of fairing:
 x_rhope_eq = [L1.M_pay_max_L1,P.M_pay_max_P,El.M_pay_max_El];
 y_rhope_eq = [L1.rho_pay_L1_empty,P.rho_pay_P_empty,El.rho_pay_El_empty];
 V_rhope_eq = polyfit(x_rhope_eq,y_rhope_eq,1);
 y_rhope_line = @(x) V_rhope_eq(1)*x + V_rhope_eq(2);
 
+% Use of data interpolation to get values of our fairing
 TR.V_fair = TR.M_pay_max_mission/(V_rhop_eq(1)*TR.M_pay_max_mission + V_rhop_eq(2));
 TR.V_fair_empty = TR.M_pay_max_mission/(V_rhope_eq(1)*TR.M_pay_max_mission + V_rhope_eq(2)); % [m^3] Empty volume
+
+% Mass of fairing computed from mean densities of our baselines:
 
 TR.M_fair = mean([L1.rho_fair_L1;El.rho_fair_El;P.rho_fair_P]) * (TR.V_fair - TR.V_fair_empty); % [kg]
 
 %% Volume of launcher: From Excel on Baseline: 
+
+% Compute volume and empty one of our launcher using baseline data, the
+% necessary data i all initialised in terms of baseline and the values from
+% TR.M are used which were taken from the optimization_stage_2stages
 
 % Definition of values for baseline:
 
@@ -260,37 +281,33 @@ El.rho_empty = El.M01/El.V_empty;
 El.V_fair_El.Ltot = 2.5; % [m]
 El.fn_nose = El.V_fair_El.Ltot/El.D_fair_base_ext_El; % [-]
 
-% Choose one baseline for the density and compute Volume of our Launcher:
+% Interpolate values from the 3 baselines as before:
 
-y_massl_eq = [L1.V_launcher;P.V_launcher;El.V_launcher];
-x_massl_eq = [L1.M01;P.M01;El.M01];
-V_massl_eq = polyfit(x_massl_eq,y_massl_eq,1);
-y_massl_line = @(x) V_massl_eq(1)*x + V_massl_eq(2);
-
+% Interpolation of full densities (fairing does not count as it is hyp full)
 y_rhol_eq = [L1.rho_launcher;P.rho_launcher;El.rho_launcher];
 x_rhol_eq = [L1.M01;P.M01;El.M01];
 V_rhol_eq = polyfit(x_rhol_eq,y_rhol_eq,1);
 y_rhol_line = @(x) V_rhol_eq(1)*x + V_rhol_eq(2);
 
+% Volume of launcher is obtained from interpolation
 TR.V_launcher = TR.M.M01/(V_rhol_eq(1)*TR.M.M01 + V_rhol_eq(2));
 
-y_massle_eq = [L1.V_empty;P.V_empty;El.V_empty];
-x_massle_eq = [L1.M01;P.M01;El.M01];
-V_massle_eq = polyfit(x_massle_eq,y_massle_eq,1);
-y_massle_line = @(x) V_massle_eq(1)*x + V_massle_eq(2);
-
+% Interpolation of empty densities (fairing does not count as it is hyp full)
 y_rhole_eq = [L1.rho_empty;P.rho_empty;El.rho_empty];
 x_rhole_eq = [L1.M01;P.M01;El.M01];
 V_rhole_eq = polyfit(x_rhole_eq,y_rhole_eq,1);
 y_rhole_line = @(x) V_rhole_eq(1)*x + V_rhole_eq(2);
 
+% Empty volume of launcher is obtained from interpolation
 TR.V_launcher_empty = TR.M.M01/(V_rhole_eq(1)*TR.M.M01 + V_rhole_eq(2));
 
 % TR.V_launcher = V_massl_eq(1)*TR.M.M01 + V_massl_eq(2);
 % TR.V_launcher_empty = V_massle_eq(1)*TR.M.M01 + V_massle_eq(2);
 
+% Effective volume as difference between whole and empty volume
 TR.V_launcher_effective = TR.V_launcher - TR.V_launcher_empty; % [m^3]
 
+% Interpolation of fineness ratios:
 y_fn_eq = [mean([L1.fn_ratio1;L1.fn_ratio2]);P.fn_ratio;El.fn_ratio];
 x_fn_eq = [L1.M01;P.M01;El.M01;];
 V_fn_eq = polyfit(x_fn_eq,y_fn_eq,1);
