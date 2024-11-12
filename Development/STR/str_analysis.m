@@ -4,23 +4,112 @@ clc;
 clear;
 close all;
 
-M.rp1 = 2860; %[kg] mass of rp1
-M.lox = 7140; %[kg] mass of lox
+Is = [290; 300]; %[s] stages Is
+eps = [0.07; 0.12]; %[-] stages structural mass indexes
+dv = 8.5; %[m/s] required dv;
+m_pay = 250; %[kg] payload mass
+m_fairing = 80; %[kg] fairing mass
 
-M.rhorp1 = 807;  %[kg/m^3] density of rp1
-M.rholox = 1140; %[kg/m^3] density of lox
+%GLOM from baseline
+[GLOM.m_stag, GLOM.m_tot, GLOM.m_prop] = TANDEM(Is, eps, dv, m_pay, 0);
 
+%stage 1 analysis
+OF = 2.58; %[-] Ox/Fu ratio for LOX-RP1
+M1.rp1 = GLOM.m_prop(1) * 1 / (1+OF); %[kg] mass of rp1
+M1.lox = GLOM.m_prop(1) * OF / (1+OF);%[kg] mass of lox
+M1.prop = M1.lox + M1.rp1;%[kg] mass of propellant
+M1.rhorp1 = 807;  %[kg/m^3] density of rp1
+M1.rholox = 1140; %[kg/m^3] density of lox
+
+n = 10; %[-] load factor
 d = 1.2; %[m] external diameter
 AR = 2; %aspect ratio of oblate domes [-]
-loads.acc = 10*9.81; %longitudinal acceleration [m/s^2]
-mat = 4; % 1 for Ti, 2 for Al, 3 for Steel, 4 for Carbon Fiber
-press = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
+loads.acc = n*9.81; %longitudinal acceleration [m/s^2]
+mat1 = 1; % 1 for Ti, 2 for Al, 3 for Steel, 4 for Carbon Fiber
+press1 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
 
-[M, h, th] = tank_mass(M, d, AR, loads, mat, press);
+%find S1 info
+[M1, h1, th1] = tank_mass(M1, d, AR, loads, mat1, press1);
+
+%stage 2 analysis
+OF = 2.58; %[-] Ox/Fu ratio for LOX-RP1
+M2.rp1 = GLOM.m_prop(2) * 1 / (1+OF); %[kg] mass of rp1
+M2.lox = GLOM.m_prop(2) * OF / (1+OF);%[kg] mass of lox
+M2.prop = M2.lox + M2.rp1;%[kg] mass of propellant
+M2.rhorp1 = 807;  %[kg/m^3] density of rp1
+M2.rholox = 1140; %[kg/m^3] density of lox
+mat2 = 1; % 1 for Ti, 2 for Al, 3 for Steel, 4 for Carbon Fiber
+press2 = 1; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
+
+%find S2 info
+[M2, h2, th2] = tank_mass(M2, d, AR, loads, mat2, press2);
+
+%MA parameters
+M.M0 = M1.tot + M2.tot + m_pay + m_fairing;%[kg] initial mass (first stack mass)
+M.M0e = M.M0 - M1.prop; %[kg] mass at S1 ending
+M.MR1 = M.M0 / M.M0e;
+M.M1 = M2.tot + m_pay + m_fairing;%[kg] second stack mass
+M.M1e = M.M1 - M2.prop; %[kg] mass at S2 ending
+M.MR2 = M.M1 / M.M1e;
+
 
 %% Functions
 
-function [M, h_tot, t] = tank_mass(M, diam, AR, loads, mat, pressure_type)
+function [m_stag, m_tot, m_prop] = TANDEM(Is, e, dv, m_pay, fsolveOut)
+%This function computes the optimal mass distribution and values between
+%stages for a tandem configuration.
+% INPUTS: 
+% Is : [nx1] [s] vector of the impulses of different stages
+% e  : [nx1] [1] vector of the structural mass indexes of different stages
+% dv : [1x1] [km/s] target delta_v
+% m_pay : [1x1] [kg] payload mass
+%
+% OUTPUT:
+% m_stag : [nx1] [kg] vector of the stages total masses
+% m_tot : [1x1] [kg] total initial mass
+% m_prop : [nx1] [kg] vector of the stages propellant masses
+
+
+g = 9.80665; %[m/s^2]
+c = Is*g/1000; %[m/s]
+
+n = length(c);
+
+fun = @(lambda) dv - c'*log(lambda*c-1) + log(lambda)*sum(c) + sum(c.*log(c.*e));
+
+if fsolveOut == 0
+    options = optimset('Display','off');
+else
+    options = optimset('Display','on');
+end
+lambda = fsolve(fun, 1, options);
+
+m = (lambda.*c-1)./(lambda.*c.*e);
+
+m_stag = zeros(n, 1);   %initialize
+m_stag(n) = (m(n)-1)/(1-e(n)*m(n))*m_pay;
+
+if n == 1
+
+    m_stag = m_stag(1);
+
+else
+    i = n-1;
+    while i >= 1
+
+        m_stag(i) = (m(i)-1)/(1-e(i)*m(i))*(m_pay+sum(m_stag));
+
+        i = i-1;
+
+    end
+end
+
+m_prop = m_stag.*(1-e);
+m_tot = sum(m_stag) + m_pay;
+
+end
+
+function [M, h, t] = tank_mass(M, diam, AR, loads, mat, pressure_type)
 % considers thickness equal along the whole tank.
 % safety factor to be defined.
 % the volume is the volume of propellant to be contained: you cannot use
@@ -118,9 +207,9 @@ elseif t_rp1 < t_min
 end
 
 %height of tanks
-h_lox = l_lox(t_lox); %[m] height of tank
-h_rp1 = l_rp1(t_rp1); %[m] height of tank
-h_tot = h_lox + h_rp1; %[m] total height of tanks together
+h.tank_lox = l_lox(t_lox); %[m] height of tank
+h.tank_rp1 = l_rp1(t_rp1); %[m] height of tank
+h.tot = h.tank_lox + h.tank_rp1; %[m] total height of tanks together
 
 %surfaces estimation
 S_cyl_lox = 2*pi*R_int(t_lox)* h_cyl_lox(t_lox); %surface of cylindrical part [m^2]
@@ -136,4 +225,5 @@ M.tank_rp1 = rho * S_rp1 * t_rp1; %mass of the empty rp1 tank [kg]
 M.tot_lox = M.tank_lox + mlox; %[kg] mass of full lox tank
 M.tot_rp1 = M.tank_rp1 + mrp1; %[kg] mass of full rp1 tank
 M.tot = M.tot_lox + M.tot_rp1; %[kg] total mass of tanks and propellant
+M.tanks = M.tank_lox + M.tank_rp1; %[kg] mass of the two empty tanks
 end
