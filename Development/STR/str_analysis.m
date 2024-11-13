@@ -56,8 +56,9 @@ M.M1 = M2.tot + m_pay + m_fairing;%[kg] second stack mass
 M.M1e = M.M1 - M2.prop; %[kg] mass at S2 ending
 M.MR2 = M.M1 / M.M1e;
 
-M.eps1 = M1.inert / M1.tot; %[-] first stage structural mass index
-M.eps2 = M2.inert / M2.tot; %[-] first stage structural mass index
+M.eps1 = M1.eps; %[-] first stage structural mass index
+M.eps2 = M2.eps; %[-] first stage structural mass index
+
 % M.eps2 = ( M2.inert + m_pay + m_fairing ) / ( M2.tot + m_pay + m_fairing); %[-] first stage structural mass index
 %% Functions
 
@@ -88,7 +89,7 @@ if fsolveOut == 0
 else
     options = optimset('Display','on');
 end
-lambda = fsolve(fun, 1, options);
+lambda = real( fsolve(fun, 0.5, options) );
 
 m = (lambda.*c-1)./(lambda.*c.*e);
 
@@ -397,6 +398,115 @@ M.tot_rp1 = M.tank_rp1 + mrp1; %[kg] mass of full rp1 tank
 M.tot = M.tot_lox + M.tot_rp1 + M.motor; %[kg] total mass of motors, tanks and propellant
 M.tanks = M.tank_lox + M.tank_rp1; %[kg] mass of the two empty tanks
 M.inert = M.tanks + M.motor;%[kg] inert mass of stage (motors and tanks)
+M.eps = M.inert / M.tot;
 end
 
+function [M, dv1, dv2] = ROBUST(beta, dv, dv_loss, Is, e, m_pay, h, plotcase)
+%ROBUST applies the "brute force" method to compare the dv balance between
+%stages to find the optimal mass for the launchers.
+% First version: 09/10/2024
+% Author: Pietro Bolsi
+% More stages strategies can be implemented using alpha, beta vectors (dim
+% = #stages -1), plot is a #stages dimensional representation.
+%THEORY:
+% alpha : % of ideal dv carried by the first stage
+% beta : % of loss dv carried by the first stage
+%
+% dv_req = dv_id + dv_loss       ==dv
+% dv_req = dv1 + dv2             ==dv
+%
+% dv1 = alpha * dv_id + beta * dv_loss
+% dv2 = (1-alpha) * dv_id + (1-beta) * dv_loss
+%
+% Tsiolkovsky:
+% dv = c * log( n ) = -c * log( MR ).  MR = Mf/M0. c = Is * g. n=1/MR.
+
+if dv_loss > dv
+    error('Losses cannot be greater than the required dv');
+end
+
+%Problem setting:
+dv_id = dv - dv_loss; % [km/s]    dv == dv_req
+g = 9.80665; %[m/s^2]
+c = Is*g/1000; %[m/s]
+
+
+
+if nargin < 7
+    h = 0.01;
+end
+
+%Compute alpha extremes:
+a_m = 1 - (1 / dv_id) * ( c(2) * log( 1/e(2) ) + ( beta-1 ) * dv_loss ) + 0.01;
+a_M =     (1 / dv_id) * ( c(1) * log( 1/e(1) ) -  beta * dv_loss ) - 0.01;
+if a_M < a_m
+    disp('Launch not possible');
+end
+a_min = max(a_m, 0);
+a_max = min(a_M, 1);
+
+alpha = a_min:h:a_max ;
+
+l = length(alpha);
+
+%Initialize:
+dv1 = zeros(l, 1); % [km/s]
+dv2 = zeros(l, 1); % [km/s]
+n = zeros(2, l); % [kg/kg]
+M = zeros(3, l); % [kg]
+M(3, :) = m_pay * ones(1, l); % [kg]
+M_tot = zeros(l, 1); % [kg]
+j = 0;
+
+for i = 1:l
+
+    a = alpha(i);
+
+    dv1(i) = a * dv_id + beta * dv_loss;
+    n(1, i) = exp( dv1(i) / c(1) );          %row containing the n of stages 1
+    dv2(i) = (1-a) * dv_id + (1-beta) * dv_loss;
+    n(2, i) = exp( dv2(i) / c(2) );          %row containing the n of stages 2
+
+    M(2, i) = (n(2, i) - 1) * sum(M(:, i)) / (1 - n(2, i)*e(2)); %row containing the Mass of the Second stage wrt each alpha    
+    M(1, i) = (n(1, i) - 1) * sum(M(:, i)) / (1 - n(1, i)*e(1)); %row containing the Mass of the First stage wrt each alpha
+    
+    M_tot(i) = sum(M(:, i));     %vector of the total masses for each alpha value
+
+    if i > 1
+        if M_tot(i) > M_tot(i-1)
+            break
+        end
+    end
+    j = j + 1;
+    % M_pr2(i) = m_pay * (1-e(2)) * (1-exp(dv2(i)/c(2))) / ( exp(dv2(i)/c(2)) * e(2) - 1 );
+    % M_stg2(i) = 
+    % M_pr1(i) = 
+end
+M.tot = M_tot(j);
+M_prop2 = m_pay * (1-e(2)) * (1-exp(dv2(j)/c(2))) / ( exp(dv2(j)/c(2)) * e(2) - 1 );
+M_stg2 = M_prop2 / (1-e(2));
+M_prop1 = M_stg2 * (1-e(1)) * (1-exp(dv1(j)/c(1))) / ( exp(dv1(j)/c(1)) * e(1) - 1 );
+M_stg1 = M_prop1 / (1-e(1));
+M.tot_vec = M_tot;
+M.stg = [M_stg1; M_stg2];
+M.prop = [M_prop1; M_prop2];
+
+
+% switch plotcase
+%     case 1
+%     figure(1);
+%     plot(alpha, M_tot);
+%     xlabel('alpha');
+%     ylabel('M_{tot} [kg]');
+%     grid on
+% 
+%     figure(2);
+%     plot(dv1, M_tot);
+%     xlabel('Staging speed [km/s]');
+%     ylabel('M_{tot} [kg]');
+%     grid on
+%     case 0
+% end
+
+end
 
