@@ -3,16 +3,16 @@ clear all
 close all
 
 %% INPUTS:
-Mach_v = 0:0.2:8;
-alpha_v = 0:10:40;
+Mach_v = 0:0.1:8;
+alpha_v = 0:5:20;
 
 h = 10000;      % altitude
 
 
 % Geometry:
 
-x = [0 3 15];
-a = [0 1.2 1.3];
+x = [0 3.6 21];
+a = [0 1.8 1.8];
 b = a;      % radius is constant (no ellipse)
 
 phi = 0;       % IN CASE of ELLIPSE --> orientation wrt the normal velocity
@@ -26,11 +26,18 @@ dn = a(2);
 nose_type = 'TO';
 
 
+% Nose data loading from excel file:
+data = excel_load;
+
+
 figure
-plot(x, a/2, 'k', x, -a/2,'k')
+plot(x, a/2, 'k', x, -a/2,'k', LineWidth=1.75)
 axis equal
 grid on
-title('Geometry [m]')
+set(gca, 'FontSize', 30)
+xlabel('x [m]', FontSize=35)
+ylabel('y [m]', FontSize=35)
+title('Launcher shape', FontSize=40)
 
 
 %% REF. DATA:
@@ -79,7 +86,7 @@ for i = 1:length(Mach_v)
 
         %alpha = alpha_v(j);       
 
-        [Cn(i,j),Cn_Cn0_sb(i,j),Cn_Cn0_Newt(i,j), Cdn(i,j)] =  CN (max(a), max(b), x, ln, dn, A_b, A_r, A_p, Mach_v(i), alpha_v(j), h, phi);
+        [Cn(i,j),Cn_Cn0_sb(i,j),Cn_Cn0_Newt(i,j), Cdn(i,j)] =  CN (max(a), max(b), x, ln, dn, A_b, A_r, A_p, Mach_v(i), alpha_v(j), h, phi, data);
 
     end
 end
@@ -150,6 +157,23 @@ xlabel('Mach')
 ylabel('CD')
 legend('alpha: ',  int2str(alpha_v))
 
+figure
+plot(Mach_v, CD, LineWidth=1.75)
+set(gca, 'FontSize', 30)
+xlabel('Mach', FontSize=35)
+ylabel('Cd', FontSize=35)
+legend('AoA = 0°', 'AoA = 5°', 'AoA = 10°', 'AoA = 15°', 'AoA = 20°', FontSize=30)
+axis([0, 5.5, 0.1, 1.2])
+axis square
+
+figure
+plot(Mach_v, CL, LineWidth=1.75)
+set(gca, 'FontSize', 30)
+xlabel('Mach', FontSize=35)
+ylabel('Cl', FontSize=35)
+legend('AoA = 0°', 'AoA = 5°', 'AoA = 10°', 'AoA = 15°', 'AoA = 20°', FontSize=30)
+axis([0, 5.5, 0, 1.6])
+axis square
 
 
 
@@ -171,7 +195,7 @@ function Cdn = CDN(Mach, Mn_sample, cd_n_sample)
     end
 end
 %% CN:
-function [Cn_b,Cn_Cn0_sb,Cn_Cn0_Newt, Cdn] =  CN (a, b, x, ln, d_nose, A_b, A_r, A_p, M, alpha, h, phi)
+function [Cn_b,Cn_Cn0_sb,Cn_Cn0_Newt, Cdn] =  CN (a, b, x, ln, d_nose, A_b, A_r, A_p, M, alpha, h, phi, data)
 
 % This function computes preliminary aerodynamic normal coefficient 
 % according to the concept of component build-up
@@ -222,8 +246,8 @@ else
     end
 end
 
-% Excel file loading
-data = xlsread('Dataset Cdn.xlsx', 'Default Dataset');
+% % Excel file loading
+% data = xlsread('Dataset Cdn.xlsx', 'Default Dataset');
 % Estrazione delle coordinate x e y
 Mn_sample = [0;data(:, 1);4]; % first column, Mach number 
 Cd_n_sample = [1.2;data(:, 2);1.2863]; % Second column, Cdn
@@ -379,4 +403,11 @@ CD = [];
 
 CL = Cn .* cos(deg2rad(alpha_v)) - Ca .* sin(deg2rad(alpha_v));
 CD = Cn .* sin(deg2rad(alpha_v)) + Ca .* cos(deg2rad(alpha_v));
+end
+%% Excel file loading:
+function data = excel_load
+
+% Excel file loading:
+data = xlsread('Dataset Cdn.xlsx', 'Default Dataset');
+
 end
