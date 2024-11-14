@@ -19,6 +19,7 @@ d = 1.2; %[m] external diameter
 AR = 2; %aspect ratio of oblate domes [-]
 loads.acc = n*9.81; %longitudinal acceleration [m/s^2]
 %stage 1
+M1.OF = OF;%[-] Ox/Fu ratio
 M1.motor = 315; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
 M1.fairing = 107; %[kg] fairing of the first stage is nonexistent
 M1.rhorp1 = 807;  %[kg/m^3] density of rp1
@@ -26,15 +27,16 @@ M1.rholox = 1140; %[kg/m^3] density of lox
 mat1 = 1; % 1 for Ti, 2 for Al, 3 for Steel, 4 for Carbon Fiber %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
 press1 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
 %stage 2
+M2.OF = OF;%[-] Ox/Fu ratio
 M2.motor = 45; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
 M2.fairing = 0; %[kg] fairing of the second stage (31.8 / 31.9)
 M2.rhorp1 = 807;  %[kg/m^3] density of rp1
 M2.rholox = 1140; %[kg/m^3] density of lox
-mat2 = 4; % 1 for Ti, 2 for Al, 3 for Steel, 4 for Carbon Fiber %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+mat2 = 1; % 1 for Ti, 2 for Al, 3 for Steel, 4 for Carbon Fiber %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
 press2 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
 
 %first guesses:
-eps0 = [0.1; 0.1]; %[-] stages structural mass indexes
+eps0 = [0.06; 0.2]; %[-] stages structural mass indexes
 [GLOM.m_stag0, GLOM.m_tot0, GLOM.m_prop0] = TANDEM(Is, eps0, dv, m_pay, 0);
 
 %while loop parameters:
@@ -42,7 +44,7 @@ eps_new = eps0;
 i = 2;
 Nmax = 1000;
 err = 1;
-tol = 1e-4;
+tol = 1e-5;
 eps_real = zeros(2, Nmax-1);
 eps_real(:,1) = eps0;
 r = 0.0;
@@ -53,18 +55,22 @@ while i < Nmax && err > tol
     eps_old = eps_new;
 
     %compute new values:
-    [GLOM.m_stag, GLOM.m_tot, GLOM.m_prop] = TANDEM(Is, eps_old, dv, m_pay, 1);
+    [GLOM.m_stag, GLOM.m_tot, GLOM.m_prop] = TANDEM(Is, eps_real(:,i-1), dv, m_pay, 1);
     % [GLOM, dv1, dv2] = ROBUST(beta, dv, dv_loss, Is, eps_old, m_pay, h, plotcase);
     
     %first stage
-    M1.rp1 = GLOM.m_prop(1) * 1 / (1+OF); %[kg] mass of rp1
-    M1.lox = GLOM.m_prop(1) * OF / (1+OF);%[kg] mass of lox
+    M1.prop = GLOM.m_prop(1); %[kg] mass of propellant
+    % M1.prop = GLOM.prop(1); %[kg] mass of propellant
+    % M1.rp1 = GLOM.m_prop(1) * 1 / (1+OF); %[kg] mass of rp1
+    % M1.lox = GLOM.m_prop(1) * OF / (1+OF);%[kg] mass of lox
     % M1.rp1 = GLOM.prop(1) * 1 / (1+OF); %[kg] mass of rp1
     % M1.lox = GLOM.prop(1) * OF / (1+OF);%[kg] mass of lox
 
     %second stage
-    M2.rp1 = GLOM.m_prop(2) * 1 / (1+OF); %[kg] mass of rp1
-    M2.lox = GLOM.m_prop(2) * OF / (1+OF);%[kg] mass of lox
+    M2.prop = GLOM.m_prop(2); %[kg] mass of propellant
+    % M2.prop = GLOM.prop(2); %[kg] mass of propellant
+    % M2.rp1 = GLOM.m_prop(2) * 1 / (1+OF); %[kg] mass of rp1
+    % M2.lox = GLOM.m_prop(2) * OF / (1+OF);%[kg] mass of lox
     % M2.rp1 = GLOM.prop(2) * 1 / (1+OF); %[kg] mass of rp1
     % M2.lox = GLOM.prop(2) * OF / (1+OF);%[kg] mass of lox
 
@@ -77,7 +83,7 @@ while i < Nmax && err > tol
     eps2 = M2.eps;
 
     eps_real(:, i) = [eps1; eps2];
-
+    M.M0 = M1.tot + M2.tot;
     err = norm(eps_real(:, i)-eps_old);
     eps_new = eps_old*r + eps_real(:, i)*(1-r);%(eps_old + eps_real(:, i))/2;%eps_old - k*[0.001; 0.001] ;
     i = i+1;
@@ -85,18 +91,19 @@ end
 
 eps_real(:,i+2:end) = [];
 
+M0 = M.M0;
 %total propellants
-M1.prop = M1.prop; %lox + M1.rp1;%[kg] mass of propellant
-M2.prop = M2.prop;%lox + M2.rp1;%[kg] mass of propellant
+% M1.prop = M1.prop; %lox + M1.rp1;%[kg] mass of propellant
+% M2.prop = M2.prop;%lox + M2.rp1;%[kg] mass of propellant
 
-M.M0 = M1.tot + M2.tot + M.other1;%[kg] initial mass (first stack mass)
-M.M1 = M.M0 - M1.prop - M.other1 + M.other2; %[kg] second stack mass
-
-%MA parameters
-M.M0e = M.M0 - M1.prop; %[kg] mass at S1 ending
-M.MR1 = M.M0 / M.M0e; 
-M.M1e = M.M1 - M2.prop; %[kg] mass at S2 ending
-M.MR2 = M.M1 / M.M1e;
+% M.M0 = M1.tot + M2.tot + M.other1;%[kg] initial mass (first stack mass)
+% M.M1 = M.M0 - M1.prop - M.other1 + M.other2; %[kg] second stack mass
+% 
+% %MA parameters
+% M.M0e = M.M0 - M1.prop; %[kg] mass at S1 ending
+% M.MR1 = M.M0 / M.M0e; 
+% M.M1e = M.M1 - M2.prop; %[kg] mass at S2 ending
+% M.MR2 = M.M1 / M.M1e;
 
 %% Functions
 
@@ -128,6 +135,7 @@ else
     options = optimset('Display','on');
 end
 lambda0 = min( ((1-e).*c).^-1 );
+lambda0 = 0.5;
 % lambda = fsolve(fun, lambda0, options);
 lambda = fzero(fun, lambda0, options);
 
@@ -304,10 +312,15 @@ function [M, h, t] = inert_mass(M, diam, AR, loads, mat, pressure_type)
 % the volume is the volume of propellant to be contained: you cannot use
 % this function to evaluate blowdown architectures.
 
+
+
 %propellant masses
-mlox = M.lox; %[kg]
-mrp1 = M.rp1; %[kg]
-M.prop = mrp1 + mlox; %[kg] total propellant mass
+OF = M.OF;%[-] Ox/Fu ratio
+mlox = M.prop * OF / (1+OF);%[kg] mass of lox
+mrp1 = M.prop * 1  / (1+OF);%[kg] mass of rp1
+% mlox = M.lox; %[kg]
+% mrp1 = M.rp1; %[kg]
+% M.prop = mrp1 + mlox; %[kg] total propellant mass
 
 %propellant densities
 rholox = M.rholox; %[kg/m^3]
