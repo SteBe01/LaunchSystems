@@ -72,38 +72,38 @@ Perc_loss =0.1; % error related to computation of parameters
 % Pegasus is chosen for eps and Is of engine:
 
 % % Specific impulse: from Pegasus
-% P.Is1 = 290.2*(1-Perc_loss); % [s]
-% P.Is2 = 289.4*(1-Perc_loss); % [s]
-% P.Is3 = 287.4*(1-Perc_loss); % [s]
+% Base.P.Is1 = 290.2*(1-Perc_loss); % [s]
+% Base.P.Is2 = 289.4*(1-Perc_loss); % [s]
+% Base.P.Is3 = 287.4*(1-Perc_loss); % [s]
 
 % Specific Impulse: from LauncherOne
-L1.Is1 = 309*(1-Perc_loss); % [s]
-L1.Is2 = 328*(1-Perc_loss); % [s]
+Base.L1.Is1 = 309*(1-Perc_loss); % [s]
+Base.L1.Is2 = 328*(1-Perc_loss); % [s]
 
 % % Specific Impulse: from Electron
-% El.Is1 = 303*(1-Perc_loss); % [s]
-% El.Is2 = 333*(1-Perc_loss); % [s]
+% Base.El.Is1 = 303*(1-Perc_loss); % [s]
+% Base.El.Is2 = 333*(1-Perc_loss); % [s]
 
 % % Structural mass index: from Pegasus
-% P.eps_1 = 0.08; % [-]
-% P.eps_2 = 0.09; % [-]
-% P.eps_3 = 0.14; % [-]
+% Base.P.eps_1 = 0.08; % [-]
+% Base.P.eps_2 = 0.09; % [-]
+% Base.P.eps_3 = 0.14; % [-]
 
 % % Structural mass index: from LauncherOne
-% L1.eps_1 = 0.06; % [-]
-% L1.eps_2 = 0.06; % [-]
+% Base.L1.eps_1 = 0.06; % [-]
+% Base.L1.eps_2 = 0.06; % [-]
 
 % Structural mass index: from Electron
-El.eps_1 = 0.09; % [-]
-El.eps_2 = 0.11; % [-]
+Base.El.eps_1 = 0.09; % [-]
+Base.El.eps_2 = 0.11; % [-]
 
-IS = [L1.Is1;L1.Is2];
+IS = [Base.L1.Is1;Base.L1.Is2];
 
-EPSILON = [El.eps_1;El.eps_2];
+EPSILON = [Base.El.eps_1;Base.El.eps_2];
 
 M_pay = 250;
 
-[TR,Baseline] = Preliminary_Design(IS,EPSILON,TR.Delta_V_tot,M_pay,lambda0);
+[TR,Base] = Preliminary_Design(IS,EPSILON,TR.Delta_V_tot,M_pay,lambda0);
 
 %% Mass Budget:
 
@@ -117,40 +117,40 @@ M_avionics = 10*(TR.M.M01)^(0.361); % [kg] Empirical formula slides Maggi 06, st
 M_fairing = TR.Fair.M_fair; % [kg] calculated above 
 
 
-P.Engine3.Ms3 = 126; % [kg] from Northrop Grumman Orion Series, Orion 38
-P.Engine2.Ms2 = 416; % [kg] from Northrop Grumman Orion Series, Orion 50
-P.Engine1.Ms1 = 1369; % [kg] from Northrop Grumman Orion Series, Orion 50S
-P.Engine3.Mp3 = 770; % [kg]
-P.Engine2.Mp2 = 3925; % [kg]
-P.Engine3.Mp3 = 15014; % [kg]
-P.Engine3.T3 = 36933.58; % [N]
-P.Engine2.T2 = 131462.74; % [N]
-P.Engine1.T1 = 563327.232; % [N]
-P.Engine3.A_exit3 = pi*(0.52578^2)/4;
-P.Engine2.A_exit2 = pi*(0.86106^2)/4;
-P.Engine1.A_exit1 = pi*(1.4224^2)/4;
-P.Engine1.eps_c = 10; % HYP
-P.Engine3.A_t3 = (pi*(0.52578^2)/4)/10;
-P.Engine2.A_t2 = (pi*(0.86106^2)/4)/10;
-P.Engine1.A_t1 = (pi*(1.4224^2)/4)/10;
+Base.P.Engine3.Ms3 = 126; % [kg] from Northrop Grumman Orion Series, Orion 38
+Base.P.Engine2.Ms2 = 416; % [kg] from Northrop Grumman Orion Series, Orion 50
+Base.P.Engine1.Ms1 = 1369; % [kg] from Northrop Grumman Orion Series, Orion 50S
+Base.P.Engine3.Mp3 = 770; % [kg]
+Base.P.Engine2.Mp2 = 3925; % [kg]
+Base.P.Engine3.Mp3 = 15014; % [kg]
+Base.P.Engine3.T3 = 36933.58; % [N]
+Base.P.Engine2.T2 = 131462.74; % [N]
+Base.P.Engine1.T1 = 563327.232; % [N]
+Base.P.Engine3.A_exit3 = pi*(0.52578^2)/4;
+Base.P.Engine2.A_exit2 = pi*(0.86106^2)/4;
+Base.P.Engine1.A_exit1 = pi*(1.4224^2)/4;
+Base.P.Engine1.eps_c = 10; % HYP
+Base.P.Engine3.A_t3 = (pi*(0.52578^2)/4)/10;
+Base.P.Engine2.A_t2 = (pi*(0.86106^2)/4)/10;
+Base.P.Engine1.A_t1 = (pi*(1.4224^2)/4)/10;
 
 
-L1.Engine1.Ms1 = 1308; % [kg]
-L1.Engine2.Ms2 = 176; % [kg]
-L1.Engine1.Mp1 = 20496; % [kg]
-L1.Engine2.Mp2 = 2764; % [kg]
-L1.Engine1.T1 = 345162.888; % [N]
-L1.Engine2.T2 = 24704.632; % [N]
+Base.L1.Engine1.Ms1 = 1308; % [kg]
+Base.L1.Engine2.Ms2 = 176; % [kg]
+Base.L1.Engine1.Mp1 = 20496; % [kg]
+Base.L1.Engine2.Mp2 = 2764; % [kg]
+Base.L1.Engine1.T1 = 345162.888; % [N]
+Base.L1.Engine2.T2 = 24704.632; % [N]
 
-TR.Engine1.T1 = L1.Engine1.T1;
-TR.Engine2.T2 = L1.Engine2.T2;
-%TR.Engine3.T3 = P.Engine3.T3;
-TR.Engine1.A_exit1 = P.Engine1.A_exit1;
-TR.Engine2.A_exit2 = P.Engine2.A_exit2;
-%TR.Engine3.A_exit3 = P.Engine3.A_exit3;
-TR.Engine1.A_t1 = P.Engine1.A_t1;
-TR.Engine2.A_t2 = P.Engine2.A_t2;
-%TR.Engine3.A_t3 = P.Engine3.A_t3;
+TR.Engine1.T1 = Base.L1.Engine1.T1;
+TR.Engine2.T2 = Base.L1.Engine2.T2;
+%TR.Engine3.T3 = Base.P.Engine3.T3;
+TR.Engine1.A_exit1 = Base.P.Engine1.A_exit1;
+TR.Engine2.A_exit2 = Base.P.Engine2.A_exit2;
+%TR.Engine3.A_exit3 = Base.P.Engine3.A_exit3;
+TR.Engine1.A_t1 = Base.P.Engine1.A_t1;
+TR.Engine2.A_t2 = Base.P.Engine2.A_t2;
+%TR.Engine3.A_t3 = Base.P.Engine3.A_t3;
 
 M_struct1 = (2.55*(10^-4))* TR.Engine1.T1; % [kg] Empirical formula slides Maggi 06, structures part 1
 M_struct2 = (2.55*(10^-4))* TR.Engine2.T2; % [kg] Empirical formula slides Maggi 06, structures part 1
