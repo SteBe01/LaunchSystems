@@ -47,7 +47,7 @@ title('Launcher shape', FontSize=40)
 A_b = pi * a_max^2;     % area della base
 A_r = A_b;              % area di riferimento
 A_p = trapz(x, a)*2;    % area planform
-
+A_w = 1.5;              % wing area
 
 
 
@@ -86,7 +86,7 @@ for i = 1:length(Mach_v)
 
         %alpha = alpha_v(j);       
 
-        [Cn(i,j),Cn_Cn0_sb(i,j),Cn_Cn0_Newt(i,j), Cdn(i,j)] =  CN (max(a), max(b), x, ln, dn, A_b, A_r, A_p, Mach_v(i), alpha_v(j), h, phi, data);
+        [Cn(i,j),Cn_Cn0_sb(i,j),Cn_Cn0_Newt(i,j), Cdn(i,j),Cn_s(i,j)] =  CN (max(a), max(b), x, ln, dn, A_b, A_r, A_p, Mach_v(i), alpha_v(j), h, phi, data,A_w);
 
     end
 end
@@ -195,7 +195,7 @@ function Cdn = CDN(Mach, Mn_sample, cd_n_sample)
     end
 end
 %% CN:
-function [Cn_b,Cn_Cn0_sb,Cn_Cn0_Newt, Cdn] =  CN (a, b, x, ln, d_nose, A_b, A_r, A_p, M, alpha, h, phi, data)
+function [Cn,Cn_Cn0_sb,Cn_Cn0_Newt, Cdn, Cn_s] =  CN (a, b, x, ln, d_nose, A_b, A_r, A_p, M, alpha, h, phi, data, A_w)
 
 % This function computes preliminary aerodynamic normal coefficient 
 % according to the concept of component build-up
@@ -258,6 +258,19 @@ end
 
 % Body normal coefficient
 Cn_b = A_b/A_r*sin(2*alpha)*cos(alpha/2)*Cn_Cn0_sb + eta*Cdn*A_p/A_r*sin(alpha)^2*Cn_Cn0_Newt; 
+
+Cn = Cn_b;
+
+A = x(end) / max(a); % body aspect ratio
+% Tails
+if nargin == 14
+   if M^2 >= 1+(8/(pi*A))^2
+       Cn_s = abs((4*abs(sin(alpha)*cos(alpha))/(M^2-1)^(1/2)+ 2*sin(alpha)^2)*(A_w/A_r));
+   elseif M^2 < 1+(8/(pi*A))^2
+       Cn_s = abs(((pi*A/2)*abs(sin(alpha)*cos(alpha))+2*sin(alpha)^2)*(A_w/A_r));
+   end
+   Cn = Cn_b + Cn_s;
+end
 
 
 end
