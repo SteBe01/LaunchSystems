@@ -1,3 +1,4 @@
+
 %% the iterative method verifies mass estimation and to assess optimal staging
 
 clc;
@@ -10,7 +11,7 @@ dv = 8.5; %[km/s] required dv
 M.pay = 250; %[kg] payload mass
 OF = 2.58; %[-] Ox/Fu ratio for LOX-RP1
 n = 5; %[-] load factor
-diam = 1.3; %[m] external diameter
+diam = 1.2; %[m] external diameter
 AR = sqrt(3); %aspect ratio of oblate domes [-]
 loads.acc = n*9.81; %longitudinal acceleration [m/s^2]
 
