@@ -5,10 +5,10 @@ clear;
 close all;
 
 Is = [311; 311]; %[s] stages Is (electron - rutherford motor)
-eps = [0.036200000000000;0.014200000000000];%[0.058; 0.2]; %[0.035919293805387;0.014411681326543]; %[0.07; 0.12]; %[-] stages structural mass indexes
+eps = [0.0624; 0.0304];%[0.036200000000000;0.014200000000000];%[0.058; 0.2]; %[0.035919293805387;0.014411681326543]; %[0.07; 0.12]; %[-] stages structural mass indexes
 dv = 8.5; %[km/s] required dv;
-M.pay = 250; %[kg] payload mass
-M.fairing = 107; %[kg] fairing mass
+M.pay = 400; %[kg] payload mass
+M.fairing = 0; %[kg] fairing mass
 m_motors1 = 315; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
 m_motors2 = 45; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
 n = 5; %[-] load factor
@@ -60,6 +60,8 @@ M1.fairing = M.fairing;
 % M.MR2 = M.M1 / M.M1e;
 
 eps_end = [M1.eps; M2.eps];
+
+M.M0 = M1.tot + M2.tot;
 
 % M.eps2 = ( M2.inert + m_pay + m_fairing ) / ( M2.tot + m_pay + m_fairing); %[-] first stage structural mass index
 %% Functions
