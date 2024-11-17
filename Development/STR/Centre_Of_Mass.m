@@ -104,7 +104,7 @@ if x_end > TR.Length
 
 x_end = TR.Length;
 
-if strcmp(Tank1.OX.FLAG, 'Cyl') && strcmp(Tank1.FU.FLAG, 'Cyl')
+if strcmp(Tank1.OX.FLAG, 'Cyl') && strcmp(Tank1.FU.FLAG, 'Cyl') % correct end length
 
     L_end = TR.Length - x_cyl_11;
 
