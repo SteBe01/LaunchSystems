@@ -7,7 +7,7 @@ close all;
 Is = [311; 311]; %[s] stages Is (electron - rutherford motor)
 eps = [0.0624; 0.0304];%[0.036200000000000;0.014200000000000];%[0.058; 0.2]; %[0.035919293805387;0.014411681326543]; %[0.07; 0.12]; %[-] stages structural mass indexes
 dv = 8.5; %[km/s] required dv;
-M.pay = 400; %[kg] payload mass
+M.pay = 250; %[kg] payload mass
 M.fairing = 0; %[kg] fairing mass
 m_motors1 = 315; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
 m_motors2 = 45; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
@@ -64,6 +64,31 @@ eps_end = [M1.eps; M2.eps];
 M.M0 = M1.tot + M2.tot;
 
 % M.eps2 = ( M2.inert + m_pay + m_fairing ) / ( M2.tot + m_pay + m_fairing); %[-] first stage structural mass index
+
+%% Computation of the C.O.M.:
+
+options = optimoptions('fsolve', 'Display', 'none');
+M_pay = 250;
+lambda0 = 0.1;
+
+[TR,Base] = Preliminary_Design(Is,eps,dv,M_pay,lambda0);
+
+[Tank2] = tank_mass(M2, TR.Diameter, AR, loads, mat2, press2);
+[Tank1] = tank_mass(M1, TR.Diameter, AR, loads, mat1, press1);
+
+Engine2.L_nozzle=0.4; % [m]
+Engine1.L_nozzle=0.4; % [m]
+
+Engine2.m_dot_lox=5; % [kg/s]
+Engine2.m_dot_fuel=5;% [kg/s]
+Engine1.m_dot_lox=5;% [kg/s]
+Engine1.m_dot_fuel=5;% [kg/s]
+
+t = 500; % [s] time of flight 
+
+[COM] = Centre_Of_Mass(TR,Tank1,Tank2,Engine1,Engine2,t);
+
+
 %% Functions
 
 function [m_stag, m_tot, m_prop] = TANDEM(Is, e, dv, m_pay, fsolveOut)
