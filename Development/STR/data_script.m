@@ -17,14 +17,14 @@ AR = sqrt(3);%sqrt(3); %aspect ratio of oblate domes [-]
 loads.n = n; %longitudinal acceleration [-]
 loads.t = t;%transversal load factor [-]
 loads.K = 2; %loads resistance safety factor [-]
-Mach = 4; %[-] flight Mach number
+Mach = 3; %[-] flight Mach number
 v = 343 * Mach; %[m/s] air speed
 rho_air = 0.6; %[kg/m^3] air density
 maxQ = 0.5 * rho_air * v^2; %[Pa] maximum dynamic pressure
-Cd = 5; %drag coefficient
+Ca = 1.3; %drag coefficient
 S1 = pi * diam^2 / 4; %first stage cross section [m^2]
 S2 = pi * diam^2 / 4; %second stage cross section [m^2]
-loads.F_drag = maxQ * Cd * [S1-S2, S2]; %aerodynamic force acting on whole launcher [N]
+loads.F_drag = maxQ * Ca * [S1-S2, S2]; %aerodynamic force acting on whole launcher [N]
 h.fairing = 2; %[m] fairing height
 
 %stage 1
@@ -111,6 +111,7 @@ M.str2 = M2.str; %[kg] second stage structural mass
 h.tot = h1.tot + h2.tot + h.fairing; %[m] total height
 h.stg1 = h1.tot; %[m] height of first stage
 h.stg2 = h2.tot; %[m] height of second stage
+h.finesse_ratio = h.tot / diam; %[-] finesse ratio
 
 %plot the two stages:
 figure(1);
