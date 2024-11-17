@@ -35,7 +35,7 @@ M1.rhorp1 = 807;  %[kg/m^3] density of rp1
 M1.rholox = 1140; %[kg/m^3] density of lox
 h1.motor = 1; %[m] height of the motor
 h1.h0 = 0; %[m] starting height
-mat1 = 5; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+mat1 = 1; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
 press1 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
 
 %stage 2
