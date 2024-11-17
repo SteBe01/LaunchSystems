@@ -1,5 +1,5 @@
 
-%% the iterative method verifies mass estimation and to assess optimal staging
+%% the iterative method verifies mass estimation and assesses optimal staging
 
 clc;
 clear;
@@ -16,22 +16,36 @@ diam = 1.2; %[m] external diameter
 AR = sqrt(3);%sqrt(3); %aspect ratio of oblate domes [-]
 loads.n = n; %longitudinal acceleration [-]
 loads.t = t;%transversal load factor [-]
+loads.K = 2; %loads resistance safety factor [-]
+Mach = 4; %[-] flight Mach number
+v = 343 * Mach; %[m/s] air speed
+rho_air = 0.6; %[kg/m^3] air density
+maxQ = 0.5 * rho_air * v^2; %[Pa] maximum dynamic pressure
+Cd = 5; %drag coefficient
+S1 = pi * diam^2 / 4; %first stage cross section [m^2]
+S2 = pi * diam^2 / 4; %second stage cross section [m^2]
+loads.F_drag = maxQ * Cd * [S1-S2, S2]; %aerodynamic force acting on whole launcher [N]
+h.fairing = 2; %[m] fairing height
 
 %stage 1
 M1.OF = OF;%[-] Ox/Fu ratio
 M1.motor = 315; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
-M1.fairing = 450; %[kg] fairing of the first stage is nonexistent
+M1.fairing = 250; %[kg] fairing of the first stage is nonexistent
 M1.rhorp1 = 807;  %[kg/m^3] density of rp1
 M1.rholox = 1140; %[kg/m^3] density of lox
+h1.motor = 1; %[m] height of the motor
+h1.h0 = 0; %[m] starting height
 mat1 = 5; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
 press1 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
 
 %stage 2
 M2.OF = OF;%[-] Ox/Fu ratio
 M2.motor = 45; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
-M2.fairing = 93.74; %[kg] fairing of the second stage (31.8 / 31.9)
+M2.fairing = 20; %[kg] fairing of the second stage (31.8 / 31.9)
 M2.rhorp1 = 807;  %[kg/m^3] density of rp1
 M2.rholox = 1140; %[kg/m^3] density of lox
+h2.motor = 1; %[m] height of the motor
+h2.h0 = 14; %[m] starting height
 mat2 = 1; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
 press2 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
 
@@ -57,14 +71,18 @@ while i < Nmax && err > tol
     loads2.m = M.pay + M2.fairing;%sustained mass [kg]
     loads2.n = n;%longitudinal load factor [-]
     loads2.t = n;%transversal load factor [-]
-    [M2, h2, th2] = inert_mass(M2, diam, AR, loads2, mat2, press2);
+    loads2.K = loads.K; %loads resistance safety factor [-]
+    loads2.F_drag = loads.F_drag(2); %aerodynamic force [N]
+    [M2, h2, th2] = inert_mass(M2, h2, diam, AR, loads2, mat2, press2);
 
 
     %stage 1:
     loads1.m = loads2.m + M2.tot;%sustained mass [kg]
     loads1.n = n;%longitudinal load factor [-]
     loads1.t = n;%transversal load factor [-]
-    [M1, h1, th1] = inert_mass(M1, diam, AR, loads1, mat1, press1);
+    loads1.K = loads.K; %loads resistance safety factor [-]
+    loads1.F_drag = sum( loads.F_drag ); %aerodynamic force [N]
+    [M1, h1, th1] = inert_mass(M1, h1, diam, AR, loads1, mat1, press1);
 
     %recover eps_real:
     eps_real(:,i) = [M1.eps; M2.eps];
@@ -79,18 +97,27 @@ end
 eps_real(:, i:end) = [];
 eps_end = eps_real(:, end);
 
-M.M0 = M.pay + M1.tot + M2.tot;
+%mass related parameters
+M.M0 = M.pay + M1.tot + M2.tot;%[kg] initial mass
 M.M0end = M.M0 - M1.prop;
-M.mr1 = M.M0 / M.M0end;
-M.M1 = M.M0 - M1.tot;
+M.M1 = M.M0 - M1.tot; %[kg] mass after first stage separation
 M.M1end = M.M1 - M2.prop;
-M.mr2 = M.M1 / M.M1end;
+M.mr1 = M.M0 / M.M0end; %[-] first stage mass ratio
+M.mr2 = M.M1 / M.M1end; %[-] second stage mass ratio
+M.str1 = M1.str; %[kg] first stage structural mass
+M.str2 = M2.str; %[kg] second stage structural mass
+
+%height
+h.tot = h1.tot + h2.tot + h.fairing; %[m] total height
+h.stg1 = h1.tot; %[m] height of first stage
+h.stg2 = h2.tot; %[m] height of second stage
 
 %plot the two stages:
 figure(1);
-[~, ~, ~] = inert_mass(M2, diam, AR, loads, mat2, press2, 1);
+h2.h0 = h.stg1; %[m] updated starting height of the second stage
+[~, ~, ~] = inert_mass(M2, h2, diam, AR, loads2, mat2, press2, 1);
 figure(2);
-[~, ~, ~] = inert_mass(M1, diam, AR, loads, mat1, press1, 1);
+[~, ~, ~] = inert_mass(M1, h1, diam, AR, loads1, mat1, press1, 1);
 
 %% Functions:
 
@@ -146,7 +173,7 @@ m_tot = sum(m_stag) + m_pay;
 
 end
 
-function [M, h, t] = inert_mass(M, diam, AR, loads, mat, pressure_type, plotcase)
+function [M, h, t] = inert_mass(M, h, diam, AR, loads, mat, pressure_type, plotcase)
 
 % considers thickness equal along the whole tank.
 % safety factor to be defined.
@@ -176,6 +203,10 @@ rhorp1 = M.rhorp1; %[kg/m^3]
 vlox = 1.10 * mlox / rholox; %[m^3] %added 10% margin
 vrp1 = 1.05 * mrp1 / rhorp1; %[m^3] %added 5% margin
 
+%recover heights:
+h_motor = h.motor; %[m] height of the motor
+h0 = h.h0; %[m] height of the bottom part of the stage with the launcher vertically placed on a launch pad 
+
 switch pressure_type 
     case 0 % case for unpressurized vessel
         MEOP = 0;
@@ -194,30 +225,35 @@ switch mat
         E = 110 * 1e9; %[Pa] young modulus
         sy = 900 * 1e6; %[Pa] tensile yield stress
         su = 950 * 1e6; %[Pa] tensile ultimate stress
+        nu = 0.34; %[-] Poisson's ratio
     case 2 % Al 2XXX
         rho = 2700; %[kg/m^3]
         t_min = 0.5 * 1e-3; %[m] minimum thickness for manufacturability
         E = 70 * 1e9; %[Pa] young modulus
         sy = 290 * 1e6; %[Pa] tensile yield stress
         su = 390 * 1e6; %[Pa] tensile ultimate stress
+        nu = 0.33; %[-] Poisson's ratio
     case 3 % Steel
         rho = 7800; %[kg/m^3]
         t_min = 0.25 * 1e-3; %[m] minimum thickness for manufacturability
         E = 200 * 1e9; %[Pa] young modulus
         sy = 350 * 1e6; %[Pa] tensile yield stress
         su = 420 * 1e6; %[Pa] tensile ultimate stress
+        nu = 0.27; %[-] Poisson's ratio
     case 4 % Carbon fiber
         rho = 1800; %[kg/m^3]
         t_min = 0.90 * 1e-3; %[m] minimum thickness for manufacturability
         E = 250 * 1e9; %[Pa] young modulus
         sy = 350 * 1e6; %[Pa] tensile yield stress
         su = sy; %[Pa] tensile ultimate stress
+        nu = 0.27; %[-] Poisson's ratio
     case 5 % Al 7XXX
         rho = 2750; %[kg/m^3]
         t_min = 1.06 * 1e-3; %[m] minimum thickness for manufacturability
         E = 70 * 1e9; %[Pa] young modulus
         sy = 500 * 1e6; %[Pa] tensile yield stress
         su = 510 * 1e6; %[Pa] tensile ultimate stress
+        nu = 0.33; %[-] Poisson's ratio
 end
 
 %correction factor
@@ -292,67 +328,124 @@ end
 %height of tanks
 h.tank_lox = l_lox(t_lox); %[m] height of tank
 h.tank_rp1 = l_rp1(t_rp1); %[m] height of tank
-h.tot = h.tank_lox + h.tank_rp1; %[m] total height of tanks together
+h.tot = h.tank_lox + h.tank_rp1 + h_motor; %[m] total height of tanks together
 
 %plot of tanks:
-if nargin > 6
+if nargin > 7
     if R_sphere_lox > R_int
-        bottom = @(k) R_int/AR + t_lox -sqrt(R_int^2 - k.^2)/AR;
-        top = @(k) sqrt(R_int^2 - k.^2)/AR - R_int/AR - t_lox + h.tank_lox;
+        bottom = @(k) h_motor + h0 + R_int/AR + t_lox -sqrt(R_int^2 - k.^2)/AR;
+        top = @(k) h_motor + h0 + sqrt(R_int^2 - k.^2)/AR - R_int/AR - t_lox + h.tank_lox;
         K = linspace(-R_int, R_int, 1e4);
         plot(K, bottom(K), 'k'); grid on; axis equal; hold on;
         plot(K, top(K), 'k');
-        plot([R_int, R_int], [R_int/AR + t_lox, R_int/AR + t_lox + h_cyl_lox], 'k');
-        plot([-R_int, -R_int], [R_int/AR + t_lox, R_int/AR + t_lox + h_cyl_lox], 'k');
+        plot([R_int, R_int], [h_motor + h0 + R_int/AR + t_lox, h_motor + h0 + R_int/AR + t_lox + h_cyl_lox], 'k');
+        plot([-R_int, -R_int], [h_motor + h0 + R_int/AR + t_lox, h_motor + h0 + R_int/AR + t_lox + h_cyl_lox], 'k');
     else
-        bottom = @(k) R_sphere_lox + t_lox -sqrt(R_sphere_lox^2 - k.^2);
-        top = @(k) sqrt(R_sphere_lox^2 - k.^2) + R_sphere_lox + t_lox;
+        bottom = @(k) h_motor + h0 + R_sphere_lox + t_lox -sqrt(R_sphere_lox^2 - k.^2);
+        top = @(k) h_motor + h0 + sqrt(R_sphere_lox^2 - k.^2) + R_sphere_lox + t_lox;
         K = linspace(-R_sphere_lox, R_sphere_lox, 1e4);
         plot(K, bottom(K), 'k'); grid on; axis equal; hold on;
         plot(K, top(K), 'k');
     end
     if R_sphere_rp1 > R_int
-        bottom = @(k) h.tank_lox + R_int/AR + t_rp1 -sqrt(R_int^2 - k.^2)/AR;
-        top = @(k) h.tank_lox + sqrt(R_int^2 - k.^2)/AR - R_int/AR - t_rp1 + h.tank_rp1;
+        bottom = @(k) h_motor + h0 + h.tank_lox + R_int/AR + t_rp1 -sqrt(R_int^2 - k.^2)/AR;
+        top = @(k) h_motor + h0 + h.tank_lox + sqrt(R_int^2 - k.^2)/AR - R_int/AR - t_rp1 + h.tank_rp1;
         K = linspace(-R_int, R_int, 1e4);
         plot(K, bottom(K), 'k'); grid on; axis equal; hold on;
         plot(K, top(K), 'k');
-        plot([R_int, R_int], [R_int/AR + t_rp1 + h.tank_lox, R_int/AR + t_rp1 + h_cyl_rp1 + h.tank_lox], 'k');
-        plot([-R_int, -R_int], [R_int/AR + t_rp1 + h.tank_lox, R_int/AR + t_rp1 + h_cyl_rp1 + h.tank_lox], 'k');
+        plot([R_int, R_int], [h_motor + h0 + R_int/AR + t_rp1 + h.tank_lox, h_motor + h0 + R_int/AR + t_rp1 + h_cyl_rp1 + h.tank_lox], 'k');
+        plot([-R_int, -R_int], [h_motor + h0 + R_int/AR + t_rp1 + h.tank_lox, h_motor + h0 + R_int/AR + t_rp1 + h_cyl_rp1 + h.tank_lox], 'k');
     else
-        bottom = @(k) h.tank_lox + R_sphere_rp1 + t_rp1 -sqrt(R_sphere_rp1^2 - k.^2);
-        top = @(k) h.tank_lox + sqrt(R_sphere_rp1^2 - k.^2) + R_sphere_rp1 + t_rp1;
+        bottom = @(k) h_motor + h0 + h.tank_lox + R_sphere_rp1 + t_rp1 -sqrt(R_sphere_rp1^2 - k.^2);
+        top = @(k) h_motor + h0 + h.tank_lox + sqrt(R_sphere_rp1^2 - k.^2) + R_sphere_rp1 + t_rp1;
         K = linspace(-R_sphere_rp1, R_sphere_rp1, 1e4);
         plot(K, bottom(K), 'k'); grid on; axis equal; hold on;
         plot(K, top(K), 'k');
     end
 end
 
-%connectors masses: 
-if R_sphere_rp1 > R_int && R_sphere_lox > R_int  %that is, if tanks are cyilindrical
-    shape.r = R_int; %[m] radius of the cylindrical connector
-    else %that is, if at least one tank is spherical
-    shape.r = [R_sphere_rp1, R_sphere_lox, R_int];
+
+%MASSES ESTIMATION
+
+%recover material properties:
+MAT.rho = rho; %[kg/m^3] material density
+MAT.t_min = t_min; %[m] material manufacturability minimum thickness
+MAT.E = E; %[Pa] Young modulus
+MAT.sy = sy; %[Pa] yelding stress
+MAT.su = su; %[Pa] ultimate stress
+MAT.nu = nu; %[-] Poisson's ratio
+
+%top connector (between top part of the stage and subsequent stage)
+shape1.r = min(R_sphere_rp1, R_int);
+shape1.h = h_dome_rp1 + t_rp1; 
+load1.m = m_sust + M.fairing; 
+load1.n = n; %longitudinal load factor
+load1.K = loads.K; %safety factor
+load1.F_drag = loads.F_drag; %aerodynamic drag force [N]
+[Connector1.m, Connector1.th] = buckling(shape1, load1, MAT, 0);
+
+%mass estimation of the first tank
+if R_sphere_rp1 > R_int
+    %validate rp1 tank size
+    shape_rp1.r = R_int;
+    shape_rp1.h = h_cyl_rp1;
+    load_rp1.m = m_sust + M.fairing + Connector1.m + mrp1 * 0.11; %accounts for sustained masses : upper stages, first connector, fairing and rp1 tank structural mass (approximated as 11% of rp1 mass)
+    load_rp1.n = n; %longitudinal load factor
+    load_rp1.K = loads.K; %safety factor 
+    load_rp1.F_drag = loads.F_drag; %aerodynamic drag force [N]
+    [ ~, tank_rp1.th] = buckling(shape_rp1, load_rp1, MAT, MEOP);
+    t_rp1 = max( t_rp1, tank_rp1.th ); %correction of rp1 tank thickness in case the previous can't sustain the load
 end
-shape.l = h_dome_lox + h_dome_rp1 + t_rp1 + t_lox; %[m] lenght of the connector between the two tanks
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%mass estimation
 M.tank_rp1 = rho * S_rp1 * t_rp1; %mass of the empty rp1 tank [kg]
 M.tot_rp1 = M.tank_rp1 + mrp1; %[kg] mass of full rp1 tank
 
+%middle connector (between two tanks)
+if R_sphere_rp1 > R_int && R_sphere_lox > R_int  %that is, if tanks are cyilindrical
+    shape2.r = R_int; %[m] radius of the cylindrical connector
+else %that is, if at least one tank is spherical
+    shape2.r = [R_sphere_rp1, R_sphere_lox, R_int];
+end
+shape2.h = h_dome_lox + h_dome_rp1 + t_rp1 + t_lox; %[m] lenght of the connector between the two tanks
+load2.m = m_sust + M.fairing + Connector1.m + M.tot_rp1; %accounts for sustained masses : upper stages (m_sust), fairing, first connector and rp1 tank mass
+load2.n = n; %longitudinal load factor
+load2.K = loads.K; %safety factor
+load2.F_drag = loads.F_drag; %aerodynamic drag force [N]
+[Connector2.m, Connector2.th] = buckling(shape2, load2, MAT, 0);
+
+%mass estimation of the second tank
+if R_sphere_lox > R_int
+    %validate lox tank size
+    shape_lox.r = R_int;
+    shape_lox.h = h_cyl_lox;
+    load_lox.m = m_sust + M.fairing + Connector1.m + M.tot_rp1 + Connector2.m + mlox * 0.11; %accounts for sustained masses : upper stages, first and second connector, fairing, rp1 tank and lox tank structural mass (approximated as 11% of lox mass)
+    load_lox.n = n; %longitudinal load factor
+    load_lox.K = loads.K; %safety factor 
+    load_lox.F_drag = loads.F_drag; %aerodynamic drag force [N]
+    [ ~, tank_lox.th] = buckling(shape_lox, load_lox, MAT, MEOP);
+    t_lox = max( t_rp1, tank_lox.th ); %correction of lox tank thickness in case the previous can't sustain the load
+end
 M.tank_lox = rho * S_lox * t_lox; %mass of the empty lox tank [kg]
 M.tot_lox = M.tank_lox + mlox; %[kg] mass of full lox tank
 
-M.tot = M.tot_lox + M.tot_rp1 + M.motor + M.fairing; %[kg] total mass of motors, tanks and propellant
+%last connector (between second tank and motors)
+shape3.r = min(R_sphere_lox, R_int);
+shape3.h = h_dome_lox + t_lox; 
+load3.m = m_sust + M.fairing + Connector1.m + M.tot_rp1 + Connector2.m + M.tot_lox; %accounts for sustained masses : upper stages, first and second connector, fairing, rp1 tank and lox tank structural mass (approximated as 11% of lox mass)
+load3.n = n; %longitudinal load factor
+load3.K = loads.K; %safety factor
+load3.F_drag = loads.F_drag; %aerodynamic force [N]
+[Connector3.m, Connector3.th] = buckling(shape3, load3, MAT, 0);
+
+%TOTAL MASSES:
+M.tot = M.tot_lox + M.tot_rp1 + M.motor + M.fairing + Connector1.m + Connector2.m + Connector3.m; %[kg] total mass of motors, tanks, propellant and connectors
 M.tanks = M.tank_lox + M.tank_rp1; %[kg] mass of the two empty tanks
-M.str = M.tanks + M.motor + M.fairing; %[kg] inert mass of stage (motors and tanks)
+M.str = M.tanks + M.motor + M.fairing + Connector1.m + Connector2.m + Connector3.m; %[kg] inert mass of stage (motors, tanks, connectors and fairing)
 M.eps = M.str / M.tot;
 end
 
-function [M, h, th] = buckling(shape, load, mat, press)
+function [M, th] = buckling(shape, load, mat, press)
 
+% based on NASA papers in shared folder
 % computes connectors masses, heights and thicknesses to sustain
 % compression loads and avoid buckling effect
 
@@ -363,6 +456,7 @@ g = 9.81; %[m/s^2] gravitational acceleration
 m = load.m; %sustained mass [kg]
 n = load.n; %longitudinal load factor [-]
 K = load.K; %factor of safety [-]
+F_aero = load.F_drag; %aerodynamic drag force [N]
 
 %recover material characteristics:
 E = mat.E; %[Pa] Young modulus
@@ -370,13 +464,14 @@ rho = mat.rho; %[kg/m^3]
 t_min = mat.t_min; %[m] minimum thickness for manufacturability 
 sy = mat.sy; %[Pa] tensile yield stress
 su = mat.su; %[Pa] tensile ultimate stress
+nu = mat.nu; %[-] Poisson's ratio
 
 %recover dimensions:
-r = shape.r; 
-l = shape.l; %length of the shell
+r = shape.r;
+h = shape.h; %distance between the base of the domes
 
 %compute sustained load:
-F_load = m * n * g; %load [N]
+F_load = m * n * g + F_aero; %load [N]
 if length(r) == 1 %cylindrical shell
     F_pres = pi * r^2 * press; %force from pressurant [N]
 else 
@@ -386,14 +481,44 @@ F = F_load - F_pres; %effectively sustained load [N]
 
 %two cases: cylindrical of trucated-cone shells:
 if length(r) > 1 %trucated-cone
-    s_cr = NaN; %see page 23 of NASA paper in launch systems shared folder
-    th = NaN;
+ 
+    %recover cone shape characteristics
+    alpha = asin( ( r(2) - r(1) ) / h );
+    L = sqrt( h^2 - (r(2) - r(1))^2 );
+    l = cos(alpha) * L; %height of the shell
+    r2 = cos(alpha) * r(2);
+    r1 = cos(alpha) * r(1);
+    
+    if F < 0 %load is an axial tension load
+        th = t_min;
+    else %load is an axial compression load
+        %compute the critical thickness for the loaded shell
+        gamma = 0.33;
+        th = sqrt( ( K*F*sqrt( 3*(1-nu^2) ) ) / ( 2*pi * gamma * E * cos(alpha)^2 ) ); %see page 13 of NASA paper in launch systems shared folder
+    end
+    %compute the mass
+    S = pi * L * ( r2 + r1 ); %surface of the truncated cone
+    M = S * th * rho;
 else %cylindrical shell
-    s_cr = @(t) E * ( 9 * (t/r)^1.6 + 0.16 * (t/l)^1.3 ); %[Pa] critical stress
-    F_crit = @(t) 2 * pi * r * s_cr(t) * t; %[N] critical load
-    f = @(t) K * F_crit(t) - F;
-    th = fzero(f, t_min);
+
+    %recover cylinder shape characteristics
+    l = h;
+    
+    if F < 0 %load is an axial tension load
+        th = t_min;
+    else %load is an axial compression load
+        %compute the critical thickness for the loaded shell
+        s_cr = @(t) E * ( 9 * (t/r)^1.6 + 0.16 * (t/l)^1.3 ); %[Pa] critical stress
+        F_crit = @(t) 2 * pi * r * s_cr(t) * t; %[N] critical load
+        f = @(t) F_crit(t) - K * F;
+        th = fzero(f, [0, 1]);
+    end
+    %compute the mass
+    M = 2*pi * r * l * th * rho; %mass of the connector
 end
+end
+
+function [max_t_acc] = bending(h, loads, M, mat)
 
 end
 

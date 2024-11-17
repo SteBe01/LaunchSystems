@@ -155,3 +155,59 @@ if max(eps_diff) <= tol
 else
     disp('Maximum iterations reached without convergence.');
 end
+
+%%
+
+
+clc;
+clear;
+close all;
+
+%data from other departments:
+Is = [311; 311]; %[s] stages Is
+dv = 8.5; %[km/s] required dv
+M.pay = 250; %[kg] payload mass
+OF = 2.58; %[-] Ox/Fu ratio for LOX-RP1
+n = 5; %[-] load factor of longitudinal acceleration
+t = 5; %[-] load factor of transversal acceleration
+diam = 1.2; %[m] external diameter
+AR = sqrt(3);%sqrt(3); %aspect ratio of oblate domes [-]
+loads.n = n; %longitudinal acceleration [-]
+loads.t = t;%transversal load factor [-]
+loads.K = 1.5; %loads resistance safety factor [-]
+
+%stage 1
+M1.OF = OF;%[-] Ox/Fu ratio
+M1.motor = 315; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
+M1.fairing = 100; %[kg] fairing of the first stage is nonexistent
+M1.rhorp1 = 807;  %[kg/m^3] density of rp1
+M1.rholox = 1140; %[kg/m^3] density of lox
+mat1 = 5; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+press1 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
+
+%stage 2
+M2.OF = OF;%[-] Ox/Fu ratio
+M2.motor = 45; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
+M2.fairing = 30; %[kg] fairing of the second stage (31.8 / 31.9)
+M2.rhorp1 = 807;  %[kg/m^3] density of rp1
+M2.rholox = 1140; %[kg/m^3] density of lox
+mat2 = 1; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+press2 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
+
+%first guesses:
+eps0 = [0.1; 0.2]; %[0.06; 0.2]; %[-] stages structural mass indexes
+
+
+
+shape.r = [diam/3, diam/2];%[m]
+shape.h = 0.4; %[m]
+loads.m = 250; %[kg]
+
+mat.rho = 4500; %[kg/m^3]
+mat.t_min = 0.5 * 1e-3; %[m] minimum thickness for manufacturability
+mat.E = 110 * 1e9; %[Pa] young modulus
+mat.sy = 900 * 1e6; %[Pa] tensile yield stress
+mat.su = 950 * 1e6; %[Pa] tensile ultimate stress
+mat.nu = 0.34; %[-] Poisson's ratio
+
+[m, th] = buckling(shape, loads, mat, press1);
