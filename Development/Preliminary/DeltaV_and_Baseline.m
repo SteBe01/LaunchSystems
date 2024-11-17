@@ -170,7 +170,7 @@ Delta_inert_mass = TR.Mtot_Inert_Budget - M_inert_tot_real;
 
 if Delta_inert_mass <=0 
 
-    fprintf('Mass Overbudget: \n Delta_inert_mass = %d \n ',abs(Delta_inert_mass));
+    fprintf('Mass Overbudget: \n Delta_inert_mass = %d [kg] \n ',abs(Delta_inert_mass));
 
 else
 
@@ -183,4 +183,10 @@ legend('Inert Mass', 'Available Mass',Location='bestoutside');
 title('Inert Mass Budget');
 
 end
+
+%% General Configuration: 
+
+% x = 0 at the tip
+
+x_fair = TR.M;
 
