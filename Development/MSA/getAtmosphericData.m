@@ -1,5 +1,9 @@
 function rho = getAtmosphericData(altitude)
 
+    if altitude < 0
+        altitude = 0;
+    end
+
     % Density data -> rho = rho_0 * exp(-(h-h0)/H)
     h0_vect = [0 25 30 40 50 60 70 80 90 100 110 120 130 140 150 ...
         180 200 250 300 350 400 450 500 600 700 800 900 1000]';
