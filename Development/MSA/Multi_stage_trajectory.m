@@ -1,4 +1,5 @@
 clear, clc
+clear ballisticMultiStage
 close all
 
 % General parameters
@@ -6,7 +7,7 @@ stages.stage_1.n = 5.53;
 stages.stage_2.n = 2.93;
 stages.stage_1.Isp = 280;
 stages.stage_2.Isp = 298;
-stages.stage_1.Thrust = 224e3;
+stages.stage_1.Thrust = 254e3;
 stages.stage_2.Thrust = 25.8e3;
 stages.stage_1.m0 = 11500;
 
@@ -50,11 +51,11 @@ t_tot = stages.stage_1.t_burn + stages.stage_2.t_burn;
 y0_s1 = [params.v0 params.gamma0 0 params.h0];
 
 options = odeset('RelTol',1e-8, 'Events', @(t, y) stage_Separation(t, y, stages.stage_1));
-[T1, Y1] = ode113(@(t, y) ballisticMultiStage(t, y, stages.stage_1, params, 1), [0:2*t_tot], y0_s1, options);
+[T1, Y1] = ode113(@(t, y) ballisticMultiStage(t, y, stages.stage_1, params, 1), 0:2*t_tot, y0_s1, options);
 
 y0_s2 = Y1(end, :);
 options = odeset('RelTol', 1e-8, 'Events', @orbit_insertion);
-[T2, Y2] = ode113(@(t, y) ballisticMultiStage(t, y, stages.stage_2, params, 2), [0:10*t_tot], y0_s2, options);
+[T2, Y2] = ode113(@(t, y) ballisticMultiStage(t, y, stages.stage_2, params, 2), 0:10*t_tot, y0_s2, options);
 
 T = [T1; T2+T1(end)];
 Y = [Y1; Y2];
@@ -83,7 +84,7 @@ boundary = 0;
 subplot(2,2,1), hold on, grid on, title("Velocity over time"), xlabel("Time [s]"), ylabel("Velocity [km/s]")
 plot(T, Y(1:end-boundary,1)/1e3)
 subplot(2,2,2), hold on, grid on, title("Gamma over time"), xlabel("Time [s]"), ylabel("Gamma [deg]")
-plot(T, deg2rad(Y(1:end-boundary,2)))
+plot(T, rad2deg(Y(1:end-boundary,2)))
 subplot(2,2,3), hold on, grid on, title("Downrange over time"), xlabel("Time [s]"), ylabel("Downrange [km]")
 plot(T, Y(1:end-boundary,3)/1e3)
 subplot(2,2,4), hold on, grid on, title("Altitude over time"), xlabel("Time [s]"), ylabel("Altitude [km]")
@@ -113,17 +114,21 @@ plot(T, acc/params.g0);
 
 function [dY, parout] = ballisticMultiStage(t,y, stage, params, current_stage)
 
-    persistent gamma_drop
+    persistent turn_complete
+
+    if isempty(turn_complete)
+        turn_complete = false;
+    end
 
     % Retrieve data from ode
     v = y(1);
     gamma = y(2);
-    x = y(3);
+    % x = y(3);
     h = y(4);
 
-    if t < params.t_turn
-        gamma_drop = gamma;
-    end
+    % if t < params.t_turn
+    %     gamma_drop = gamma;
+    % end
 
     if current_stage == 1
         t_wait = params.t_turn;
@@ -131,7 +136,19 @@ function [dY, parout] = ballisticMultiStage(t,y, stage, params, current_stage)
         t_wait = stage.t_ign;
     end
 
-    delta = 0;
+    % Thrust vectoring
+
+    % if current_stage == 1 && (t >= params.t_turn && t <= params.t_turn + params.turn_duration)
+    if current_stage == 1 && t >= params.t_turn && (gamma - params.gamma_turn) < 1e-3 && ~turn_complete
+    % if current_stage == 1 && t >= params.t_turn && gamma < params.gamma_turn && ~turn_complete
+        delta = -12;
+    elseif current_stage == 1 && t >= params.t_turn && (gamma - params.gamma_turn) >= 1e-3 && ~turn_complete
+    % elseif current_stage == 1 && t >= params.t_turn && gamma >= params.gamma_turn && ~turn_complete
+        turn_complete = true;
+        delta = 0;
+    else
+        delta = 0;
+    end
 
     % Retrieve data used multiple times 
     t_burn = stage.t_burn;
@@ -184,9 +201,9 @@ function [dY, parout] = ballisticMultiStage(t,y, stage, params, current_stage)
         dY(4) = v * sin(gamma);
     end
 
-    if current_stage == 1 && (t >= params.t_turn && t <= params.t_turn+params.turn_duration)
-        dY(2) = (params.gamma_turn-gamma_drop)*(pi/(2*params.turn_duration)*sin(pi*(t-params.t_turn)/params.turn_duration));
-    end
+    % if current_stage == 1 && (t >= params.t_turn && t <= params.t_turn+params.turn_duration)
+    %     dY(2) = (params.gamma_turn-gamma_drop)*(pi/(2*params.turn_duration)*sin(pi*(t-params.t_turn)/params.turn_duration));
+    % end
 
     % Prepare output struct for ode recall
     if nargout > 1
