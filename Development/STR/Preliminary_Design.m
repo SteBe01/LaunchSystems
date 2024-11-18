@@ -1,4 +1,4 @@
-function [Launcher_Prel_Des,Baseline] = Preliminary_Design(IS,EPSILON,Delta_V, M_pay,lambda0)
+function [Launcher_Prel_Des,Baseline] = Preliminary_Design(IS,EPSILON,Delta_V, M_pay,lambda0,Plot_switch)
 
 options = optimoptions('fsolve', 'Display', 'none');
 g0 = 9.80665; %m/s^2
@@ -35,23 +35,8 @@ eps_2 = EPSILON(2,1);
 
 [TR.M,TR.n,lambda_a] = initialmass_opt_2stage(c1,c2,eps_1,eps_2,TR.M_pay,TR.Delta_V_tot,lambda0);
 
-f = @(x) c1*log(c1*x -1) + c2*log(c2*x -1) - log(x)*(c1+c2) - c1*log(c1*eps_1) - c2*log(c2*eps_2) - TR.Delta_V_tot;
-lambda_vec = ((10^-4):0.000001:(10^-3));
-lambda_vec = lambda_vec';
-y = zeros(length(lambda_vec),1);
-for i = 1:length(lambda_vec)
-y(i) = abs(f(lambda_vec(i)));
-end
 
-figure()
-plot(lambda_vec,y);
-hold on
-plot(lambda_a,f(lambda_a),'o');
-xlabel('\lambda',Interpreter='tex');
-ylabel('Cost Function');
-legend('Cost Function','Fsolve solution');
-
-    case 3
+ case 3
 
 c1 = IS(1,1)*g0;
 c2 = IS(2,1)*g0;
@@ -61,25 +46,6 @@ eps_2 = EPSILON(2,1);
 eps_3 = EPSILON(3,1);
 
 [TR.M,TR.n,lambda_a] = initialmass_opt(c1,c2,c3,eps_1,eps_2,eps_3,TR.M_pay,TR.Delta_V_tot,lambda0);
-
-f = @(x) c1*log(c1*x -1) + c2*log(c2*x -1) + c3*log(c3*x -1) - log(x)*(c1+c2+c3) - c1*log(c1*eps_1) - c2*log(c2*eps_2) - c3*log(c3*eps_3) - TR.Delta_V_tot;
-
-lambda_vec = ((10^-4):0.000001:(10^-3));
-lambda_vec = lambda_vec';
-y = zeros(length(lambda_vec),1);
-for i = 1:length(lambda_vec)
-y(i) = abs(f(lambda_vec(i)));
-end
-
-figure()
-plot(lambda_vec,y);
-hold on
-plot(lambda_a,f(lambda_a),'o');
-xlabel('\lambda',Interpreter='tex');
-ylabel('Cost Function');
-legend('Cost Function','Fsolve solution');
-
-
 
 end
 
@@ -261,6 +227,58 @@ fair_length = (V_fair*4)/(pi*(TR.Diameter^2)); % [m] Fairing length
 TR.Fair.fair_length = fair_length;
 TR.body_length = TR.Length - fair_length; % [m] Body length
 
+Baseline.El = El;
+Baseline.L1 = L1;
+Baseline.P = P;
+
+Launcher_Prel_Des = TR;
+
+
+if Plot_switch == 1
+
+switch TR.N_stages
+
+    case 2
+
+f = @(x) c1*log(c1*x -1) + c2*log(c2*x -1) - log(x)*(c1+c2) - c1*log(c1*eps_1) - c2*log(c2*eps_2) - TR.Delta_V_tot;
+lambda_vec = ((10^-4):0.000001:(10^-3));
+lambda_vec = lambda_vec';
+y = zeros(length(lambda_vec),1);
+for i = 1:length(lambda_vec)
+y(i) = abs(f(lambda_vec(i)));
+end
+
+figure()
+plot(lambda_vec,y);
+hold on
+plot(lambda_a,f(lambda_a),'o');
+xlabel('\lambda',Interpreter='tex');
+ylabel('Cost Function');
+legend('Cost Function','Fsolve solution');
+
+  case 3
+f = @(x) c1*log(c1*x -1) + c2*log(c2*x -1) + c3*log(c3*x -1) - log(x)*(c1+c2+c3) - c1*log(c1*eps_1) - c2*log(c2*eps_2) - c3*log(c3*eps_3) - TR.Delta_V_tot;
+
+lambda_vec = ((10^-4):0.000001:(10^-3));
+lambda_vec = lambda_vec';
+y = zeros(length(lambda_vec),1);
+for i = 1:length(lambda_vec)
+y(i) = abs(f(lambda_vec(i)));
+end
+
+figure()
+plot(lambda_vec,y);
+hold on
+plot(lambda_a,f(lambda_a),'o');
+xlabel('\lambda',Interpreter='tex');
+ylabel('Cost Function');
+legend('Cost Function','Fsolve solution');
+
+
+
+end
+    
+
 % Body plot:
 
 figure() 
@@ -322,10 +340,7 @@ title('Linear Interpolation of GLOM and Launcher Empty Density');
 legend('','Baseline','Team rocket');
 
 
-Baseline.El = El;
-Baseline.L1 = L1;
-Baseline.P = P;
+end
 
-Launcher_Prel_Des = TR;
 
 end
