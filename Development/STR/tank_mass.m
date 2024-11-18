@@ -182,7 +182,6 @@ Tank.h_tot = h.tot;
 if R_sphere_lox < 0.98 * diam/2
  
 m_sphere_lox = 2*pi*((R_sphere_lox)^3) * (p_lox/(sy/rho));
-Tank.OX.M_sphere_lox = m_sphere_lox;
 M_tot_tank_lox = m_sphere_lox;
 Tank.OX.M_tot_tank_lox = M_tot_tank_lox;
 else 
