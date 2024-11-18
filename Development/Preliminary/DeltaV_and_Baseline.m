@@ -103,7 +103,7 @@ EPSILON = [Base.El.eps_1;Base.El.eps_2];
 
 M_pay = 250;
 
-[TR,Base] = Preliminary_Design(IS,EPSILON,TR.Delta_V_tot,M_pay,lambda0);
+[TR,Base] = Preliminary_Design(IS,EPSILON,TR.Delta_V_tot,M_pay,lambda0,0);
 
 %% Mass Budget:
 

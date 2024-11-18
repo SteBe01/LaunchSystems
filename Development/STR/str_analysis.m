@@ -71,7 +71,7 @@ options = optimoptions('fsolve', 'Display', 'none');
 M_pay = 250;
 lambda0 = 0.1;
 
-[TR,Base] = Preliminary_Design(Is,eps,dv,M_pay,lambda0);
+[TR,Base] = Preliminary_Design(Is,eps,dv,M_pay,lambda0,0);
 
 [Tank2] = tank_mass(M2, TR.Diameter, AR, loads, mat2, press2);
 [Tank1] = tank_mass(M1, TR.Diameter, AR, loads, mat1, press1);
