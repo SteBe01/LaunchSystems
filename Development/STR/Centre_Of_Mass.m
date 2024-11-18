@@ -484,7 +484,7 @@ MoI_vec_xquad0 =MoI_vec_x0.*MoI_vec_x0;
 MoI_vec_mxquad = dot(COM_vec_m,MoI_vec_xquad);
 MoI_vec_mxquad0 = dot(COM_vec_m0,MoI_vec_xquad0);
 
-% Moments of inertia of our LL at t = t1 + t2 and at t = 0
+% Moments of inertia of our LV at t = t1 + t2 and at t = 0
 
 MoI.TR.Jy = MoI_vec_mxquad + sum(MoI_vec_J0); % [kg m^2] t = t1 + t2
 
