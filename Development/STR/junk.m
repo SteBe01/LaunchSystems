@@ -211,3 +211,12 @@ mat.su = 950 * 1e6; %[Pa] tensile ultimate stress
 mat.nu = 0.34; %[-] Poisson's ratio
 
 [m, th] = buckling(shape, loads, mat, press1);
+
+
+%%
+
+    % if R_sphere_lox < R_int %that is, if both tanks are spherical
+    %     shape2.r = [R_sphere_rp1, R_sphere_lox, R_int];
+    % else %that is, if rp1 is spherical but lox is cylindrical
+    %     shape2.r = [R_sphere_rp1, R_sphere_lox, R_int]; %for simplicity we take the same dimensions of the "both-spherical" case
+    % end
