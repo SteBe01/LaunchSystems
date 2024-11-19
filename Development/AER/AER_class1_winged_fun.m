@@ -1,4 +1,4 @@
-function [CL, CD] = AER_class1_winged_fun(Mach_v, alpha_v, h)
+function [CL, CD] = AER_class1_winged_fun(Mach_v, alpha_v, h, A_w)
 
 %% INPUTS:
 
@@ -41,7 +41,6 @@ data = excel_load;
 A_b = pi * a_max^2;     % area della base
 A_r = A_b;              % area di riferimento
 A_p = trapz(x, a)*2;    % area planform
-A_w = 0;              % WING area
 
 
 
