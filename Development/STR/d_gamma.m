@@ -102,11 +102,24 @@ end
 figure(5)
 surf(param(p, th), p, th);
 
+%%
+x = linspace(0, 1000, 1e4);
+y = linspace(0, 5000, 1e4);
+figure(6)
+loglog(x, y);
 
+%%
+curveFitter([0.1, 1, 3, 100, 1000], [1, 1.1, 2, 64, 700]);
 
-
-
-
+% from curve fitting with 
+% param = [0.1, 1, 3, 100, 1000]
+% d_gamma = [1, 1.1, 2, 64, 700]
+% and f(x) = c*(a+x^2)^b
+% we obtained the fitting (R-square = 1.0000, SSE = 0.0025, DFE = 1):
+ 
+a = 3.2513;    
+b = 0.5195;   
+c = 0.5348;
 
 
 

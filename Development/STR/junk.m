@@ -220,3 +220,26 @@ mat.nu = 0.34; %[-] Poisson's ratio
     % else %that is, if rp1 is spherical but lox is cylindrical
     %     shape2.r = [R_sphere_rp1, R_sphere_lox, R_int]; %for simplicity we take the same dimensions of the "both-spherical" case
     % end
+
+
+%%
+
+%COMPUTE MASSES AND THICKNESSES:
+
+%conical nose:
+nose.r = [0, d0/2]; %nose radiuses [m]
+nose.h = L_nose; %nose lenght [m]
+nose_loads.m = 0; %sustained mass [kg]
+nose_loads.n = n; %longitudinal load factor [-]
+nose_loads.K = K; %factor of safety [-]
+nose_loads.F_drag = F_aero; %aerodynamic drag force [N]
+[nose.M, nose.th] = buckling(nose, nose_loads, mat, 0);
+
+%cylindrical body:
+cyl.r = d0/2; %cylinder radius [m]
+cyl.h = L1; %cylinder height [m]
+cyl_loads.m = nose.M; %sustained mass [kg]
+cyl_loads.n = n; %longitudinal load factor [-]
+cyl_loads.K = K; %factor of safety [-]
+cyl_loads.F_drag = F_aero; %aerodynamic drag force [N]
+[cyl.M, cyl.th] = buckling(cyl, cyl_loads, mat, 0);
