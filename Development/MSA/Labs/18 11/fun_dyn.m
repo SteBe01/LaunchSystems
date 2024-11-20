@@ -1,4 +1,4 @@
-function dxdt = fun_dyn(t, x, p, u)
+    function dxdt = fun_dyn(t, x, p, u)
 
 % x(1) = theta
 % x(2) = dottheta

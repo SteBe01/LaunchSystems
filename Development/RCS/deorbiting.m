@@ -1,4 +1,5 @@
 % Parameters
+clc
 mu = 3.986e14; % [m^3/s^2] Gravitational parameter of Earth
 Re = 6371e3;   % [m] Earth radius
 rho0 = 1.225;  % [kg/m^3] Air density at sea level
@@ -9,7 +10,7 @@ m = 500;       % [kg] Satellite mass
 omega_earth = 7.2921159e-5; % [rad/s] Earth's angular velocity (rotational speed)
 
 % Initial state (ECI coordinates)
-r0 = [Re + 300e3; 0; 0]; % Initial position (600 km altitude)
+r0 = [Re + 100e3; 0; 0]; % Initial position (600 km altitude)
 v0 = [0; sqrt(mu / norm(r0)); 0]; % Circular velocity
 state0 = [r0; v0]; % Initial state vector [r_x, r_y, r_z, v_x, v_y, v_z]
 
@@ -30,15 +31,17 @@ fprintf('Impact longitude: %.4f degrees\n', lon);
 fprintf('Time to reach ground: %.4f hours\n', t(end)/3600);
 
 % Plot trajectory
-figure;
+figure; 
 plot3(state(:, 1) / 1e3, state(:, 2) / 1e3, state(:, 3) / 1e3, 'b');
 hold on;
+plot3(impact_position(1)/1000,impact_position(2)/1000,impact_position(3)/1000,'o')
 plot3(0, 0, 0, 'ro', 'MarkerSize', 10); % Earth's center
 xlabel('X [km]');
 ylabel('Y [km]');
 zlabel('Z [km]');
 title('Satellite Trajectory');
 grid on;
+
 axis equal;
 hold on
 x = @(x)cos(x)*Re/10^3; y = @(x)sin(x)*Re/10^3;
@@ -46,7 +49,7 @@ vec = linspace(0, 2*pi, 100);
 plot3(x(vec), y(vec), zeros(100, 1)); % Earth's surface
 
 % Orbital dynamics with drag and velocity relative to atmosphere
-function dstate_dt = orbital_dynamics(~, state, mu, Re, rho0, H, Cd, A, m, omega_earth)
+function dstate_dt = orbital_dynamics(t, state, mu, Re, rho0, H, Cd, A, m, omega_earth)
     % Unpack state vector
     r = state(1:3); % Position vector [x, y, z]
     v = state(4:6); % Velocity vector [vx, vy, vz]
@@ -58,13 +61,15 @@ function dstate_dt = orbital_dynamics(~, state, mu, Re, rho0, H, Cd, A, m, omega
     accel_gravity = -mu / norm(r)^3 * r;
 
     % Atmospheric density
-    if h > 0
-        %rho = density_model(h);
-        rho = rho0 * exp(-h / H); % Exponential atmospheric density decay with altitude
-    else
-        rho = 0; % No atmosphere below surface
-    end
-    rho = 0;
+    % if h > 0
+    %     %rho = density_model(h);
+    %     rho = rho0 * exp(-h / H); % Exponential atmospheric density decay with altitude
+    % else
+    %     rho = 0; % No atmosphere below surface
+    % end
+    % 
+    rho = density_model(h);
+    
 
     % Velocity of satellite relative to the atmosphere
     % Find the velocity of the atmosphere at the satellite's latitude
@@ -76,8 +81,7 @@ function dstate_dt = orbital_dynamics(~, state, mu, Re, rho0, H, Cd, A, m, omega
 
     % Drag acceleration (note: drag depends on relative velocity)
     accel_drag = -0.5 * Cd * A * rho * norm(v_relative) * v_relative / m;
-
-    % Total acceleration
+       % Total acceleration
     accel = accel_gravity + accel_drag;
 
     % Derivatives of position and velocity
