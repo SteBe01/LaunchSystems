@@ -326,6 +326,7 @@ else
     S_lox = S_obl_lox + S_cyl_lox; %surface of the lox tank [m^2]
     h_dome_lox = R_int/AR; %dome height [m]
     R_lox = R_int; %[m] radius of the lox tank
+    AR_lox = AR;
 end
 M.R_end = M.diam2 / 2; %[m] ending radius of the stage
 
@@ -349,6 +350,7 @@ else
     S_rp1 = S_obl_rp1 + S_cyl_rp1; %surface of the rp1 tank [m^2]
     h_dome_rp1 = R_int/AR; %dome height [m]
     R_rp1 = R_int; %[m] radius of the rp1 tank
+    AR_rp1 = AR;
 end
 
 
@@ -466,38 +468,28 @@ h.tot = h_cyl_lox + h_cyl_rp1 + h.C2 + h.C3; %[m] total height of stage
 
 %plot of tanks:
 if nargin > 7
-    if R_sphere_lox > R_int %cyl lox
-        bottom = @(k) h_motor + h0 + 0.66 * R_int + h_dome_lox -sqrt(R_int^2 - k.^2)/AR;
-        top = @(k) bottom(R_int) + sqrt(R_int^2 - k.^2)/AR + h_cyl_lox;
-        K = linspace(-R_int, R_int, 1e4);
-        plot(K, bottom(K), 'k'); grid on; axis equal; hold on;
-        plot(K, top(K), 'k');
-        plot([ R_int,  R_int], [bottom(R_int), bottom(R_int) + h_cyl_lox], 'k');
-        plot([-R_int, -R_int], [bottom(R_int), bottom(R_int) + h_cyl_lox], 'k');
-    else %sphere lox
-        bottom = @(k) h_motor + h0 + 0.66 * R_sphere_lox + h_dome_lox -sqrt(R_sphere_lox^2 - k.^2);
-        top = @(k) bottom(R_sphere_lox) + sqrt(R_sphere_lox^2 - k.^2);
-        K = linspace(-R_sphere_lox, R_sphere_lox, 1e4);
-        plot(K, bottom(K), 'k'); grid on; axis equal; hold on;
-        plot(K, top(K), 'k');
-        plot(0, bottom(R_sphere_lox), '+k');
+    %lox
+    bottom = @(k) h_motor + h0 + 0.66 * R_lox + h_dome_lox -sqrt(R_lox^2 - k.^2)/AR_lox;
+    top = @(k) bottom(R_lox) + sqrt(R_lox^2 - k.^2)/AR_lox + h_cyl_lox;
+    K = linspace(-R_lox, R_lox, 1e4);
+    plot(K, bottom(K), 'k'); grid on; axis equal; hold on;
+    plot(K, top(K), 'k');
+    plot([ R_lox,  R_lox], [bottom(R_lox), bottom(R_lox) + h_cyl_lox], 'k');
+    plot([-R_lox, -R_lox], [bottom(R_lox), bottom(R_lox) + h_cyl_lox], 'k');
+    if h_cyl_lox == 0
+        plot(0, bottom(R_lox), '+k');
     end
     
-    if R_sphere_rp1 > R_int %cyl rp1 
-        bottom = @(k) h_motor + h0 + 0.66 * R_int+ h_dome_lox + h_cyl_lox + 0.5 * shape2.r(1) + h_dome_lox + h_dome_rp1 -sqrt(R_int^2 - k.^2)/AR;
-        top = @(k) bottom(R_int) + sqrt(R_int^2 - k.^2)/AR + h_cyl_rp1;
-        K = linspace(-R_int, R_int, 1e4);
-        plot(K, bottom(K), 'k'); grid on; axis equal; hold on;
-        plot(K, top(K), 'k');
-        plot([ R_int,  R_int], [bottom(R_int), bottom(R_int) + h_cyl_rp1], 'k');
-        plot([-R_int, -R_int], [bottom(R_int), bottom(R_int) + h_cyl_rp1], 'k');
-    else %sphere rp1
-        bottom = @(k) h_motor + h0 + 0.66 * R_sphere_lox + h_dome_lox  + h_cyl_lox + 1.5 * R_sphere_rp1 + h_dome_lox -sqrt(R_sphere_rp1^2 - k.^2);
-        top = @(k) bottom(R_sphere_rp1) + sqrt(R_sphere_rp1^2 - k.^2);
-        K = linspace(-R_sphere_rp1, R_sphere_rp1, 1e4);
-        plot(K, bottom(K), 'k'); grid on; axis equal; hold on;
-        plot(K, top(K), 'k');
-        plot(0, bottom(R_sphere_rp1), '+k');
+    %rp1 
+    bottom = @(k) h_motor + h0 + 0.66 * R_lox + h_dome_lox + h_cyl_lox + 0.5 * R_rp1 + h_dome_lox + h_dome_rp1 -sqrt(R_rp1^2 - k.^2)/AR_rp1;
+    top = @(k) bottom(R_rp1) + sqrt(R_rp1^2 - k.^2)/AR_rp1 + h_cyl_rp1;
+    K = linspace(-R_rp1, R_rp1, 1e4);
+    plot(K, bottom(K), 'k'); grid on; axis equal; hold on;
+    plot(K, top(K), 'k');
+    plot([ R_rp1,  R_rp1], [bottom(R_rp1), bottom(R_rp1) + h_cyl_rp1], 'k');
+    plot([-R_rp1, -R_rp1], [bottom(R_rp1), bottom(R_rp1) + h_cyl_rp1], 'k');
+    if h_cyl_rp1 == 0 %sphere
+        plot(0, bottom(R_rp1), '+k');
     end
     xlabel('x [m]', 'Interpreter','latex');
     ylabel('y [m]', 'Interpreter','latex');
