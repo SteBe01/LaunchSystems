@@ -2,11 +2,26 @@ function [COM,MoI] = Centre_Of_Mass(TR,Tank1,Tank2,Engine1,Engine2,t)
 
 %% Main outputs:
 
-% COM.TR.x_LV = C.O.M. position wrt nose (x=0) at t = t1+t2
-% COM.TR.x_LV0 = C.O.M. position wrt nose (x=0) at t = 0
+% COM.Stk1.TR.x_LV : position of COM at t= t1 (<tb1) (wrt nose: x=0)
+% COM.Stk1.TR.x_LV0 : position of COM at t=0 (launch) (wrt nose: x=0)
 
-% MoI.TR.Jy = Inertia pitch moment at  t = t1+t2
-% MoI.TR.Jy0 = Inertia pitch moment at  t = 0
+% COM.Stk2.TR.x_LV : position of COM at t= t2 (>tb1) (wrt nose: x=0)
+% COM.Stk2.TR.x_LV_tb1 : position of COM at t=tb1 (detachment) (wrt nose: x=0)
+
+% COM.Stk1.TR.M_prop : Prop mass at t= t1 (<tb1) 
+% COM.Stk1.TR.M_prop0 : Prop mass at t=0 (launch) 
+
+% COM.Stk2.TR.M_prop :  Prop mass at t= t2 (>tb1) 
+% COM.Stk2.TR.M_prop_tb1 :  Prop mass at t=tb1 (detachment)
+
+% MoI.Stk1.TR.Jy : value of Jy at t = t1 (<tb1) 
+% MoI.Stk1.TR.Jy0 : value of Jy at t = 0 (launch) 
+
+% MoI.Stk2.TR.Jy : value of Jy at t = t2 (>tb1) 
+% MoI.Stk2.TR.Jy_tb1 : value of Jy at t = tb1 (detachment) 
+
+
+%% 
 
 % structures to be defined for Engine and t
 % t.t1 = 0;
@@ -774,7 +789,7 @@ MoI_vec_mxquad_tb1 = dot(COM_vec_m_tb1,MoI_vec_xquad_tb1);
 
 MoI.Stk2.TR.Jy = MoI_vec_mxquad + sum(MoI_vec_J0); % [kg m^2] t = tb1 + t2
 
-MoI.Stk2.TR.Jy0 = MoI_vec_mxquad_tb1+ sum(MoI_vec_J0); % [kg m^2] t = tb1
+MoI.Stk2.TR.Jy_tb1 = MoI_vec_mxquad_tb1+ sum(MoI_vec_J0); % [kg m^2] t = tb1
 
 end 
 end
