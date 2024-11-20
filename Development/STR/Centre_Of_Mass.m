@@ -58,6 +58,8 @@ M_cables = 1.058*(TR.Length^(0.25))*sqrt(TR.M.M01); % [kg] Empirical formula sli
 
 M_avionics = 10*(TR.M.M01)^(0.361); % [kg] Empirical formula slides Maggi 06, structures part 1
 
+M_cables_distributed = M_cables/19;
+
 % To distinguish between 1st part of flight and 2nd part after stage 1 is
 % jettisoned
 
@@ -68,12 +70,10 @@ if t.t1 <t.t_burn1
 Ms1_stage_ratio = 1- TR.M.Ms2/TR.M.Ms1;
 
 M_avionics_s1 = M_avionics*Ms1_stage_ratio;
-M_cables_s1 = M_cables*Ms1_stage_ratio;
 
 Ms2_stage_ratio = TR.M.Ms2/TR.M.Ms1;
 
 M_avionics_s2 = M_avionics*Ms2_stage_ratio;
-M_cables_s2 = M_cables*Ms2_stage_ratio;
 
 t1 = t.t1;
 t2 = 0; % tandem launcher, so no prop of 2nd satge is burned
@@ -115,6 +115,7 @@ x_sph_22 = x_fwrd_skirt_s2 + L_rem_sphere_FU2;
 x_connection_2 = x_sph_22 + L_connection_2;
 x_sph_21 = x_connection_2 + L_rem_sphere_OX2;
 x_dwrd_skirt_s2 = x_sph_21 + L_dwrd_skirt_s2;
+
 
 end
 
@@ -254,13 +255,13 @@ COM.Stk1.Fins.x_fins = x_cyl_11 + (L_end*(3/4)); % x coord of fins
 
 COM.Stk1.Pay.m_pay = 250;
 
-COM.Stk1.Fair.m_fair = TR.Fair.M_fair;
+COM.Stk1.Fair.m_fair = TR.Fair.M_fair +M_cables_distributed;
 
-COM.Stk1.Prac2.m_parachute_2 = 0.1*TR.M.Ms2;
+COM.Stk1.Prac2.m_parachute_2 = 0.1*TR.M.Ms2+ M_cables_distributed + M_avionics_s2/2;
 
-COM.Stk1.Tank2_FU.m_tank2_FU = Tank2.FU.M_tot_tank_fuel;
+COM.Stk1.Tank2_FU.m_tank2_FU = Tank2.FU.M_tot_tank_fuel+ M_cables_distributed;
 
-COM.Stk1.Tank2_OX.m_tank2_OX = Tank2.OX.M_tot_tank_lox;
+COM.Stk1.Tank2_OX.m_tank2_OX = Tank2.OX.M_tot_tank_lox+ M_cables_distributed;
 
 COM.Stk1.Prop2_FU.m_prop2_FU0 = Tank2.FU.M_fuel;
 COM.Stk1.Prop2_FU.m_prop2_FU = COM.Stk1.Prop2_FU.m_prop2_FU0 - (m_dotfuel_2*t2);
@@ -268,17 +269,17 @@ COM.Stk1.Prop2_FU.m_prop2_FU = COM.Stk1.Prop2_FU.m_prop2_FU0 - (m_dotfuel_2*t2);
 COM.Stk1.Prop2_OX.m_prop2_OX0 = Tank2.OX.M_lox;
 COM.Stk1.Prop2_OX.m_prop2_OX = COM.Stk1.Prop2_OX.m_prop2_OX0 - (m_dotlox_2*t2);
 
-COM.Stk1.Pipes2.m_pipes2 = 10;
+COM.Stk1.Pipes2.m_pipes2 = 10+ M_cables_distributed;
 
-COM.Stk1.Aft_Struct2.m_aft_struct2 = 100;
+COM.Stk1.Aft_Struct2.m_aft_struct2 = 100+ M_cables_distributed + M_avionics_s2/2;
 
-COM.Stk1.Engine2.m_engine2 = 300;
+COM.Stk1.Engine2.m_engine2 = 300+ M_cables_distributed;
 
-COM.Stk1.Interstage.m_interstage = 0.1*TR.M.Ms1 + 20;
+COM.Stk1.Interstage.m_interstage = 0.1*TR.M.Ms1 + 20+ M_cables_distributed + M_avionics_s1/2;
 
-COM.Stk1.Tank1_FU.m_tank1_FU = Tank1.FU.M_tot_tank_fuel;
+COM.Stk1.Tank1_FU.m_tank1_FU = Tank1.FU.M_tot_tank_fuel+ M_cables_distributed;
 
-COM.Stk1.Tank1_OX.m_tank1_OX = Tank1.OX.M_tot_tank_lox;
+COM.Stk1.Tank1_OX.m_tank1_OX = Tank1.OX.M_tot_tank_lox+ M_cables_distributed;
 
 COM.Stk1.Prop1_FU.m_prop1_FU0 = Tank1.FU.M_fuel;
 COM.Stk1.Prop1_FU.m_prop1_FU = COM.Stk1.Prop1_FU.m_prop1_FU0 - ((m_dotfuel_1*t1));
@@ -286,13 +287,13 @@ COM.Stk1.Prop1_FU.m_prop1_FU = COM.Stk1.Prop1_FU.m_prop1_FU0 - ((m_dotfuel_1*t1)
 COM.Stk1.Prop1_OX.m_prop1_OX0 = Tank1.OX.M_lox;
 COM.Stk1.Prop1_OX.m_prop1_OX = COM.Stk1.Prop1_OX.m_prop1_OX0 - ((m_dotlox_1*t1));
 
-COM.Stk1.Pipes1.m_pipes1 = 10;
+COM.Stk1.Pipes1.m_pipes1 = 10+ M_cables_distributed;
 
-COM.Stk1.Aft_Struct1.m_aft_struct1 = 300;
+COM.Stk1.Aft_Struct1.m_aft_struct1 = 300+ M_cables_distributed +M_avionics_s1;
 
-COM.Stk1.Engine1.m_engine1 = 200; % Engine + nozzle
+COM.Stk1.Engine1.m_engine1 = 200+ M_cables_distributed; % Engine + nozzle
 
-COM.Stk1.Fins.m_fins = 10; % x coord of fins
+COM.Stk1.Fins.m_fins = 10+ M_cables_distributed; % x coord of fins
 
 %% Computation of position of COM wrt nose and M0
 
@@ -618,13 +619,13 @@ end
 
 COM.Stk2.Pay.m_pay = 250;
 
-COM.Stk2.Fair.m_fair = TR.Fair.M_fair;
+COM.Stk2.Fair.m_fair = TR.Fair.M_fair+ M_cables_distributed;
 
-COM.Stk2.Prac2.m_parachute_2 = 0.1*TR.M.Ms2;
+COM.Stk2.Prac2.m_parachute_2 = 0.1*TR.M.Ms2+ M_cables_distributed + M_avionics_s2/2;
 
-COM.Stk2.Tank2_FU.m_tank2_FU = Tank2.FU.M_tot_tank_fuel;
+COM.Stk2.Tank2_FU.m_tank2_FU = Tank2.FU.M_tot_tank_fuel+ M_cables_distributed;
 
-COM.Stk2.Tank2_OX.m_tank2_OX = Tank2.OX.M_tot_tank_lox;
+COM.Stk2.Tank2_OX.m_tank2_OX = Tank2.OX.M_tot_tank_lox+ M_cables_distributed;
 
 COM.Stk2.Prop2_FU.m_prop2_FU0 = Tank2.FU.M_fuel;
 COM.Stk2.Prop2_FU.m_prop2_FU = COM.Stk2.Prop2_FU.m_prop2_FU0 - (m_dotfuel_2*t2);
@@ -632,11 +633,11 @@ COM.Stk2.Prop2_FU.m_prop2_FU = COM.Stk2.Prop2_FU.m_prop2_FU0 - (m_dotfuel_2*t2);
 COM.Stk2.Prop2_OX.m_prop2_OX0 = Tank2.OX.M_lox;
 COM.Stk2.Prop2_OX.m_prop2_OX = COM.Stk2.Prop2_OX.m_prop2_OX0 - (m_dotlox_2*t2);
 
-COM.Stk2.Pipes2.m_pipes2 = 10;
+COM.Stk2.Pipes2.m_pipes2 = 10+ M_cables_distributed;
 
-COM.Stk2.Aft_Struct2.m_aft_struct2 = 100;
+COM.Stk2.Aft_Struct2.m_aft_struct2 = 100+ M_cables_distributed+ M_avionics_s2/2;
 
-COM.Stk2.Engine2.m_engine2 = 300;
+COM.Stk2.Engine2.m_engine2 = 300+ M_cables_distributed;
 
 %% Computation of position of COM wrt nose and M_tb1 (at t = tb1)
 
