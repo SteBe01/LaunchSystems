@@ -11,28 +11,21 @@ T0 = 300; %[k]
 par.kappa = 1.83e-4;  % Heat transfer constant (W/km^2/K^0.5)
 par.cp = 900;  % Specific heat capacity (J/kg/K)
 par.thermal_mass = 150;  % Thermal mass of the vehicle in thermal equilibrium (kg)
-
+geom.R_n = 0.5;           % Nose radius of the launcher (km)
+par.emissivity = 0.9;        % Emissivity of the surface
+par.sigmaSB = 5.67e-8;      % Stefan-Boltzmann constant (W/m^2/K^4, converted later)
+par.theta_g_0 = deg2rad(0);          % Initial Greenwich meridian position         [rad]
 
 % Initial state (ECI coordinates)
 r0 = [par.Re + h0; 0; 0];
-v0 = [0; sqrt(par.mu / norm(r0)); 0]; % Circular velocity
-[r0,v0] = kep2car([norm(r0),0,deg2rad(98),0,0,deg2rad(30)],par.mu);
-state0 = [r0; v0;T0]; % Initial state vector [r_x, r_y, r_z, v_x, v_y, v_z]
+[r0,v0] = kep2car([norm(r0),0,deg2rad(98),0,0,deg2rad(180)],par.mu);
+state0 = [r0; v0; T0];
 
 
 tspan = [0, 10^8]; % Time span for simulation
-options = odeset('Events', @(t,y) impact_event(t, y, par.Re));   
 
-% [~, y] = ode78(@(t, y)ode_2bp(t,y,par.mu,par,geom), tspan, state0,options);
 options = odeset( 'RelTol', 1e-13, 'AbsTol', 1e-14 ,'Events', @(t,y) impact_event(t, y, par.Re));
 [ t, Y ] = ode113( @(t,y) ode_2bp_drag( t, y,par,geom), tspan, state0, options );
-figure
-plot3(Y(:,1),Y(:,2),Y(:,3),LineWidth=1.5)
-axis equal;
-hold on
-Earth_3D(par.Re)
-plot3(Y(end,1),Y(end,2),Y(end,3),'o')
-
 
 % Extract impact point
 impact_position = Y(end, 1:3); % Final position (ECI)
@@ -44,6 +37,38 @@ fprintf('Impact latitude: %.4f degrees\n', lat);
 fprintf('Impact longitude: %.4f degrees\n', lon);
 fprintf('Time to reach ground: %.4f hours\n', t(end)/3600);
 
+radius = zeros(length(Y(:,1)),1);
+for i = 1:length(Y(:,1))
+    radius(i) = norm(Y(i,1:3)) -par.Re;  
+end
+
+q_net = heat_flux(Y,geom,par);
+
+%%%% Plots
+figure
+plot3(Y(:,1),Y(:,2),Y(:,3),LineWidth=1.5)
+axis equal;
+hold on
+Earth_3D(par.Re)
+plot3(Y(end,1),Y(end,2),Y(end,3),'o')
+
+figure
+plot(radius,Y(:,4:6))
+legend('V_x','V_y','V_z'); xlabel('Altitude [km]'); ylabel('Velocity [km/s]');grid on;set ( gca, 'XDir', 'reverse' ) 
+
+figure
+plot(radius,Y(:,7))
+xlabel('Altitude [km]'); ylabel('Temperature peak [K]');grid on
+set ( gca, 'XDir', 'reverse' )
+
+figure
+plot(radius,q_net)
+xlabel('Altitude [km]'); ylabel('Heat flux [W/m^2]');grid on
+set ( gca, 'XDir', 'reverse' )
+
+ground_track(t,Y,par)
+
+%%% Functions
 % Event function to stop when satellite reaches Earth's surface
 function [value, isterminal, direction] = impact_event(~, state, Re)
     r = state(1:3); % Position vector [x, y, z]
@@ -63,10 +88,8 @@ function [lat, lon] = eci_to_geodetic(position)
     y = position(2);
     z = position(3);
 
-    % Longitude
-    lon = rad2deg(atan2(y, x));
-    % Latitude
-    lat = rad2deg(atan2(z, sqrt(x^2 + y^2)));
+    lon = rad2deg(atan2(y, x));               % Longitude
+    lat = rad2deg(atan2(z, sqrt(x^2 + y^2))); % Latitude
 end
 
 function dy = ode_2bp_drag( ~, y,par,geom)
@@ -74,32 +97,27 @@ function dy = ode_2bp_drag( ~, y,par,geom)
 r = y(1:3);
 v = y(4:6);
 
-
 h = norm(r) - par.Re ;                        
 if h <= 0
     error("Impact on Earth detected! Reduce simulation time");
 end
-
 rho = density_model(h);                         %[kg/m^3]
  
 v_rel = v - cross([0 0 par.om_E], r)';          % [km]
 v_rel = v_rel * 1e3;                        % [m/s]
 
-a_drag = (-0.5 * geom.A/geom.m * rho * geom.Cd * norm(v_rel)^2) ...
-    * (v_rel ./ norm(v_rel)) * 1e-3;        % [m/s^2]
+a_drag = (-0.5 * geom.A/geom.m * rho * geom.Cd * norm(v_rel)^2) * (v_rel ./ norm(v_rel)) * 1e-3;        % [m/s^2]
 
 % Set the derivatives of the state
-dy = [ v
- (-par.mu/(norm(r))^3)*r + a_drag];
+dy = [ v;
+           (-par.mu/(norm(r))^3)*r + a_drag];
 
 % Temperature
- q_aero = par.kappa * sqrt(rho) * (norm(v) * 1e3)^3;  % Convert v to m/s for heat flux POTREBBE MANCARE L'AREA
-% q_solar = (1-par.alpha_alb)*par.xhi*par.q_sol*geom.A;  %ricordati A e non A/m
-% q_space = par.emissivity*par.sigmaSB*y(7)^4*par.A;
- q_net = q_aero;
-dy(7) = q_net / (par.thermal_mass * par.cp);       % Temperature rate (K/s)
-
-
+Q_aero = par.kappa * sqrt(rho/geom.R_n) * (norm(v_rel))^3*geom.A;  % Convert v to m/s for heat flux POTREBBE MANCARE L'AREA
+% q_solar = (1-par.alpha_alb)*par.xhi*par.q_sol*geom.A; 
+Q_space = par.emissivity*par.sigmaSB*y(7)^4*geom.A;
+Q_net = Q_aero -Q_space;
+dy(7) = Q_net / (geom.m * par.cp);       % Temperature rate (K/s)
 end
 
 function rho = density_model(h)
@@ -133,4 +151,60 @@ end
 
 end
 
+function ground_track(t_vec,y_vec,par)
+delta = zeros(length(t_vec), 1);
+alpha = zeros(length(t_vec), 1);
+lat   = zeros(length(t_vec), 1);
+lon   = zeros(length(t_vec), 1);
 
+for i = 1:length(t_vec)
+
+    x = real(y_vec(i, 1));
+    y = real(y_vec(i, 2));
+    z = real(y_vec(i, 3));
+
+    r = norm([x, y, z]);
+    
+    delta(i) = asin(z/r);
+    alpha(i) = atan2(y, x);
+
+    % Conversion to longitude and latitude
+    theta_g = par.theta_g_0 + par.om_E*(t_vec(i) - t_vec(1));
+
+    lon(i) = rad2deg(wrapToPi(alpha(i) - theta_g));
+    lat(i) = rad2deg((delta(i)));
+end
+   
+    figure('Position', [10 10 720 360])
+    plot(lon, lat, 'r', 'LineWidth', 1, 'HandleVisibility','off');
+    hold on
+
+    axis([-180 180 -90 90])
+    h = image(xlim, -ylim, imread('earth_texture_2D.jpg')); 
+    uistack(h, 'bottom')
+    
+    % initial and final points
+    plot(lon(1), lat(1), 'g*', 'LineWidth', 1, 'MarkerSize', 5, 'DisplayName', 'Start')
+    hold on
+    plot(lon(end), lat(end), 'g^', 'LineWidth', 1, 'MarkerSize', 5, 'DisplayName', 'End')
+    hold on
+    
+    xlabel('Longitude [deg]'), ylabel('Latitude [deg]')
+    legend show
+   
+end
+
+function q_net = heat_flux(Y,geom,par)
+q_net = zeros(length(Y(:,1)),1);
+for i = 1:length(Y(:,1))
+r = Y(i,1:3);
+v = Y(i,4:6);
+h = norm(r)- par.Re;
+rho = density_model(h);
+v_rel = v - cross([0 0 par.om_E], r)';          % [km]
+v_rel = v_rel * 1e3;                        % [m/s]
+q_aero = par.kappa * sqrt(rho/geom.R_n) * (norm(v_rel))^3;  % Convert v to m/s for heat flux POTREBBE MANCARE L'AREA
+q_space = par.emissivity*par.sigmaSB*Y(i,7)^4;
+q_net(i) = q_aero -q_space;
+end
+end
