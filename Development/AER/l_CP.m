@@ -33,6 +33,17 @@ function [l_CP] = l_CP(M, alpha, l_s,V_S,r_N,l_w,r, s_w,cr_w, q_inf, m_w, d, K_B
 % Cl_TV = lift coefficient based on tail in presence of wing vortex
 
 
+alpha = deg2rad(alpha); % [rad]
+
+% deal with AoA
+if alpha <= deg2rad(90) && alpha >= 0
+    alpha = + alpha;
+elseif alpha <= deg2rad(180) && alpha >= deg2rad(90)
+    alpha = deg2rad(180) - alpha;
+end
+
+
+
 % CENTRE OF PRESSURE OF BODY NOSE
 
 l_N = l_s*(1-V_S/(pi*r_N^2*l_s));
