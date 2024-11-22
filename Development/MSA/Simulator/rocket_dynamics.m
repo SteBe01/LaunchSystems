@@ -25,7 +25,6 @@ function [dY, parout] = rocket_dynamics(t, Y, stage, params, current_stage)
     useTVC = stage.useTVC;
     deltaMax = stage.deltaMax;
 
-
     if current_stage == 1
         t_wait = params.t_turn;
     else
@@ -54,7 +53,7 @@ function [dY, parout] = rocket_dynamics(t, Y, stage, params, current_stage)
 
     qdyn = 0.5*rho*velsNorm^2;
 
-    %% If TVC apply pitch up maneuvre
+    %% If TVC apply pitch up maneuver
 
     if useTVC
         t_turn = nan;
@@ -141,3 +140,4 @@ function [dY, parout] = rocket_dynamics(t, Y, stage, params, current_stage)
         end
     end
 end
+

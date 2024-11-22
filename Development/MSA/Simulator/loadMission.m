@@ -29,7 +29,7 @@ params.wind_ned = [0; 0];
 
 % Pitch maneuver
 params.t_turn = 5;                      % [s]       - Initial maneuver time
-params.gamma_turn = deg2rad(45);        % [rad]     - Initial flight path angle
+params.gamma_turn = deg2rad(10);        % [rad]     - Initial flight path angle
 
 % MECO to stage separation wait time
 stages.stg1.t_wait = 5;

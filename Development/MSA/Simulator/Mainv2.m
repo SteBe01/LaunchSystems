@@ -68,55 +68,55 @@ set(0, 'DefaultLineLineWidth', 1.5)
 boundary = 0;
 subplot(2,2,1), hold on, grid on, title("Downrange over time"), xlabel("Time [s]"), ylabel("Downrange [km]")
 plot(T, Y(1:end-boundary,1)/1e3)
-xline(T1(end), '--k', 'Staging');
+xline(T1(end), '--k', 'Staging')
 subplot(2,2,2), hold on, grid on, title("Altitude over time"), xlabel("Time [s]"), ylabel("Altitude [km]")
 plot(T, Y(1:end-boundary,2)/1e3)
-xline(T1(end), '--k', 'Staging');
+xline(T1(end), '--k', 'Staging')
 subplot(2,2,3), hold on, grid on, title("Horizontal velocity over time"), xlabel("Time [s]"), ylabel("Velocity [km/s]")
 plot(T, Y(1:end-boundary,3)/1e3)
-xline(T1(end), '--k', 'Staging');
+xline(T1(end), '--k', 'Staging')
 subplot(2,2,4), hold on, grid on, title("Vertical velocity over time"), xlabel("Time [s]"), ylabel("Velocity [deg]")
-plot(T, Y(1:end-boundary,4)/1e3);
-xline(T1(end), '--k', 'Staging');
-
+plot(T, Y(1:end-boundary,4)/1e3)
+xline(T1(end), '--k', 'Staging')
 
 figure; hold on; grid on; title("Dynamic pressure wrt altitude"), xlabel("Altitude [km]"), ylabel("Qdyn [kPa]")
-plot(Y(1:end, 2)/1e3, qdyn/1e3);
-xline(Y1(end, 2)/1e3, '--k', 'Staging');
+plot(Y(1:end, 2)/1e3, qdyn/1e3)
+xline(Y1(end, 2)/1e3, '--k', 'Staging')
 
 figure; hold on; grid on; title("Altitude wrt Downrange"), xlabel("Downrange [km]"), ylabel("Altitude [km]")
 plot(Y(1:end, 1)/1e3, Y(1:end, 2)/1e3)
-xline(Y1(end,1)/1e3, '--k', 'Staging');
+xline(Y1(end,1)/1e3, '--k', 'Staging')
 
 figure; 
 subplot(2,1,1); hold on; grid on; title("Gamma over time"), xlabel("Time [s]"), ylabel("gamma [rad]")
-plot(T, Y(:,5));
-xline(T1(end), '--k', 'Staging');
+plot(T, Y(:,5))
+xline(T1(end), '--k', 'Staging')
 subplot(2,1,2); hold on; grid on; title("Gamma dot over time"), xlabel("Time [s]"), ylabel("gamma\_dot [rad/s]")
-plot(T, gammaDot);
-xline(T1(end), '--k', 'Staging');
+plot(T, gammaDot)
+xline(T1(end), '--k', 'Staging')
 
-figure;
+figure
 subplot(2,1,1); hold on; grid on; title("Axial acceleration over time"), xlabel("Time [s]"), ylabel("Acceleration [g]")
-plot(T, acc(:,1)/params.g0);
-xline(T1(end), '--k', 'Staging');
+plot(T, acc(:,1)/params.g0)
+xline(T1(end), '--k', 'Staging')
 subplot(2,1,2); hold on; grid on; title("Normal acceleration over time"), xlabel("Time [s]"), ylabel("Acceleration [g]")
-plot(T, acc(:,2)/params.g0);
-xline(T1(end), '--k', 'Staging');
+plot(T, acc(:,2)/params.g0)
+xline(T1(end), '--k', 'Staging')
 
-figure;
+figure
 subplot(2,2,1), hold on, grid on, title("Horizontal velocity over time"), xlabel("Time [s]"), ylabel("Velocity [km/s]")
 plot(T, Y(1:end-boundary,3)/1e3)
-xline(T1(end), '--k', 'Staging');
+xline(T1(end), '--k', 'Staging')
 subplot(2,2,2), hold on, grid on, title("Vertical velocity over time"), xlabel("Time [s]"), ylabel("Velocity [deg]")
-plot(T, Y(1:end-boundary,4)/1e3);
-xline(T1(end), '--k', 'Staging');
+plot(T, Y(1:end-boundary,4)/1e3)
+xline(T1(end), '--k', 'Staging')
 subplot(2,2,3), hold on, grid on, title("Axial velocity over time"), xlabel("Time [s]"), ylabel("Velocity [km/s]")
 plot(T, vel_body(:,1)/1e3)
-xline(T1(end), '--k', 'Staging');
+xline(T1(end), '--k', 'Staging')
 subplot(2,2,4), hold on, grid on, title("Normal velocity over time"), xlabel("Time [s]"), ylabel("Velocity [deg]")
-plot(T, vel_body(:,2)/1e3);
-xline(T1(end), '--k', 'Staging');
+plot(T, vel_body(:,2)/1e3)
+xline(T1(end), '--k', 'Staging')
+
 
 %% Post-processing
 
@@ -136,6 +136,8 @@ xline(T1(end), '--k', 'Staging');
 % plot(T, Y(:, 4)/1e3, 'DisplayName', 'ODE');
 % xline(T1(end), '--k', 'Staging', 'HandleVisibility', 'off');
 % legend()
+
+
 %% Event Functions
 
 function [value, isterminal, direction] = stage_Separation(t, ~, stage)
@@ -146,10 +148,9 @@ end
 
 function [value, isterminal, direction] = orbit_insertion(~, y)
     % value = y(2);% - 400e3;
-    value = y(5) + deg2rad(2);
-    % value = y(2);
+    % value = y(5) + deg2rad(2);
+    value = y(4);
     isterminal = 1;
     direction = 0;
 end
-
 
