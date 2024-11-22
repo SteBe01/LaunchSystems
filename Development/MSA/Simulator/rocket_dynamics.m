@@ -1,22 +1,30 @@
-function [dY, parout] = rocket_dynamics(t, Y, params, stage, current_stage, useTVC, deltaMax)
+function [dY, parout] = rocket_dynamics(t, Y, stage, params, current_stage)
     
-    persistent turn_complete
+    persistent turn_complete gamma_drop
+
+    if isempty(gamma_drop)
+        gamma_drop = 0;
+    end
 
     %% Retrieve ODE State
-    downrange = Y(1);
+    % downrange = Y(1);
     h = Y(2);
     vx = Y(3);
     vy = Y(4);
     gamma = Y(5);
 
     velsNorm = norm([vx vy]);
+    R = [cos(gamma) sin(gamma); -sin(gamma) cos(gamma)]';
 
     %% Retrieve data from input structs
     t_burn = stage.t_burn_tot;
     Re = params.Re;
-    S = params.d^2/4*pi;
-    Cd = params.Cd;
-    Cl = params.Cl;
+    S = stage.d^2/4*pi;
+    Cd = stage.Cd;
+    Cl = stage.Cl;
+    useTVC = stage.useTVC;
+    deltaMax = stage.deltaMax;
+
 
     if current_stage == 1
         t_wait = params.t_turn;
@@ -26,12 +34,13 @@ function [dY, parout] = rocket_dynamics(t, Y, params, stage, current_stage, useT
 
     %% Environment Data
     rho = getDensity(h);
-    g = params.g0&((1+h/Re)^2);
-    wind_ned = paras.wind_ned;
+    g = params.g0*((1+h/Re)^2);
+    vels = R' * [vx; vy];
+    wind_body = R' * params.wind_ned;
 
     % Relative velocities
-    vxRel = vx - wind_ned(1);
-    vyRel = vy - wind_ned(2);
+    vxRel = vels(1) - wind_body(1);
+    vyRel = vels(2) - wind_body(2);
 
     % Compute Angle of Attack
     if not(abs(vxRel) < 1e-9 || velsNorm < 1e-9)
@@ -62,6 +71,20 @@ function [dY, parout] = rocket_dynamics(t, Y, params, stage, current_stage, useT
         delta = 0;
     end
 
+    if t < params.t_turn
+        gamma_drop = gamma;
+    end
+
+    %% Update mass
+
+    if t <= t_wait
+        m = stage.m0;
+    elseif t > t_wait && t <= t_burn + t_wait
+        m = stage.m0 - stage.m_dot * (t-t_wait);
+    else
+        m = stage.m0 - stage.m_dot * t_burn;
+    end
+
     %% Compute accelerations
 
     % [N] - Thrust force acting on the rocket
@@ -71,8 +94,8 @@ function [dY, parout] = rocket_dynamics(t, Y, params, stage, current_stage, useT
         Thrust = 0;
     end
 
-    Drag = dynPress*S*Cd;
-    Lift = dynPress*S*Cl;
+    Drag = qdyn*S*Cd;
+    Lift = qdyn*S*Cl;
 
     F_Ax = Thrust*cos(delta) - Drag - m*g*sin(gamma);
     F_N = Thrust*sin(delta) + Lift - m*g*cos(gamma);
@@ -111,6 +134,8 @@ function [dY, parout] = rocket_dynamics(t, Y, params, stage, current_stage, useT
         parout.qdyn = qdyn;
         parout.gammaDot = gammaDot;
         parout.acc = [acc_Ax acc_N];
+        parout.Mach = Mach;
+        parout.AoA = AoA;
         if exist("t_turn", 'var') && ~isnan(t_turn)
             parout.t_turn = t_turn;
         end
