@@ -61,7 +61,7 @@ adapter.mat_id = 1; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 
 
 %first guesses:
 eps0 = [0.1; 0.2]; %[0.06; 0.2]; %[-] stages structural mass indexes
-fairing.base_diam = 1; %[m] first guess for fairing base diameter
+fairing.base_diam = diam; %[m] first guess for fairing base diameter
 adapter.base_diam = fairing.base_diam; %[m] first guess for fairing and adapter base diameter
 
 %while loop parameters:

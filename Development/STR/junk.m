@@ -243,3 +243,53 @@ cyl_loads.n = n; %longitudinal load factor [-]
 cyl_loads.K = K; %factor of safety [-]
 cyl_loads.F_drag = F_aero; %aerodynamic drag force [N]
 [cyl.M, cyl.th] = buckling(cyl, cyl_loads, mat, 0);
+
+
+%%
+if id == 4 %composites need different formulas
+    if p == 0 %FOR CONNECTORS ( p = 0 )
+        if length(r) == 1 %cylindrical connector
+           
+        else %CONICAL CONNECTOR
+         
+        end
+    else %FOR CYLINDRICAL TANKS ( p =\= 0, size(r)==1 )
+    
+    end
+else
+    if p == 0 %FOR CONNECTORS ( p = 0 )
+        if length(r) == 1 %CYLINDRICAL CONNECTOR
+            %compute knockdown factor:
+            phi = @(th) (1/16) * sqrt(r/th);
+            gP = @(th) 1 - 0.901 * ( 1 - exp( -phi(th) ) );
+            gM = @(th) 1 - 0.731 * ( 1 - exp( -phi(th) ) );
+
+            %get the wall flexural stiffness per unit width:
+            D = @(th) E * th^3 / ( 12 * (1-nu^2) );
+
+            %critical loads (axial compression and bending):
+            Pcr = @(th) k_x(nu, L, r, th, gP) * 2 * pi^3 * D(th) * r / L^2;
+            Mcr = @(th) k_x(nu, L, r, th, gM)   *   pi^3 * D(th) * r^2 / L^2;
+            %simplified expression for Mcr : Mcr = @(th) 0.987 * E * th^2 / sqrt(1-nu^2);
+
+            %minimum thickness to sustain only Pcr:
+            t_l = fzero( K * F_load - Pcr , [r/1500, 1]);
+
+        else %CONICAL CONNECTOR 
+    
+        end
+    else %FOR CYLINDRICAL TANKS ( p =\= 0, size(r)==1 )
+        %compute knockdown factor:
+        phi = @(th) (1/16) * sqrt(r/th);
+        gP = @(th) 1 - 0.901 * ( 1 - exp( -phi(th) ) );
+        gM = @(th) 1 - 0.731 * ( 1 - exp( -phi(th) ) );
+        dg = @(th) d_gamma(p, E, r, th); 
+
+        %critical loads (axial compression and bending):
+        Pcr = @(th) 2*pi    * E * th^2 * ( gP(th) / sqrt( 3 * (1-nu^2) ) + dg(th) ) + p * pi * r(1)^2; 
+        Mcr = @(th) pi*r(1) * E * th^2 * ( gM(th) / sqrt( 3 * (1-nu^2) ) + dg(th) ) + p * pi * r(1)^2 * k1;
+
+        %minimum thickness to sustain only Pcr:
+        t_l = fzero( K * F_load - Pcr , [r/1500, 1]);
+    end
+end

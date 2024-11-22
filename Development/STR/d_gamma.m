@@ -109,7 +109,7 @@ figure(6)
 loglog(x, y);
 
 %%
-curveFitter([0.1, 1, 3, 100, 1000], [1, 1.1, 2, 64, 700]);
+%curveFitter([0.1, 1, 3, 100, 1000], [1, 1.1, 2, 64, 700]);
 
 % from curve fitting with 
 % param = [0.1, 1, 3, 100, 1000]
@@ -121,7 +121,11 @@ a = 3.2513;
 b = 0.5195;   
 c = 0.5348;
 
+gZ = linspace(0.1, 1e4, 1e5);
 
+f = @(x) c*(a+x.^2).^b;
+
+loglog(gZ, f(gZ));grid on;
 
 
 
