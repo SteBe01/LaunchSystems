@@ -33,7 +33,8 @@ function [dY, parout] = rocket_dynamics(t, Y, stage, params, current_stage)
 
     %% Environment Data
     rho = getDensity(h);
-    g = params.g0*((1+h/Re)^2);
+    % g = params.g0/((1+h/Re)^2);
+    g = 398600e9/(h+Re)^2;
     vels = R' * [vx; vy];
     wind_body = R' * params.wind_ned;
 
@@ -50,7 +51,6 @@ function [dY, parout] = rocket_dynamics(t, Y, stage, params, current_stage)
 
     [~, a] = atmosisa(h);
     Mach = velsNorm/a;
-
     qdyn = 0.5*rho*velsNorm^2;
 
     %% If TVC apply pitch up maneuver
