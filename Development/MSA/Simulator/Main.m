@@ -18,7 +18,7 @@ for ii = 1:length(fn)
         stages.(fn{ii+1}).m0 = stages.(fn{ii}).m0 - stages.(fn{ii}).m_prop;
     end
 end
-t_tot = stages.stg1.t_burn_tot + stages.stg2.t_burn_tot;
+% t_tot = stages.stg1.t_burn_tot + stages.stg2.t_burn_tot;
 
 % Trajectory propagation
 y0_stg1 = [params.v0 params.gamma0 0 params.h0];
@@ -26,9 +26,9 @@ y0_stg1 = [params.v0 params.gamma0 0 params.h0];
 options_stg1 = odeset('RelTol',1e-8, 'MaxStep', 0.1, 'Events', @(t, y) stage_Separation(t, y, stages.stg1));
 options_stg2 = odeset('RelTol', 1e-8, 'MaxStep', 0.1, 'Events', @(t, y) orbit_insertion(t, y));
 
-[T1, Y1] = ode113(@(t, y) dyn(t, y, stages.stg1, params, 1), 0:2*t_tot, y0_stg1, options_stg1);
+[T1, Y1] = ode113(@(t, y) dyn(t, y, stages.stg1, params, 1), 0:1e4, y0_stg1, options_stg1);
 y0_s2 = Y1(end, :);
-[T2, Y2] = ode113(@(t, y) dyn(t, y, stages.stg2, params, 2), 0:10*t_tot, y0_s2, options_stg2);
+[T2, Y2] = ode113(@(t, y) dyn(t, y, stages.stg2, params, 2), 0:1e4, y0_s2, options_stg2);
 
 T = [T1; T2+T1(end)];
 Y = [Y1; Y2];
@@ -97,7 +97,7 @@ end
 
 function [value, isterminal, direction] = orbit_insertion(~, y)
     % value = y(4);% - 400e3;
-    value = y(2) + deg2rad(2);
+    value = y(2);
     isterminal = 1;
     direction = 0;
 end

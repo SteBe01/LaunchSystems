@@ -19,7 +19,9 @@ stages.stg2.Cl = 0.0;
 params.g0 = 9.81;
 params.Re = 6378000;
 params.h0 = 11.9e3;
+% params.h0 = 400e3;
 params.v0 = 200;
+% params.v0 = 7.6686e3;
 params.gamma0 = deg2rad(0);
 params.turn_duration = 60;   % [s]
 params.h_stage = 95e3;
@@ -29,7 +31,7 @@ params.wind_ned = [0; 0];
 
 % Pitch maneuver
 params.t_turn = 5;                      % [s]       - Initial maneuver time
-params.gamma_turn = deg2rad(10);        % [rad]     - Initial flight path angle
+params.gamma_turn = deg2rad(45);        % [rad]     - Initial flight path angle
 
 % MECO to stage separation wait time
 stages.stg1.t_wait = 5;
