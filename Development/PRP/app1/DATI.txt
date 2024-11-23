@@ -1,0 +1,15 @@
+DATI
+
+BASE
+Throat radius 0.03
+Exit radius 0.12
+Nozzle length 0.208
+Chamber radius 2.2
+Chamber length 6.33
+
+
+
+
+MOD
+Exit radius 0.177
+Nozzle length 0.4
