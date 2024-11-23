@@ -22,7 +22,7 @@ end
 % t_tot = stages.stg1.t_burn_tot + stages.stg2.t_burn_tot;
 
 % Trajectory propagation
-y0_stg1 = [params.v0 params.gamma0 0 params.h0];
+y0_stg1 = [params.v0 params.gamma0 0 params.h0 params.gamma0+pi/2 0];
 
 options_stg1 = odeset('RelTol',1e-8, 'MaxStep', 0.1, 'Events', @(t, y) stage_Separation(t, y, stages.stg1));
 options_stg2 = odeset('RelTol', 1e-8, 'MaxStep', 0.1, 'Events', @(t, y) orbit_insertion(t, y));
@@ -96,6 +96,14 @@ xline(T1(end), '--k', 'Staging');
 figure;
 hold on; grid on; title("Acceleration norm over time"), xlabel("Time [s]"), ylabel("Acceleration norm [g]")
 plot(T, vecnorm(acc, 2,2)./params.g0);
+xline(T1(end), '--k', 'Staging');
+
+figure;
+subplot(2,1,1); hold on; grid on; title("$\Theta$ evolution", 'Interpreter', 'latex'); xlabel("Time [s]")
+plot(T, rad2deg(Y(:, 5)));
+xline(T1(end), '--k', 'Staging');
+subplot(2,1,2); hold on; grid on; title("$\dot{\Theta}$ evolution", 'Interpreter', 'latex'); xlabel("Time [s]")
+plot(T, rad2deg(Y(:, 6)));
 xline(T1(end), '--k', 'Staging');
 
 %% Functions

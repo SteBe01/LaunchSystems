@@ -4,6 +4,8 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     % Y(2) = gamma (trajectory path angle)
     % Y(3) = x (downrange)
     % Y(4) = h (altitude)
+    % Y(5) = theta
+    % Y(6) = thetaDot
 
     % Persistent data
     persistent turn_complete gamma_drop
@@ -16,6 +18,8 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     gamma = y(2);
     % x = y(3);
     h = y(4);
+    % theta = y(5);
+    thetaDot = y(6);
 
     if t < params.t_turn
         gamma_drop = gamma;
@@ -71,6 +75,10 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     % Normal acceleration
     acc_N = (T*sin(delta) + L - m*g*cos(gamma))/m;
 
+    % Moments
+    Ma = 0;
+    Md = T*sin(delta)*1.5/stage.I;
+
     % Derivative vector
     dY = zeros(4, 1);
 
@@ -84,6 +92,9 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
         dY(3) = Re/(Re+h) * v * cos(gamma);
         dY(4) = v * sin(gamma);
     end
+
+    dY(5) = thetaDot;
+    dY(6) = Md*1;
 
     % Pitch-up maneuver
     % if current_stage == 1 && (t >= params.t_turn && t <= params.t_turn+params.turn_duration)
