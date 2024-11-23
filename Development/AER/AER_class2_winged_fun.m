@@ -1,4 +1,4 @@
-function [CL, CD] = AER_class1_winged_fun(Mach_v, alpha_v, h, A_w)
+function [CL, CD] = AER_class2_winged_fun(Mach_v, alpha_v, h, A_w)
 
 %% INPUTS:
 
