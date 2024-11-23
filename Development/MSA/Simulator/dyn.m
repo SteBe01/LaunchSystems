@@ -68,6 +68,9 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
         T = 0;
     end
 
+    % Normal acceleration
+    acc_N = (T*sin(delta) + L - m*g*cos(gamma))/m;
+
     % Derivative vector
     dY = zeros(4, 1);
 
@@ -91,7 +94,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     if nargout > 1
         parout.qdyn = qdyn;
         parout.gamma_dot = dY(2);
-        parout.acc = dY(1);
+        parout.acc = [dY(1); acc_N];
         if exist("t_turn", 'var') && ~isnan(t_turn)
             parout.t_turn = t_turn;
         end
