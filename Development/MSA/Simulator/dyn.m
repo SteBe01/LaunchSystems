@@ -28,7 +28,20 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     end
 
     % Thrust vectoring
-    delta = 0;
+    if stage.useTVC
+        t_turn = nan;
+        if current_stage == 1 && t >= params.t_turn && (gamma - params.gamma_turn) < 1e-3 && ~turn_complete
+            delta = stage.deltaMax;
+        elseif current_stage == 1 && t >= params.t_turn && (gamma - params.gamma_turn) >= 1e-3 && ~turn_complete
+            t_turn = t;
+            turn_complete = true;
+            delta = 0;
+        else
+            delta = 0;
+        end
+    else
+        delta = 0;
+    end
 
     % Retrieve data used multiple times 
     t_burn_tot = stage.t_burn_tot;
@@ -70,15 +83,18 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     end
 
     % Pitch-up maneuver
-    if current_stage == 1 && (t >= params.t_turn && t <= params.t_turn+params.turn_duration)
-        dY(2) = (params.gamma_turn-gamma_drop)*(pi/(2*params.turn_duration)*sin(pi*(t-params.t_turn)/params.turn_duration));
-    end
+    % if current_stage == 1 && (t >= params.t_turn && t <= params.t_turn+params.turn_duration)
+    %     dY(2) = (params.gamma_turn-gamma_drop)*(pi/(2*params.turn_duration)*sin(pi*(t-params.t_turn)/params.turn_duration));
+    % end
 
     % Prepare output struct for ode recall
     if nargout > 1
         parout.qdyn = qdyn;
         parout.gamma_dot = dY(2);
         parout.acc = dY(1);
+        if exist("t_turn", 'var') && ~isnan(t_turn)
+            parout.t_turn = t_turn;
+        end
     end
 end
 

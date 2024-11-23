@@ -5,6 +5,7 @@
 
 clear, clc
 close all
+clear dyn
 
 [stages, params] = loadMission();
 
@@ -29,6 +30,7 @@ options_stg2 = odeset('RelTol', 1e-8, 'MaxStep', 0.1, 'Events', @(t, y) orbit_in
 [T1, Y1] = ode113(@(t, y) dyn(t, y, stages.stg1, params, 1), 0:1e4, y0_stg1, options_stg1);
 y0_s2 = Y1(end, :);
 [T2, Y2] = ode113(@(t, y) dyn(t, y, stages.stg2, params, 2), 0:1e4, y0_s2, options_stg2);
+clear dyn;
 
 T = [T1; T2+T1(end)];
 Y = [Y1; Y2];
