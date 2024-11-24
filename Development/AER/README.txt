@@ -13,3 +13,5 @@ INPUT FUNZIONI:
 OUTPUT FUNZIONI:
 - Cd, Cl (Ca, Cn)
 - Cm e Xcp (solo class2 e class3)
+
+OSS: le funzioni ready to run sono quelle: " _fun "
