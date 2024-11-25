@@ -10,7 +10,7 @@ output funzione1: cl, cd
 output funzione2: cl, cd, cm, Xcp
 
 FUNZIONE1:
-Scaricare Dati Cd0.xlsx
+Scaricare Dataset Cdn.xlsx
 Scaricare geometry_funzione1 (definisce la geometria)
 Run della funzione1
 
