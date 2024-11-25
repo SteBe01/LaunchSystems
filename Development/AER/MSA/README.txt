@@ -15,7 +15,7 @@ Scaricare geometry_funzione1 (definisce la geometria)
 DEFINIRE geometria all'interno di geometry_funzione1
 Run della funzione1
 
-FUNZIONE2:
+FUNZIONE2: (non ancora ultimata)
 Scaricare Dataset Cdn.xlsx
 Scaricare geometry_funzione2 (definisce la geometria, anche con la forma dell'ala / coda)
 DEFINIRE geometria all'interno di geometry_funzione2
