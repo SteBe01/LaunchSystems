@@ -1,13 +1,13 @@
-function [stages, params] = loadMission()
+function [stages, params, init] = loadMission()
 
 % General parameters
 stages.stg1.n = 5.53;
 stages.stg2.n = 2.93;
 stages.stg1.Isp = 280;
 stages.stg2.Isp = 298;
-stages.stg1.Thrust = 200e3;
+stages.stg1.Thrust = 27.4e3*8;
 stages.stg2.Thrust = 27.5e3;
-stages.stg1.m0 = 13.5e3;
+stages.stg1.m0 = 15e3;
 
 stages.stg1.d = 1.8;
 stages.stg2.d = 1.5;
@@ -16,24 +16,38 @@ stages.stg2.Cd = 0.5;
 stages.stg1.Cl = 0.3;
 stages.stg2.Cl = 0.0;
 stages.stg1.I = 20e4;
-stages.stg2.I = 5e3;
+stages.stg2.I = 5e4;
+stages.stg1.xcp = 4.7;
+stages.stg2.xcp = 2.5;
+stages.stg1.xcg = 2;
+stages.stg2.xcg = 4.5; 
+stages.stg1.length = 5;
+stages.stg2.length = 3;
 
+% Initial conditions
+init.x0 = 0;                    % [m]
+init.z0 = 11.9e3*0;               % [m]
+init.vx0 = 200/200;                 % [m/s]
+init.vz0 = 0;                   % [m/s]
+init.theta0 = deg2rad(0);     % [rad]
+init.thetaDot0 = deg2rad(0);    % [rad/s]
+
+% Environment data
 params.g0 = 9.81;
 params.Re = 6378000;
-params.h0 = 11.9e3;
-% params.h0 = 400e3;
-params.v0 = 200;
-% params.v0 = 7.6686e3;
-params.gamma0 = deg2rad(0);
 params.turn_duration = 60;   % [s]
 params.h_stage = 95e3;
 params.wind_ned = [0; 0];
+
+params.k1 = 0;
+params.k2 = 0.8;
+params.k3 = 3.614;
 
 %% hardcoded data
 
 % Pitch maneuver
 params.t_turn = 5;                      % [s]       - Initial maneuver time
-params.gamma_turn = deg2rad(45);        % [rad]     - Initial flight path angle
+params.theta_turn = deg2rad(45);        % [rad]     - Initial flight path angle
 
 % MECO to stage separation wait time
 stages.stg1.t_wait = 5;
@@ -44,7 +58,7 @@ stages.stg2.t_ign = 3;
 % TVC Parameters
 stages.stg1.useTVC = true;
 stages.stg2.useTVC = false;
-stages.stg1.deltaMax = deg2rad(7.5);
+stages.stg1.deltaMax = deg2rad(12);
 stages.stg2.deltaMax = 0;
 
 end

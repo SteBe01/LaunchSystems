@@ -1,50 +1,35 @@
 function [dY, parout] = dyn(t,y, stage, params, current_stage)
 
-    % Y(1) = v (velocity, body frame)
-    % Y(2) = gamma (trajectory path angle)
-    % Y(3) = x (downrange)
-    % Y(4) = h (altitude)
-    % Y(5) = theta
-    % Y(6) = thetaDot
+    % Y(1) = x (horizontal position, inertial)
+    % Y(2) = z (vertical position, inertial)
+    % Y(3) = xDot (horizontal velocity, inertial)
+    % Y(4) = zDot (vertical velocity, inertial)
+    % Y(5) = theta (pitch angle, positive counterclockwise)
+    % Y(6) = thetaDot (pitch angular velocity, positive counterclockwise)
 
     % Persistent data
-    persistent turn_complete gamma_drop
+    persistent turn_complete
     if isempty(turn_complete)
         turn_complete = false;
     end
 
     % Retrieve data from ode
-    v = y(1);
-    gamma = y(2);
-    % x = y(3);
-    h = y(4);
-    % theta = y(5);
+    x = y(1);
+    z = y(2);
+    xDot = y(3);
+    zDot = y(4);
+    theta = y(5);
     thetaDot = y(6);
 
-    if t < params.t_turn
-        gamma_drop = gamma;
-    end
+    velsNorm = norm([xDot zDot]);
+    dcm = [cos(theta) -sin(theta); sin(theta) cos(theta)]';
+    gamma = atan2(xDot, zDot);
+    alpha = theta-gamma;
 
     if current_stage == 1
         t_wait = params.t_turn;
     else 
         t_wait = stage.t_ign;
-    end
-
-    % Thrust vectoring
-    if stage.useTVC
-        t_turn = nan;
-        if current_stage == 1 && t >= params.t_turn && (gamma - params.gamma_turn) < 1e-3 && ~turn_complete
-            delta = stage.deltaMax;
-        elseif current_stage == 1 && t >= params.t_turn && (gamma - params.gamma_turn) >= 1e-3 && ~turn_complete
-            t_turn = t;
-            turn_complete = true;
-            delta = 0;
-        else
-            delta = 0;
-        end
-    else
-        delta = 0;
     end
 
     % Retrieve data used multiple times 
@@ -58,57 +43,84 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     else
         m = stage.m0 - stage.m_dot * t_burn_tot;
     end
+
+    % % Compute AoA
+    % vels_body = dcm*[xDot; zDot];
+    % wind_body = dcm*params.wind_ned;
+    % v_rel = vels_body - wind_body;
+    % alpha = atan2(v_rel(2), v_rel(1));
     
-    % Forces
-    g = params.g0/((1+h/Re)^2);                     % [m/s^2]   - Gravity acceleration taking into account altitude
-    rho = getDensity(h);                            % [kg/m^3]  - Density at current altitude
-    qdyn = 0.5*rho*v^2;                             % [Pa]      - Dynamic pressure
+    % Environment data
+    g = params.g0/((1+z/Re)^2);                     % [m/s^2]   - Gravity acceleration taking into account altitude
+    rho = getDensity(z);                            % [kg/m^3]  - Density at current altitude
+    qdyn = 0.5*rho*velsNorm^2;                             % [Pa]      - Dynamic pressure
     S = pi*(stage.d^2/4);                           % [m^2]     - Rocket surface area
+    
+    % Aerodynamic forces
     D = qdyn*S*stage.Cd;                            % [N]       - Drag force acting on the rocket
     L = qdyn*S*stage.Cl;                            % [N]       - Lift force acting on the rocket
+    
+    % Thrust vectoring
+    % if stage.useTVC
+    %     t_turn = nan;
+    %     if current_stage == 1 && t >= params.t_turn && abs(theta - params.theta_turn) > 1e-3 && ~turn_complete
+    %         delta = stage.deltaMax;
+    %     elseif current_stage == 1 && t >= params.t_turn && abs(theta - params.theta_turn) <= 1e-3 && ~turn_complete
+    %         t_turn = t;
+    %         turn_complete = true;
+    %         % delta = -params.k1*theta - params.k2*thetaDot - params.k3*alpha;
+    %         delta = 0;
+    %     else
+    %         % delta = -params.k1*theta - params.k2*thetaDot - params.k3*alpha;
+    %         delta = 0;
+    %     end
+    % else
+    %     delta = 0;
+    % end
+
+    if theta > 0
+        delta = deg2rad(5);
+    else
+        delta = deg2rad(-5);
+    end
+
+    % Thrust
     if t > t_wait && t <= t_burn_tot + t_wait       % [N]       - Thrust force acting on the rocket
         T = stage.Thrust;
     else
         T = 0;
     end
 
-    % Normal acceleration
-    acc_N = (T*sin(delta) + L - m*g*cos(gamma))/m;
+    % Forces on the rocket in body frame
+    F_i = -D*cos(alpha) - L*sin(alpha) + T*cos(delta) - m*g*cos(gamma);
+    F_j = +D*sin(alpha) - L*cos(alpha) + T*sin(delta) + m*g*sin(gamma);
 
-    % Moments
-    Ma = 0;
-    Md = T*sin(delta)*1.5/stage.I;
+    % Moments on the rocket in body frame
+    M_t = (D*sin(alpha)-L*cos(alpha))*(stage.xcp - stage.xcg) + T*sin(delta)*(stage.length - stage.xcg);
+
+   % Forces in inertial frame
+   Fxz = dcm'*[F_i; F_j];
+   F_x = Fxz(1);
+   F_z = Fxz(2);
 
     % Derivative vector
-    dY = zeros(4, 1);
+    dY = zeros(6, 1);
 
-    if current_stage == 1 && t < t_wait
-        dY(1) = -D/m;
-        dY(3) = Re/(Re+h) * v;
-        dY(4) = -g*t;
-    else
-        dY(1) = T/m*cos(delta) - D/m - g*sin(gamma);
-        dY(2) = v*cos(gamma)/(Re+h) - g*cos(gamma)/v + T*sin(delta)/(m*v) + L/(m*v);
-        dY(3) = Re/(Re+h) * v * cos(gamma);
-        dY(4) = v * sin(gamma);
-    end
-
+    dY(1) = xDot;
+    dY(2) = zDot;
+    dY(3) = F_x/m;
+    dY(4) = F_z/m;
     dY(5) = thetaDot;
-    dY(6) = Md*1;
-
-    % Pitch-up maneuver
-    % if current_stage == 1 && (t >= params.t_turn && t <= params.t_turn+params.turn_duration)
-    %     dY(2) = (params.gamma_turn-gamma_drop)*(pi/(2*params.turn_duration)*sin(pi*(t-params.t_turn)/params.turn_duration));
-    % end
+    dY(6) = M_t/stage.I;
 
     % Prepare output struct for ode recall
     if nargout > 1
         parout.qdyn = qdyn;
-        parout.gamma_dot = dY(2);
-        parout.acc = [dY(1); acc_N];
+        parout.acc = reshape(Fxz, [1 2])/m;
         if exist("t_turn", 'var') && ~isnan(t_turn)
             parout.t_turn = t_turn;
         end
+        parout.alpha = alpha;
     end
 end
 
