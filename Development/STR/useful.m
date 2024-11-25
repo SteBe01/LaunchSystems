@@ -1,4 +1,10 @@
 
+
+
+
+kx = @(th) k_x(0.3, 1, 0.6, th, 0.41);
+
+kx(0.0001)
 %% Functions
 
 function [th, XY] = buckling_bending(shape, load, mat, plotcase)

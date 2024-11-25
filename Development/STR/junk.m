@@ -246,7 +246,9 @@ cyl_loads.F_drag = F_aero; %aerodynamic drag force [N]
 
 
 %%
+
 if id == 4 %composites need different formulas
+
     if p == 0 %FOR CONNECTORS ( p = 0 )
         if length(r) == 1 %cylindrical connector
            
@@ -293,3 +295,46 @@ else
         t_l = fzero( K * F_load - Pcr , [r/1500, 1]);
     end
 end
+
+
+
+
+%%
+
+
+% f(eps)
+% f(1)
+% th = fzero( f , t_min2); %[m]
+% % x = 0:1e-5:0.01;
+% % fx = abs(f(x));
+% % [~, min_pos] = min(fx);
+% % th = x(min_pos);%[m]
+% %check on manufacturability (th>t_min) and on validity of the NASA model (th>th_lim = r/1500):
+% %th = max(th, t_min);
+% th = max([th, t_min1, t_min2]); %[m] 
+
+%%
+
+% %adapter 
+% adapter.m = 0.0755 * M.pay + 50; %[kg] estimated mass from Edberg-Costa
+
+% %adapter 
+% loads_a = loads;
+% loads_a.m = M.pay;%sustained mass [kg]
+% loads_a.F_drag = 0; %aerodynamic load is null for the payload adapter [N]
+% loads_a.p = 0; %internal pressure [Pa]
+% [adapter] = adapter_fun1(adapter, loads_a);
+
+%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%get adapter characteristics
+adapter_loads = loads;
+adapter_loads.m = m_pay; %sustained mass [kg]
+adapter_loads.F_drag = 0; %aerodynamic drag force [N] is null for the adapter
+adapter_loads.p = 0; %internal pressure [Pa]
+adapter.mat_id = fairing.mat_id; %in reality, we just need the height of the adapter for this step, therefore we can put any material, since the shape is fixed
+adapter.base_diam = fairing.base_diam; %[m] diameter of the base
+adapter = adapter_fun1(adapter, adapter_loads);
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

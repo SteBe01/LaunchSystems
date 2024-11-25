@@ -7,13 +7,13 @@ close all;
 
 %data from other departments:
 Is = [328; 343]; %[s] stages Is
-dv = 8.5; %[km/s] required dv
+dv = 10; %[km/s] required dv
 M.pay = 250; %[kg] nominal payload mass
 M.pay_max = 400; %[kg] maximum payload mass
 OF = 2.58; %[-] Ox/Fu ratio for LOX-RP1
 n = 5; %[-] load factor of longitudinal acceleration
 t = 5; %[-] load factor of transversal acceleration
-diam = 1.1; %[m] external diameter
+diam = 1.5; %[m] external diameter
 AR = sqrt(3);%sqrt(3); %aspect ratio of oblate domes [-]
 loads.n = n; %longitudinal acceleration [-]
 loads.t = t;%transversal load factor [-]
@@ -82,11 +82,7 @@ while i < Nmax && err > tol
     M2.prop = m_prop(2);
 
     %adapter 
-    loads_a.m = M.pay;%sustained mass [kg]
-    loads_a.n = n;%longitudinal load factor [-]
-    loads_a.K = loads.K;%loads resistance safety factor [-]
-    loads_a.F_drag = 0; %aerodynamic load is null for the payload adapter [N]
-    [adapter] = adapter_fun(adapter, loads_a);
+    adapter.m = 0.0755 * M.pay + 50; %[kg] estimated mass from Edberg-Costa
 
     %fairing
     Sf = pi * diam_fairing(i-1)^2 / 4; %fairing cross section [m^2]
@@ -98,8 +94,8 @@ while i < Nmax && err > tol
 
     %stage 2:
     M2.R_next = diam_fairing(i-1) / 2; %[m]
-    M2.fairing = adapter.m; %[kg] WE ASSUME THE ADAPTER DETATCH FROM THE LAUNCHER TOGETHER WITH THE SECOND STAGE
-    loads2.m = M.pay + fairing.M + adapter.m;%sustained mass [kg]
+    M2.fairing = adapter.m + fairing.m; %[kg] WE ASSUME THE ADAPTER DETATCH FROM THE LAUNCHER TOGETHER WITH THE SECOND STAGE
+    loads2.m = M.pay + fairing.m + adapter.m;%sustained mass [kg]
     loads2.n = n;%longitudinal load factor [-]
     loads2.t = t;%transversal load factor [-]
     loads2.K = loads.K; %loads resistance safety factor [-]
@@ -113,7 +109,7 @@ while i < Nmax && err > tol
 
     %stage 1:
     M1.R_next = M2.R_end; %[m]
-    M1.fairing = fairing.M; %[kg] WE ASSUME THE FAIRING DETATCH FROM THE LAUNCHER TOGETHER WITH THE FIRST STAGE
+    M1.fairing = 0; %[kg] WE ASSUME THE FAIRING DETATCH FROM THE LAUNCHER TOGETHER WITH THE FIRST STAGE
     loads1.m = M2.tot + M.pay + M1.fairing;%sustained mass [kg] M2.tot comprises the adapter
     loads1.n = n;%longitudinal load factor [-]
     loads1.t = t;%transversal load factor [-]
@@ -157,7 +153,7 @@ M.mr1 = M.M0 / M.M0end; %[-] first stage mass ratio
 M.mr2 = M.M1 / M.M1end; %[-] second stage mass ratio
 M.str1 = M1.str; %[kg] first stage structural mass
 M.str2 = M2.str; %[kg] second stage structural mass
-M.fairing = fairing.M; %[kg] fairing mass
+M.fairing = fairing.m; %[kg] fairing mass
 M.adapter = adapter.m; %[kg] payload adapter mass
 
 %height
@@ -1139,7 +1135,7 @@ else %cylindrical shell
         s_cr = @(t) E * ( 9 * (t/r)^1.6 + 0.16 * (t/l)^1.3 ); %[Pa] critical stress
         F_crit = @(t) 2 * pi * r * s_cr(t) * t; %[N] critical load
         f = @(t) F_crit(t) - K * F;
-        th = fzero(f, [0, 1]);
+        th = fzero(f, [0, 1000]);
     end
     %compute the mass
     M = 2*pi * r * l * th * rho; %mass of the connector
@@ -1153,94 +1149,94 @@ else %cylindrical shell
 end
 
 end
-
-function [fairing] = fairing_fun(m_pay_max, m_pay, fairing, loads, plotcase)
-
-% computes the shape and mass of the fairing.
-% based on cubesats volumetric density constraints, takes as input also the
-% aerodynamic loads.
-% fairing is simplified as a cylinder and a cone.
-
-%cubesats characteristics:
-vol_den = 1.33 * 1e3; %[kg/m^3] volumetric density of cubesats
-a = 0.1; %[m] cubesat unit edge length 
-b = 0.05; %[m] margin distance between payload and fairing
-
-%recover fixed shape characteristics
-d0 = fairing.base_diam; %[m] diameter of the base
-L_nose = fairing.nose_length; %[m] length of the conical nose
-
-%recover loads:
-n = loads.n; %longitudinal load factor [-]
-K = loads.K; %factor of safety [-]
-
-%compute payload volume (considering cubesats sizes)
-V = m_pay_max / vol_den; %[m^3] volume of max payload
-V_real = m_pay / vol_den; %[m^3] volume of real payload
-
-%find usable base for payload
-y = 0 : a : d0/2; 
-N = length(y) - 1; 
-base = 0;
-x = zeros(N, 1);
-for j = 1 : N
-    x(j) = floor( sqrt( 0.25*d0^2 - y(j)^2 - b ) / a ) * a; %[m] at y(i) level, how much space i have to fill with cubesats
-    base = base + 4 * a * x(j); %[m^2] update base value 
-end
-L_min = V / base; %[m] height of the ammissible payload
-L_real = V_real / base; %[m] height of the real payload 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%get adapter characteristics
-adapter_loads.m = m_pay; %sustained mass [kg]
-adapter_loads.n = n; %longitudinal load factor [-]
-adapter_loads.K = K; %factor of safety [-]
-adapter_loads.F_drag = 0; %aerodynamic drag force [N] is null for the adapter
-adapter.mat_id = fairing.mat_id; %in reality, we just need the height of the adapter for this step, therefore we can put any material, since the shape is fixed
-adapter.base_diam = fairing.base_diam; %[m] diameter of the base
-adapter = adapter_fun(adapter, adapter_loads);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%find height of the cylindrical part of the fairing
-L1 = L_min + b + adapter.h; %[m] 
-
-%surface of the fairing
-S_cyl = L1 * pi * d0; %[m^2] cylinder surface
-S_cone = pi * sqrt( d0^2 / 4 + L_nose^2 ) * d0/2; %[m^2] conical surface
-fairing.S = S_cyl + S_cone; %[m^2] total surface
-
-%compute mass (from "Launch and Entry Vehicle Design, Univ. Maryland, D.L.Akin")
-fairing.M = 4.95 * fairing.S ^ 1.15; %[kg]  
-
-%retrieve fairing parameters
-% fairing.M = nose.M + cyl.M; %[kg] total mass
-fairing.L = L1 + L_nose; %[m] total height
-fairing.d = d0; %[m] maximum diameter
-% fairing.th_cone = nose.th; %[m] thickness of the nose
-% fairing.th_cyl = cyl.th; %[m] thickness of the cylinder
-fairing.V = V; %[m^3] maximum volume for the payload
-
-%plot of the fairing
-if nargin > 4
-    h0 = fairing.h0;
-    X = [d0/2, d0/2, 0, -d0/2, -d0/2];
-    Y = h0 + [0, L1, fairing.L, L1, 0];
-    plot(X, Y, 'k', DisplayName='true'); grid on; hold on; axis equal;%fairing
-    X_a = [0, adapter.r(2), adapter.r(1), -adapter.r(1), -adapter.r(2), 0];
-    Y_a = h0 + [0, 0, adapter.h, adapter.h, 0, 0];
-    plot(X_a, Y_a, '--r', DisplayName='true'); %adapter
-    X_p = [0, x(1), x(1), -x(1), -x(1), 0];
-    Y_p = h0 + [adapter.h, adapter.h, adapter.h + L_real, adapter.h + L_real, adapter.h, adapter.h]; 
-    plot(X_p, Y_p, 'b', DisplayName='true'); %payload
-    X_r = [0, 0.6, 0.6, -0.6, -0.6, 0];
-    Y_r = [0, 0, h0, h0, 0, 0];
-    plot(X_r, Y_r, '--k', DisplayName='true');
-    legend('Fairing', 'Adapter', 'Payload','Hypothetical Rocket', 'interpreter', 'latex');
-    xlabel('x [m]', 'Interpreter','latex');
-    ylabel('y [m]', 'Interpreter','latex');
-end
-
-end
+ 
+% function [fairing] = fairing_fun(m_pay_max, m_pay, fairing, loads, plotcase)
+% 
+% % computes the shape and mass of the fairing.
+% % based on cubesats volumetric density constraints, takes as input also the
+% % aerodynamic loads.
+% % fairing is simplified as a cylinder and a cone.
+% 
+% %cubesats characteristics:
+% vol_den = 1.33 * 1e3; %[kg/m^3] volumetric density of cubesats
+% a = 0.1; %[m] cubesat unit edge length 
+% b = 0.05; %[m] margin distance between payload and fairing
+% 
+% %recover fixed shape characteristics
+% d0 = fairing.base_diam; %[m] diameter of the base
+% L_nose = fairing.nose_length; %[m] length of the conical nose
+% 
+% %recover loads:
+% n = loads.n; %longitudinal load factor [-]
+% K = loads.K; %factor of safety [-]
+% 
+% %compute payload volume (considering cubesats sizes)
+% V = m_pay_max / vol_den; %[m^3] volume of max payload
+% V_real = m_pay / vol_den; %[m^3] volume of real payload
+% 
+% %find usable base for payload
+% y = 0 : a : d0/2; 
+% N = length(y) - 1; 
+% base = 0;
+% x = zeros(N, 1);
+% for j = 1 : N
+%     x(j) = floor( sqrt( 0.25*d0^2 - y(j)^2 - b ) / a ) * a; %[m] at y(i) level, how much space i have to fill with cubesats
+%     base = base + 4 * a * x(j); %[m^2] update base value 
+% end
+% L_min = V / base; %[m] height of the ammissible payload
+% L_real = V_real / base; %[m] height of the real payload 
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %get adapter characteristics
+% adapter_loads.m = m_pay; %sustained mass [kg]
+% adapter_loads.n = n; %longitudinal load factor [-]
+% adapter_loads.K = K; %factor of safety [-]
+% adapter_loads.F_drag = 0; %aerodynamic drag force [N] is null for the adapter
+% adapter.mat_id = fairing.mat_id; %in reality, we just need the height of the adapter for this step, therefore we can put any material, since the shape is fixed
+% adapter.base_diam = fairing.base_diam; %[m] diameter of the base
+% adapter = adapter_fun(adapter, adapter_loads);
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+% %find height of the cylindrical part of the fairing
+% L1 = L_min + b + adapter.h; %[m] 
+% 
+% %surface of the fairing
+% S_cyl = L1 * pi * d0; %[m^2] cylinder surface
+% S_cone = pi * sqrt( d0^2 / 4 + L_nose^2 ) * d0/2; %[m^2] conical surface
+% fairing.S = S_cyl + S_cone; %[m^2] total surface
+% 
+% %compute mass (from "Launch and Entry Vehicle Design, Univ. Maryland, D.L.Akin")
+% fairing.M = 4.95 * fairing.S ^ 1.15; %[kg]  
+% 
+% %retrieve fairing parameters
+% % fairing.M = nose.M + cyl.M; %[kg] total mass
+% fairing.L = L1 + L_nose; %[m] total height
+% fairing.d = d0; %[m] maximum diameter
+% % fairing.th_cone = nose.th; %[m] thickness of the nose
+% % fairing.th_cyl = cyl.th; %[m] thickness of the cylinder
+% fairing.V = V; %[m^3] maximum volume for the payload
+% 
+% %plot of the fairing
+% if nargin > 4
+%     h0 = fairing.h0;
+%     X = [d0/2, d0/2, 0, -d0/2, -d0/2];
+%     Y = h0 + [0, L1, fairing.L, L1, 0];
+%     plot(X, Y, 'k', DisplayName='true'); grid on; hold on; axis equal;%fairing
+%     X_a = [0, adapter.r(2), adapter.r(1), -adapter.r(1), -adapter.r(2), 0];
+%     Y_a = h0 + [0, 0, adapter.h, adapter.h, 0, 0];
+%     plot(X_a, Y_a, '--r', DisplayName='true'); %adapter
+%     X_p = [0, x(1), x(1), -x(1), -x(1), 0];
+%     Y_p = h0 + [adapter.h, adapter.h, adapter.h + L_real, adapter.h + L_real, adapter.h, adapter.h]; 
+%     plot(X_p, Y_p, 'b', DisplayName='true'); %payload
+%     X_r = [0, 0.6, 0.6, -0.6, -0.6, 0];
+%     Y_r = [0, 0, h0, h0, 0, 0];
+%     plot(X_r, Y_r, '--k', DisplayName='true');
+%     legend('Fairing', 'Adapter', 'Payload','Hypothetical Rocket', 'interpreter', 'latex');
+%     xlabel('x [m]', 'Interpreter','latex');
+%     ylabel('y [m]', 'Interpreter','latex');
+% end
+% 
+% end
 
 % function [fairing] = fairing_fun(m_pay_max, m_pay, fairing, loads, plotcase)
 % 
@@ -1345,23 +1341,102 @@ end
 % end
 % 
 
-function [adapter] = adapter_fun(adapter, loads)
+function [fairing] = fairing_fun(m_pay_max, m_pay, fairing, loads, plotcase)
 
-% this function computer adapter characteristics.
-% it uses the loads, the fixed maximum diameter, adn the material
+% computes the shape and mass of the fairing.
+% based on cubesats volumetric density constraints, takes as input also the
+% aerodynamic loads.
+% fairing is simplified as a cylinder and a cone.
 
 %recover fixed shape characteristics
-d0 = adapter.base_diam; %[m] diameter of the base
-adapter.r = [d0/3, d0/2]; %[m] payload adapter r1, r2
-adapter.h = d0 / 4; %[m] payload adapter height 
+d0 = fairing.base_diam; %[m] diameter of the base
+L_nose = fairing.nose_length; %[m] length of the conical nose
 
-%recover material properties
-mat = mat_switch(adapter.mat_id);
+%cubesats characteristics:
+vol_den = 1.33 * 1e3; %[kg/m^3] volumetric density of cubesats
+a = 0.1; %[m] cubesat unit edge length 
+b = 0.05; %[m] margin distance between payload and fairing
+ha = 0.40; %[m] adapter assumed height; (suggested by electron pl user guide)
+ra = d0 * 5 / 12; %[m] adapter initial radius
+Ra = ra * 2 / 3; %[m] adapter final radius
 
-%compute adapter characteristics
-[adapter.m , adapter.th] = buckling(adapter, loads, mat, 0);
+%compute payload volume (considering cubesats sizes)
+V = m_pay_max / vol_den; %[m^3] volume of max payload
+V_real = m_pay / vol_den; %[m^3] volume of real payload
 
+%find usable base for payload
+y = 0 : a : d0/2; 
+N = length(y) - 1; 
+base = 0;
+x = zeros(N, 1);
+for j = 1 : N
+    x(j) = floor( sqrt( 0.25*d0^2 - y(j)^2 - b ) / a ) * a; %[m] at y(i) level, how much space i have to fill with cubesats
+    base = base + 4 * a * x(j); %[m^2] update base value 
 end
+L_min = V / base; %[m] height of the ammissible payload
+L_real = V_real / base; %[m] height of the real payload 
+
+%find height of the cylindrical part of the fairing
+L1 = L_min + b + ha; %[m] 
+
+%surface of the fairing
+S_cyl = L1 * pi * d0; %[m^2] cylinder surface
+S_cone = pi * sqrt( d0^2 / 4 + L_nose^2 ) * d0/2; %[m^2] conical surface
+fairing.S = S_cyl + S_cone; %[m^2] total surface
+
+%compute mass (from "Launch and Entry Vehicle Design, Univ. Maryland, D.L.Akin")
+if fairing.mat_id == 4 %(composite)
+    fairing.m = 9.89 * fairing.S;%[kg] from edberg-costa
+else
+    fairing.m = 13.3 * fairing.S;%[kg] from edberg-costa
+end
+
+%retrieve fairing parameters
+% fairing.M = nose.M + cyl.M; %[kg] total mass
+fairing.L = L1 + L_nose; %[m] total height
+fairing.d = d0; %[m] maximum diameter
+% fairing.th_cone = nose.th; %[m] thickness of the nose
+% fairing.th_cyl = cyl.th; %[m] thickness of the cylinder
+fairing.V = V; %[m^3] maximum volume for the payload
+
+%plot of the fairing
+if nargin > 4
+    h0 = fairing.h0;
+    X = [d0/2, d0/2, 0, -d0/2, -d0/2];
+    Y = h0 + [0, L1, fairing.L, L1, 0];
+    plot(X, Y, 'k', DisplayName='true'); grid on; hold on; axis equal;%fairing
+    X_a = [0, ra, Ra, -Ra, -ra, 0];
+    Y_a = h0 + [0, 0, ha, ha, 0, 0];
+    plot(X_a, Y_a, '--r', DisplayName='true'); %adapter
+    X_p = [0, x(1), x(1), -x(1), -x(1), 0];
+    Y_p = h0 + [ha, ha, ha + L_real, ha + L_real, ha, ha]; 
+    plot(X_p, Y_p, 'b', DisplayName='true'); %payload
+    X_r = [0, 0.6, 0.6, -0.6, -0.6, 0];
+    Y_r = [0, 0, h0, h0, 0, 0];
+    plot(X_r, Y_r, '--k', DisplayName='true');
+    legend('Fairing', 'Adapter', 'Payload','Hypothetical Rocket', 'interpreter', 'latex');
+    xlabel('x [m]', 'Interpreter','latex');
+    ylabel('y [m]', 'Interpreter','latex');
+end
+end
+
+% function [adapter] = adapter_fun(adapter, loads)
+% 
+% % this function computer adapter characteristics.
+% % it uses the loads, the fixed maximum diameter, adn the material
+% 
+% %recover fixed shape characteristics
+% d0 = adapter.base_diam; %[m] diameter of the base
+% adapter.r = [d0/3, d0/2]; %[m] payload adapter r1, r2
+% adapter.h = d0 / 4; %[m] payload adapter height 
+% 
+% %recover material properties
+% mat = mat_switch(adapter.mat_id);
+% 
+% %compute adapter characteristics
+% [adapter.m , adapter.th] = buckling(adapter, loads, mat, 0);
+% 
+% end
 
 function [mat] = mat_switch(mat_id)
 
