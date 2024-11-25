@@ -1,8 +1,6 @@
-function [CL, CD] = AER_class2_winged_fun(Mach_v, alpha_v, h, A_w)
+function [CL, CD] = AER_class2_winged_fun(Mach_v, alpha_v, h, S_surface)
 
 %% INPUTS:
-
-
 % Geometry:
 
 x = [0 3.6 21];
@@ -42,9 +40,35 @@ A_b = pi * a_max^2;     % area della base
 A_r = A_b;              % area di riferimento
 A_p = trapz(x, a)*2;    % area planform
 
+% Parametri per NKP e l_Cp
+r_N = 0.6; 
+S_w = (1.92+0.764)*1.08;
+s_w = 1.08+0.65;
+r = 0.65;
+betaA_w = 0.8*(2*s_w)^2/S_w;
+lambda_w = 0.5;
+m_w = cot(deg2rad(15));
+cr_w = 1.92;
+r_w = 0.65;
+c_w = 1.3;
+S_t = (1.92+0.764)*1.08;
+s_t = 1.08+r;
+betaA_t = 0.8*(2*s_t)^2/S_t;
+lambda_t = 0.5;
+m_t = cot(deg2rad(15));
+cr_t = 1.92;
+A_w = (2*s_w)^2/S_w;
+A_t = (2*s_t)^2/S_t;
+r_t = 0.65;
+l_w = 6.5;
+l_t = 15-cr_t;
+c_t = 1.3;
+l_s = 3;
+V_S = pi*r_N^2*l_s/3;
+d = 1.3;
 
-
-
+S = A_p + S_w + S_t;
+% S_surface = S_w + S_t;
 %% Calculation AXIAL COEFF.:
 
 Ca = [];
@@ -79,16 +103,62 @@ for i = 1:length(Mach_v)
 
         %alpha = alpha_v(j);       
 
-        [Cn(i,j),Cn_Cn0_sb(i,j),Cn_Cn0_Newt(i,j), Cdn(i,j),Cn_s(i,j)] =  CN (max(a), max(b), x, ln, dn, A_b, A_r, A_p, Mach_v(i), alpha_v(j), h, phi, data,A_w);
+        [Cn(i,j),Cn_Cn0_sb(i,j),Cn_Cn0_Newt(i,j), Cdn(i,j),Cn_s(i,j)] =  CN (max(a), max(b), x, ln, dn, A_b, A_r, A_p, Mach_v(i), alpha_v(j), h, phi, data,S_surface);
 
     end
 end
 
+%% NKP
+
+% Parametri per la convergenza
+toll = 1e-2;
+max_iter = 100;
+
+for i = 1:length(Mach_v)
+    for j = 1:length(alpha_v)
+        % Inizializza variabili per il ciclo while
+        l_Cp_old = 7;  % Ipotesi iniziale per il centro di pressione
+        delta = inf;   % Delta iniziale
+        iter = 0;
+
+        while delta > toll && iter < max_iter
+            iter = iter + 1;
+
+            % Calcolo V_inf 
+            a = 340; % velocità del suono a livello del mare [m/s]
+            V_inf(i,j) = Mach_v(i)*a;
+
+
+            % Calcolo del coefficiente di portanza
+            x_hat_t = l_t - l_Cp_old;
+           [CL_NKP(i,j),K_BT(i,j), K_TB(i,j),K_BW(i,j),K_WB(i,j),K_N(i,j),Cl_N(i,j),Cl_WB(i,j),Cl_BW(i,j),Cl_BT(i,j),Cl_TB(i,j),Cl_TV(i,j)] = Cl_NKP(alpha_v(j), Mach_v(i), h, r_N, S_w, s_w, r, cr_w, r_w, S_t,s_t,...
+                           lambda_t, A_w, A_t,V_inf(i,j),r_t, l_w,l_t, x_hat_t,c_t);
+           % Calcolo del lift totale
+           rho = 1.225; % densità dell'aria a livello del mare
+           L_tot(i,j) = 1/2*rho*V_inf(i,j)^2*S*CL_NKP(i,j);
+           q_inf(i,j) = 1/2*rho*V_inf(i,j)^2;
+
+            % Calcolo del centro di pressione
+            [l_Cp_new] = l_CP(Mach_v(i), alpha_v(j), l_s,V_S,r_N,l_w,r, s_w,cr_w, q_inf(i,j), m_w, d, K_BW(i,j), K_WB(i,j), K_N(i,j), L_tot(i,j), s_t, l_t,...
+                          cr_t,m_t, K_BT(i,j), K_TB(i,j), K_N(i,j), L_tot(i,j),Cl_N(i,j),Cl_WB(i,j), Cl_BW(i,j), Cl_BT(i,j), Cl_TB(i,j), Cl_TV(i,j));
+
+            % Aggiorna delta
+            delta = abs(l_Cp_new - l_Cp_old);
+
+            % Aggiorna Cp_old
+            l_Cp_old = l_Cp_new;
+        end
+
+        % % Salva i risultati finali
+        % Cl_results(i, j) = Cl_NKP;
+         l_Cp_results(i, j) = l_Cp_new;
+    end
+end
 
 
 %% CL and CD conversion:
 
-[CL, CD] = body2wind(Cn, Ca, alpha_v);
+% [CL, CD] = body2wind(Cn, Ca, alpha_v);
 
 
 
@@ -166,7 +236,30 @@ end
 % legend('AoA = 0°', 'AoA = 5°', 'AoA = 10°', 'AoA = 15°', 'AoA = 20°', FontSize=30)
 % axis square
 
-end
+% figure
+% plot(Mach_v, CL, LineWidth=1.75)
+% set(gca, 'FontSize', 30)
+% xlabel('Mach', FontSize=35)
+% ylabel('Cl', FontSize=35)
+% legend('AoA = 0°', 'AoA = 5°', 'AoA = 10°', 'AoA = 15°', 'AoA = 20°', FontSize=30)
+% axis square
+% hold on
+% plot(Mach_v, CL_NKP)
+% % xlabel('Mach')
+% % ylabel('Cl_{NKP}')
+% % legend('alpha: ',  int2str(alpha_v))
+% 
+% 
+% figure
+% plot(Mach_v, l_Cp_results, LineWidth=1.75)
+% set(gca, 'FontSize', 30)
+% xlabel('Mach', FontSize=35)
+% ylabel('x_{Cp}', FontSize=35)
+% legend('AoA = 0°', 'AoA = 5°', 'AoA = 10°', 'AoA = 15°', 'AoA = 20°', FontSize=30)
+% % axis square
+
+
+ end
 
 %% CDN
 function Cdn = CDN(Mach, Mn_sample, cd_n_sample)
@@ -198,7 +291,7 @@ function [Cn,Cn_Cn0_sb,Cn_Cn0_Newt, Cdn, Cn_s] =  CN (a, b, x, ln, d_nose, A_b, 
 % ln = length of the nose
 % M, alpha, h = Mach, angle of attack, altitude.
 % phi = cylindrical body orientation (0 or 90)
-% 
+% A_w = surface area [m^2]
 % A_b --> area della base
 % A_r --> area di riferimento (ref)
 % 
@@ -440,3 +533,479 @@ function data = excel_load
 data = xlsread('Dataset Cdn.xlsx', 'Default Dataset');
 
 end
+
+%% NKP function
+
+function [CL_NKP,K_BT, K_TB,K_BW,K_WB,K_N,Cl_N,Cl_WB,Cl_BW,Cl_BT,Cl_TB,Cl_TV,f_w,Cl_a_w] = Cl_NKP(alpha, M, h, r_N, S_w, s_w, r, cr_w, r_w, S_t,s_t,...
+                           lambda_t, A_w, A_t,V_inf,r_t, l_w,l_t, x_hat_t,c_t)
+
+% INPUT:
+% alpha = angle of attack [deg]
+% M = Mach number
+% h = altitude [m]
+% r_N = body radius at shoulder of nose [m]
+% r = body radius [m]
+% s = maximum semispsan of wing or tail in combination with body [m]
+% S_w = wing-alone area [m^2]
+% betaA = wing-alone or tail-alone effective aspect ratio
+% lambda = taper ratio (0 = triangular wings, 1 = rectangular wings, 1/2 =
+%                       trapezoidal wings)
+% m = cotangent of leading edge sweep angle
+% cr = chord at wing-body juncture or tail-body juncture [m]
+% A_t = tail-alone aspect ratio
+% A_w = wing-alone aspect ratio
+% r_w = body radius at wing [m]
+% V_inf = velocity [m/s]
+% c_w = wing chord at midsection [m]
+% Cl_w = lift coefficient based on the wing alone area
+% r_t = body radius at tail [m]
+% l_w = distance from most forward point of body to intersection of wing
+%       leading edge and body [m]
+% l_t = distance from most forward point of body to intersection of tail
+%       leading edge and body [m]
+% x_hat = distance to center of pressure measured from intersection of wing
+%         leading edge and body for wing quantities and from intersection
+%         of tail leading edge and body for tail quantities [m]
+% c_t = tail chord at midsection [m]
+% Cl_a_w = wing lift-curve slope for angle of attack, per radian
+% Cl_a_t = tail lift-curve slope for angle of attack, per radian
+
+
+
+d = 2*r;  % d = body diameter [m]
+
+if h > 84000
+    CL_NKP = 0;
+end
+
+alpha = deg2rad(alpha); % [rad]
+
+% deal with AoA
+if alpha <= deg2rad(90) && alpha >= 0
+    alpha = + alpha;
+elseif alpha <= deg2rad(180) && alpha >= deg2rad(90)
+    alpha = deg2rad(180) - alpha;
+end
+
+
+% Cl_alpha
+
+if M < 0.3
+    Cl_a_w = 2*pi*0.7/(1+2*0.7/A_w);
+    Cl_a_t = 2*pi*0.7/(1+2*0.7/A_t);
+elseif M >= 0.3 && M < 1
+    Cl_a_w_inc = 2*pi*0.7/(1+2*0.7/A_w);
+    Cl_a_t_inc = 2*pi*0.7/(1+2*0.7/A_t);
+    Cl_a_w = Cl_a_w_inc/sqrt(1-M^2); % Correzione di Prandtl-Glauert per effetti di compressibilità
+    Cl_a_t = Cl_a_t_inc/sqrt(1-M^2); % Correzione di Prandtl-Glauert per effetti di compressibilità
+elseif M == 1
+     Cl_a_w_inc = 2*pi*0.8/(1+2*0.8/A_w);
+     Cl_a_t_inc = 2*pi*0.8/(1+2*0.8/A_t);
+     Cl_a_w = Cl_a_w_inc/sqrt(1-0.92^2); 
+     Cl_a_t = Cl_a_t_inc/sqrt(1-0.92^2); 
+elseif M > 1 && M <= 3
+    Cl_a_w = 4/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 3 && M <= 3.1
+    Cl_a_w = 4*1.02/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 3.1 && M <= 3.2
+    Cl_a_w = 4*1.04/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 3.2 && M <= 3.3
+    Cl_a_w = 4*1.06/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 3.3 && M <= 3.4
+    Cl_a_w = 4*1.08/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 3.4 && M <= 3.5
+    Cl_a_w = 4*1.10/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 3.5 && M <= 3.6
+    Cl_a_w = 4*1.12/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 3.6 && M <= 3.7
+    Cl_a_w = 4*1.14/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 3.7 && M <= 3.8
+    Cl_a_w = 4*1.16/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 3.8 && M <= 3.9
+    Cl_a_w = 4*1.18/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 3.9 && M <= 4
+    Cl_a_w = 4*1.20/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 4 && M <= 4.1
+    Cl_a_w = 4*1.22/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 4.1 && M <= 4.2
+    Cl_a_w = 4*1.24/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 4.2 && M <= 4.3
+    Cl_a_w = 4*1.26/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 4.3 && M <= 4.4
+    Cl_a_w = 4*1.28/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 4.4 && M <= 4.5
+    Cl_a_w = 4*1.30/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 4.5 && M <= 4.6
+    Cl_a_w = 4*1.32/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 4.6 && M <= 4.7
+    Cl_a_w = 4*1.34/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 4.7 && M <= 4.8
+    Cl_a_w = 4*1.36/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 4.8 && M <= 4.9
+    Cl_a_w = 4*1.38/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 4.9 && M <= 5
+    Cl_a_w = 4*1.40/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 5 && M <= 5.1
+    Cl_a_w = 4*1.42/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 5.1 && M <= 5.2
+    Cl_a_w = 4*1.44/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 5.2 && M <= 5.3
+    Cl_a_w = 4*1.46/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 5.3 && M <= 5.4
+    Cl_a_w = 4*1.48/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 5.4 && M <= 5.5
+    Cl_a_w = 4*1.50/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 5.5 && M <= 5.6
+    Cl_a_w = 4*1.52/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 5.6 && M <= 5.7
+    Cl_a_w = 4*1.54/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 5.7 && M <= 5.8
+    Cl_a_w = 4*1.56/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 5.8 && M <= 5.9
+    Cl_a_w = 4*1.58/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 5.9 && M <= 6
+    Cl_a_w = 4*1.60/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 6 && M <= 6.1
+    Cl_a_w = 4*1.62/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 6.1 && M <= 6.2
+    Cl_a_w = 4*1.64/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 6.2 && M <= 6.3
+    Cl_a_w = 4*1.66/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 6.3 && M <= 6.4
+    Cl_a_w = 4*1.68/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 6.4 && M <= 6.5
+    Cl_a_w = 4*1.70/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 6.5 && M <= 6.6
+    Cl_a_w = 4*1.72/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 6.6 && M <= 6.7
+    Cl_a_w = 4*1.74/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 6.7 && M <= 6.8
+    Cl_a_w = 4*1.76/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 6.8 && M <= 6.9
+    Cl_a_w = 4*1.78/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 6.9 && M <= 7
+    Cl_a_w = 4*1.80/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 7 && M <= 7.1
+    Cl_a_w = 4*1.82/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 7.1 && M <= 7.2
+    Cl_a_w = 4*1.84/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 7.2 && M <= 7.3
+    Cl_a_w = 4*1.86/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 7.3 && M <= 7.4
+    Cl_a_w = 4*1.88/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+elseif M > 7.4 
+    Cl_a_w = 4*1.90/sqrt(M^2-1);
+    Cl_a_t = Cl_a_w;
+end
+
+
+% LIFT ON BODY NOSE
+
+K_N = 2*pi*r_N^2/(S_w*Cl_a_w);
+Cl_N = K_N * Cl_a_w * alpha;
+
+
+% LIFT ON WING IN PRESENCE OF BODY
+
+if r/s_w == 0 % the combination is all wing
+    K_WB = 1;
+elseif r/s_w >= 1 % there is a very small exposed wing
+    K_WB = 2;
+else
+    K_WB = 2/pi*((1+r^4/s_w^4)*(1/2*atan(1/2*(s_w/r-r/s_w))+pi/4)-r^2/s_w^2*((s_w/r-r/s_w)+2*atan(r/s_w)))/(1-r/s_w)^2;
+end
+
+Cl_WB = K_WB * Cl_a_w * alpha;
+
+
+% LIFT ON BODY DUE TO WING
+if M == 1
+    beta = sqrt(abs(0.9^2-1));
+else
+    beta = sqrt(abs(M^2-1));
+end
+
+
+    if r/s_w == 0 % the combination is all wing
+        K_BW = 0;
+    elseif r/s_w >= 1 % there is a very small exposed wing
+        K_BW = 2;
+    else
+        K_BW = ((1-r^2/s_w^2)^2 - 2/pi * ((1+r^4/s_w^4)*(1/2*atan(1/2*(s_w/r-r/s_w))+pi/4)-...
+                r^2/s_w^2*((s_w/r-r/s_w)+2*atan(r/s_w))))/(1-r/s_w)^2;
+    end
+
+Cl_BW = K_BW * Cl_a_w * alpha;
+
+
+% LIFT ON TAIL IN PRESENCE OF BODY (NEGLECTING WING VORTCES)
+
+if r/s_t == 0 % the combination is all tail
+    K_TB = 1;
+elseif r/s_t >= 1 % there is a very small exposed tail
+    K_TB = 2;
+else
+    K_TB = 2/pi*((1+r^4/s_t^4)*(1/2*atan(1/2*(s_t/r-r/s_t))+pi/4)-r^2/s_t^2*((s_t/r-r/s_t)+2*atan(r/s_t)))/(1-r/s_t)^2;
+end
+
+Cl_TB = K_TB * Cl_a_t * alpha * S_t/S_w;
+
+
+
+% LIFT ON BODY DUE TAIL(NEGLECTING WING VORTICES)
+
+    if r/s_t == 0 % the combination is all tail
+        K_BT = 0;
+    elseif r/s_t >= 1 % there is a very small exposed tail
+        K_BT = 2;
+    else
+        K_BT = (1-r^2/s_t^2)^2 - 2/pi * ((1+r^4/s_t^4)*(1/2*atan(1/2*(s_t/r-r/s_t))+pi/4)-r^2/s_t^2*((s_t/r-r/s_t)+2*atan(r/s_t)))/(1-r/s_t)^2;
+    end
+
+Cl_BT = K_BT * Cl_a_t * alpha * S_t/S_w;
+
+
+% LIFT ON TAIL SECTIONS DUE TO WING VORTICES
+
+cl = 0.1; % giustificare con i paper
+Cl_w = Cl_a_w*alpha;
+Cl_t = Cl_a_t*alpha;
+f_r_s_r_w = (pi/4-pi/4*(r/s_w)^2-(r/s_w)+(1+(r/s_w)^2)^2/(2*(1-(r/s_w)^2))*asin((1-(r/s_w)^2)/(1+(r/s_w)^2)))/...
+            (2*(1-(r/s_w)));
+f_w =f_r_s_r_w*(s_w-r)+r; 
+f_t = Cl_t*S_t/(2*cl*c_t);
+Gamma_m = V_inf*K_WB*alpha*Cl_a_w*S_w/(4*(f_w-r_w));
+h_t = (l_t+x_hat_t-l_w-cr_w)*sin(alpha);
+f_i = f_w*r_t^2/(f_w^2+h_t^2);
+f_i_ = -f_i;
+f_w_ = -f_w;
+h_i = h_t*r_t^2/(f_w^2+h_t^2);
+[L1] = L(lambda_t, r_t, s_t, f_w, h_t);
+[L2] = L(lambda_t, r_t, s_t, f_w_, h_t);
+[L3] = L(lambda_t, r_t, s_t, f_i, h_i);
+[L4] = L(lambda_t, r_t, s_t, f_i_, h_i);
+
+i = 2/(1+lambda_t)*(L1-L2-L3+L4);
+
+
+Cl_TV = Cl_a_w*Cl_a_t*K_WB*alpha*i*(s_t-r_t)/(2*pi*A_t*(f_w-r_w));
+
+
+% TOTAL LIFT COEFFICIENT
+
+CL_NKP = Cl_N+Cl_WB+Cl_BW+Cl_TB+Cl_BT+Cl_TV;
+
+end
+
+
+%% L function 
+
+function [L] = L(lambda, r, s, f, h)
+
+% lambda = taper ratio
+% r = radius of body at tail[m]
+% s = maximum semispsan of tail in combination with body [m]
+% f = wing vortex semispan at wing trailing edge [m]
+% h = height of wing vortex above body axis at tail centre of pressure [m]
+
+
+L = (((s-lambda*r)-f*(1-lambda))/(2*(s-r))*log((h^2+(f-s)^2)/(h^2+(f-r)^2))-...
+    (1-lambda)/(s-r)*((s-r)+h*atan((f-s)/h)-h*atan((f-r)/h)));
+
+end
+
+
+%% l_CP function 
+
+function [l_CP] = l_CP(M, alpha, l_s,V_S,r_N,l_w,r, s_w,cr_w, q_inf, m_w, d, K_BW, K_WB, K_N_W, LW, s_t, l_t,...
+    cr_t,m_t, K_BT, K_TB, K_N_T, LT,Cl_N,Cl_WB, Cl_BW, Cl_BT, Cl_TB, Cl_TV)
+
+% INPUTS:
+% M = mach number
+% alpha = angle of attack
+% l_s = distance from most forward point of body to shoulder of body  nose [m]
+% V_S = volume of body nose up to shoulder [m^3]
+% r_N = body radius at shoulder of nose [m]
+% l_w = distance from most forward point of body to intersection of wing
+%       leading edge and body [m]
+% r = body radius [m]
+% s = maximum semispan of wing or tail in combination with body [m]
+% cr = chord at wing-body juncture or tail-body juncture [m]
+% q_inf = free stream dynamic pressure [kg/m^2]
+% m = cotangent of leading edge sweep angle
+% d = body diameter [m]
+% K_BW = ratio of lift component of body in presence of wing
+% K_WB = ratio of lift component of wing in presence of body
+% K_N_W = ratio of lift of body nose
+% LW = lift force of the wing-body 
+% l_t = distance from most forward point of body to intersection of tail
+%       leading edge and body [m]
+% K_BT = ratio of lift component of body in presence of tail
+% K_TB = ratio of lift component of tail in presence of body
+% K_N_T = ratio of lift of body nose
+% LT = lift force of the tail-body 
+% Cl_N = lift coefficient based on body nose
+% Cl_WB = lift coefficient based on wing in presence of body
+% Cl_BW = lift coefficient based on body in presence of wing
+% Cl_BT = lift coefficient based on body in presence of tail
+% Cl_TB = lift coefficient based on tail in presence of body
+% Cl_TV = lift coefficient based on tail in presence of wing vortex
+
+
+alpha = deg2rad(alpha);
+
+
+% alpha = deg2rad(alpha); % [rad]
+
+% deal with AoA
+if alpha <= deg2rad(90) && alpha >= 0
+    alpha = + alpha;
+elseif alpha <= deg2rad(180) && alpha >= deg2rad(90)
+    alpha = deg2rad(180) - alpha;
+end
+
+
+% CENTRE OF PRESSURE OF BODY NOSE
+
+l_N = l_s*(1-V_S/(pi*r_N^2*l_s));
+
+
+
+% CENTRE OF PRESSURE OF WING IN PRESENCE OF BODY
+
+x_cr_WB_a = 1/(1-r/s_w)*(2*(1/3+r^4/s_w^4)*atan(s_w/r)+2/3*r^3/s_w^3*log(((s_w^2+r^2)/(2*s_w^2))^2*s_w/r)-1/3*r^3/s_w^3*...
+    (2*pi-1+s_w^2/r^2))/((1+r^2/s_w^2)^2*atan(s_w/r)-r^2/s_w^2*(pi+(s_w/r-r/s_w)))-r/s_w/(1-r/s_w);
+
+l_WB = l_w + cr_w*x_cr_WB_a;
+
+
+
+% CENTRE OF PRESSURE ON BODY DUE TO WING
+if M == 1
+    beta = sqrt(abs(0.9^2-1));
+else
+    beta = sqrt(abs(M^2-1));
+end
+
+if M > 1
+
+    M_BW = 4*q_inf*alpha*m_w/(3*pi*beta)*cr_w^3*(sqrt(1+2*beta*d/cr_w)*((2*m_w*beta+5)/(3*(m_w*beta+1)^2)+beta*d/cr_w/(3*...
+        (m_w*beta+1))-(beta*d/cr_w)^2/(beta*m_w))+1/sqrt(m_w^2*beta^2-1)*((1+beta*d/cr_w)^3-(beta*d/cr_w)^3/(m_w^2*beta^2)-1/...
+        (1+m_w*beta)^2)*acos((1+beta*d/cr_w*(m_w*beta+1))/(m_w*beta+beta*d/cr_w*(m_w*beta+1)))+(beta*d/cr_w)^3*1/(m_w^2*beta^2)*...
+        acosh(1+cr_w/(beta*d))-((2*m_w*beta+5)/(3*(m_w*beta+1)^2))-(1-(1/(m_w*beta+1))^2)/sqrt(m_w^2*beta^2-1)*acos(1/(m_w*beta)));
+
+elseif M <= 1
+
+    M_BW = 4*q_inf*alpha/(pi*beta^2)*cr_w^3*(sqrt(m_w^2*beta^2+m_w*beta*(m_w*beta+1)*beta*d/cr_w)/(9*m_w*beta*(m_w*beta+1)^3)*...
+        ((8*m_w*beta+24)*m_w^2*beta^2+(14*m_w*beta+6)*(m_w*beta+1)*m_w*beta*beta*d/cr_w+3*(m_w*beta-3)*(m_w*beta+1)^2*(beta*d/cr_w)^2)-...
+        (8*m_w*beta+24)*m_w^3*beta^3/(9*m_w*beta*(m_w*beta+1)^3)-(m_w*beta-3)/(3*m_w*beta)*(beta*d/cr_w)^3*acosh(sqrt((m_w*beta+(m_w*beta+1)*...
+        beta*d/cr_w)/((m_w*beta+1)*beta*d/cr_w))));
+end
+
+K_CW = K_BW+K_WB+K_N_W;
+L_W = LW/K_CW; % lift of the wing alone
+
+x_cr_BW = M_BW/(K_BW*L_W*cr_w);
+
+l_BW = l_w+cr_w*x_cr_BW;
+
+
+
+% CENTRE OF PRESSURE OF TAIL IN PRESENCE OF BODY
+
+x_cr_TB_a = 1/(1-r/s_t)*(2*(1/3+r^4/s_t^4)*atan(s_t/r)+2/3*r^3/s_t^3*log(((s_t^2+r^2)/(2*s_t^2))^2*s_t/r)-1/3*r^3/s_t^3*...
+    (2*pi-1+s_t^2/r^2))/((1+r^2/s_t^2)^2*atan(s_t/r)-r^2/s_t^2*(pi+(s_t/r-r/s_t)))-r/s_t/(1-r/s_t);
+
+l_TB = l_t + cr_t*x_cr_TB_a;
+
+
+
+% CENTRE OF PRESSURE ON BODY DUE TO TAIL
+
+
+if M > 1
+
+    M_BT = 4*q_inf*alpha*m_t/(3*pi*beta)*cr_t^3*(sqrt(1+2*beta*d/cr_t)*((2*m_t*beta+5)/(3*(m_t*beta+1)^2)+beta*d/cr_t/(3*...
+        (m_t*beta+1))-(beta*d/cr_t)^2/(beta*m_t))+1/sqrt(m_t^2*beta^2-1)*((1+beta*d/cr_t)^3-(beta*d/cr_t)^3/(m_t^2*beta^2)-1/...
+        (1+m_t*beta)^2)*acos((1+beta*d/cr_t*(m_t*beta+1))/(m_t*beta+beta*d/cr_t*(m_t*beta+1)))+(beta*d/cr_t)^3*1/(m_t^2*beta^2)*...
+        acosh(1+cr_t/(beta*d))-((2*m_t*beta+5)/(3*(m_t*beta+1)^2))-(1-(1/(m_t*beta+1))^2)/sqrt(m_t^2*beta^2-1)*acos(1/(m_t*beta)));
+
+elseif M <= 1
+
+    M_BT = 4*q_inf*alpha/(pi*beta^2)*cr_t^3*(sqrt(m_t^2*beta^2+m_t*beta*(m_t*beta+1)*beta*d/cr_t)/(9*m_t*beta*(m_t*beta+1)^3)*...
+        ((8*m_t*beta+24)*m_t^2*beta^2+(14*m_t*beta+6)*(m_t*beta+1)*m_t*beta*beta*d/cr_t+3*(m_t*beta-3)*(m_t*beta+1)^2*(beta*d/cr_t)^2)-...
+        (8*m_t*beta+24)*m_t^3*beta^3/(9*m_t*beta*(m_t*beta+1)^3)-(m_t*beta-3)/(3*m_t*beta)*(beta*d/cr_t)^3*acosh(sqrt((m_t*beta+(m_t*beta+1)*...
+        beta*d/cr_t)/((m_t*beta+1)*beta*d/cr_t))));
+end
+
+K_CT = K_BT+K_TB+K_N_T;
+L_T = LT/K_CT; % lift of the tail alone
+
+x_cr_BT = M_BT/(K_BT*L_T*cr_t);
+
+l_BT = l_t+cr_t*x_cr_BT;
+
+
+
+% CENTRE OF PRESSURE OF TAIL DUE TO WING VORTICES
+
+l_TV = l_TB;
+
+
+
+% CENTRE OF PRESSURE FOR ENTIRE COMBINATION
+
+l_CP = (l_N*Cl_N++l_WB*Cl_WB+l_BW*Cl_BW+l_BT*Cl_BT+l_TB*Cl_TB+l_TV*Cl_TV)/(Cl_N+Cl_WB+Cl_BW+Cl_BT+Cl_TB+Cl_TV);
+
+end
+
+
+
+
+
+
