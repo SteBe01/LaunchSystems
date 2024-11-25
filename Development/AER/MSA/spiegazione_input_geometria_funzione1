@@ -1,0 +1,21 @@
+
+% valori ATTUALI:
+x = [0 3 8 9 15];
+a = [0 1.5 1.5 1.8 1.8];
+b = a;      % radius is constant (no ellipse)
+% nel caso la sezione fosse un'ellisse:
+phi = 0;       % IN CASE of ELLIPSE --> orientation wrt the normal velocity
+data = xlsread('Dataset Cdn.xlsx', 'Default Dataset');
+nose_type = 'C';    % C --> conical, TO --> tangent ogive
+% INPUT Area dell'ala:
+S_wing = 1;        % m^2,
+
+
+GEO_funzione1 = struct('x', x, 'a', a, 'phi', phi, 'nose_type', nose_type, 'nose_data', data, 'S_wing', S_wing);
+% x --> vettore delle posizioni longitudinali
+% a --> verrore dei fìdiametri corrispettivi a tali posizioni
+% phi --> angolo di rotazione attorno all'asse x
+% nose_type --> 'C' per conical, 'TO' per tangent ogive
+% nose_data --> database aerodinamica naso
+% S_wing --> superficie portante totale (ala + tail)
+% 
