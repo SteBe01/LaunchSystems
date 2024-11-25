@@ -1,13 +1,54 @@
-function [CL, CD] = file_funzione1(Mach_v, alpha_v, h)
+function [CL, CD] = file_funzione1(Mach_v, alpha_v, h, GEO)
 
 %
 % La funzione calcola Cd e Cl prendendo in input: alpha, Mach, quota, e la geometria sotto, 
 % superficie dell'area portante.
 % E' i lementato Van Driest II per il calcolo della resistenza a frizione del corpo
-% l'ala è modellata come 4 alette (90deg una dall'altra) immerse nel flusso,
+% l'ala è modellata come 4 alette (90deg una dall'altra) immerse nel flusso
+% 
 
-%% INPUTS:
-geometry_funzione1
+%% %%%%%%%%%%%%%%% INPUT Geometria %%%%%%%%%%%%%%%%%%%
+
+% INPUT diametri e posizioni corrispettive
+x = GEO.x;
+a = GEO.a;
+phi = GEO.phi;
+b = a;      % radius is constant (no ellipse)
+
+% nel caso la sezione fosse un'ellisse:
+phi = 0;       % IN CASE of ELLIPSE --> orientation wrt the normal velocity
+a_max = max(a);
+b_max = max(b);
+
+% INPUT forma dell'ogiva
+ln = x(2);
+dn = a(2);
+nose_type = GEO.nose_type;
+
+% INPUT Area dell'ala:
+A_w = GEO.S_wing;
+
+% REF. DATA:
+% HP.: sezione circolare
+A_b = pi * a_max^2;     % area della base
+A_r = A_b;              % area di riferimento
+A_p = trapz(x, a)*2;    % area planform
+
+% PLOT GEOMETRIA:
+% figure
+% hold on
+% grid minor
+% plot(x, a/2, 'k', x, -a/2,'k', LineWidth=1.75)
+% plot([x(end), x(end), x(end)-2*A_w/sqrt(3*A_w)], [a(end)/2, a(end)/2+sqrt(3*A_w), a(end)/2], 'b', LineWidth=2)
+% plot([x(end), x(end), x(end)-2*A_w/sqrt(3*A_w)], [-a(end)/2, -a(end)/2-sqrt(3*A_w), -a(end)/2], 'b', LineWidth=2)
+% plot([x(end), x(end)-2*A_w/sqrt(4*A_w)], [0, 0], 'b', LineWidth=2)
+% axis equal
+% grid on
+% set(gca, 'FontSize', 30)
+% xlabel('x [m]', FontSize=35)
+% ylabel('y [m]', FontSize=35)
+% title('Launcher shape', FontSize=40)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 %% Calculation AXIAL COEFF.:
