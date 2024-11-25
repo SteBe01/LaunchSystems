@@ -40,6 +40,7 @@ nose_type = GEO.nose_type;
 A_w = GEO.S_wing;
 
 % REF. DATA:
+data = GEO.nose_data;
 % HP.: sezione circolare
 A_b = pi * a_max^2;     % area della base
 A_r = A_b;              % area di riferimento
