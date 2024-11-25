@@ -1,4 +1,4 @@
-function [CL, CD, CL_NKP, l_Cp_results, Cm] = file_funzione2(Mach_v, alpha_v, h, Xcg)
+function [CD, CL_NKP, l_Cp_results, Cm] = file_funzione2(Mach_v, alpha_v, h, Xcg)
 
 %
 % La funzione calcola Cd e Cl prendendo in input: alpha, Mach, quota, e la geometria sotto, 
