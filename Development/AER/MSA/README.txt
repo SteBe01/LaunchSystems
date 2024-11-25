@@ -14,4 +14,10 @@ Scaricare Dataset Cdn.xlsx
 Scaricare geometry_funzione1 (definisce la geometria)
 Run della funzione1
 
+FUNZIONE2:
+Scaricare Dataset Cdn.xlsx
+Scaricare geometry_funzione2 (definisce la geometria, anche con la forma dell'ala / coda)
+Run della funzione2
+(prende in input anche la posizione del baricentro rispetto al naso Xcg per il calcolo del momento aerodinamico)
+
 
