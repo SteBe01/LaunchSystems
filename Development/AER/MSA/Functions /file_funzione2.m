@@ -1,4 +1,4 @@
-function [CL, CD] = file_funzione2(Mach_v, alpha_v, h, S_surface)
+function [CL, CD, CL_NKP, l_Cp_results] = file_funzione2(Mach_v, alpha_v, h, S_surface)
 
 %% INPUTS:
 % Geometry:
