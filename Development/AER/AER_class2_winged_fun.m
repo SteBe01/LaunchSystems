@@ -1,4 +1,4 @@
-function [CL, CD] = AER_class2_winged_fun(Mach_v, alpha_v, h, S_surface)
+function [CL, CD, CL_NKP, l_Cp_results] = AER_class2_winged_fun(Mach_v, alpha_v, h, S_surface)
 
 %% INPUTS:
 % Geometry:
