@@ -9,6 +9,17 @@ function [CL, CD] = file_funzione1(Mach_v, alpha_v, h, GEO)
 
 %% %%%%%%%%%%%%%%% INPUT Geometria %%%%%%%%%%%%%%%%%%%
 
+% GEO_funzione1 = struct('x', x, 'a', a, 'phi', phi, 'nose_type', nose_type, 'nose_data', data, 'S_wing', S_wing)
+% 
+% x --> vettore delle posizioni longitudinali
+% a --> verrore dei fìdiametri corrispettivi a tali posizioni
+% phi --> angolo di rotazione attorno all'asse x
+% nose_type --> 'C' per conical, 'TO' per tangent ogive
+% nose_data --> database aerodinamica naso
+% S_wing --> superficie portante totale (ala + tail)
+
+
+
 % INPUT diametri e posizioni corrispettive
 x = GEO.x;
 a = GEO.a;
