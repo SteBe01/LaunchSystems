@@ -36,15 +36,20 @@ init.thetaDot0 = deg2rad(0);                    % [rad/s]
 params.g0 = 9.81;
 params.Re = 6378000;
 
-% PID data - Feedback load minimum
-params.k1 = deg2rad(3);
-params.k2 = 0.08;
-params.k3 = 0*3.614;
+% Stage 1 PID data
+stages.stg1.k1 = deg2rad(3);
+stages.stg1.k2 = 0.08;
+stages.stg1.k3 = 0;
+% Stage 2 PID Data
+stages.stg2.k1 = 0*deg2rad(9);
+stages.stg2.k2 = 0*0.08;
+stages.stg2.k3 = 0;
 
 %% hardcoded data
 
 % Controller frequency
-params.u_freq = 100;
+stages.stg1.u_freq = 100;
+stages.stg2.u_freq = 100;
 
 % Pitch maneuver
 params.t_turn = 5;                      % [s]       - Initial maneuver time
@@ -60,7 +65,7 @@ stages.stg2.t_ign = 3;
 stages.stg1.useTVC = true;
 stages.stg2.useTVC = false;
 stages.stg1.deltaMax = deg2rad(12);
-stages.stg2.deltaMax = 0;
+stages.stg2.deltaMax = deg2rad(5);
 
 end
 
