@@ -15,7 +15,7 @@ M.pay_effective = M.pay + M.adapter; %[kg] Edberg-Costa includes adapter mass in
 % M.pay_effective = M.pay; %[kg] Edberg-Costa includes adapter mass in the payload
 OF = 2.58; %[-] Ox/Fu ratio for LOX-RP1
 diam1 = 1.4; %[m] external diameter of first stage
-diam2 = 1.0; %[m] external diameter of second stage and fairing
+diam2 = 1.05; %[m] external diameter of second stage and fairing
 AR = sqrt(2);%sqrt(3); %aspect ratio of oblate domes [-]
 loads.nx = 7; %longitudinal acceleration load factor [-]
 loads.nz = 1.8;%transversal acceleration load factor [-]
@@ -172,8 +172,8 @@ while i < Nmax && err > tol
     M.tb2 = M2.tb; %[s] second stage burning time
     M.nx1 = M1.n_final; %[-] ending longitudinal load factor
     M.nx2 = M2.n_final; %[-] ending longitudinal load factor
-    h.tot = h1.tot - ( h2.dome_lox + (2/3)*h2.R_lox + h2.motor ) + h2.tot + fairing.L; %[m] total height
-    fairing.h0 = h1.tot - ( h2.dome_lox + (2/3)*h2.R_lox + h2.motor ) + h2.tot; %[m] 
+    h.tot = h1.tot - ( h2.motor ) + h2.tot + fairing.L; %[m] total height
+    fairing.h0 = h1.tot - ( h2.motor ) + h2.tot; %[m] 
     h.CG = ( h1.CG.tot * (M1.tot - M1.fairing) + h2.CG.tot * (M2.tot - M2.fairing) +...
             + ( fairing.h0 + (1/3) * fairing.L ) * (fairing.m + M.pay_effective) ) / M.M0;
     h2.h0 = h1.attach - h2.motor; %[m] updated starting height of the second stage
@@ -226,6 +226,10 @@ figure(2);
 figure(3);
 [~, ~, ~] = inert_mass_common_dome(M1, h1, diam1, AR, loads1, mat1, press1, 1);
 
+x = [0, diam1/2, diam1/2, diam2/2, diam2/2, 0]';
+y = [0, 0, h1.til_tank-h1.dome_rp1, h1.attach, h.tot-2*diam2, h.tot]';
+figure(4)
+plot([x; -flip(x)], [y; flip(y)], '-k'); grid on; axis equal;
 %% Functions
 
 function [m_stag, m_tot, m_prop] = tandem_opt_staging(Is, e, dv, m_pay, fzeroOut)
