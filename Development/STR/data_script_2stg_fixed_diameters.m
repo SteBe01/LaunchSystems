@@ -20,7 +20,7 @@ AR = sqrt(2);%sqrt(3); %aspect ratio of oblate domes [-]
 loads.nx = 7; %longitudinal acceleration load factor [-]
 loads.nz = 1.8;%transversal acceleration load factor [-]
 loads.K = 1.25; %loads resistance safety factor [-]
-maxQ = 45000; %0.5 * rho_air * v^2; %[Pa] maximum dynamic pressure
+maxQ = 50000; %0.5 * rho_air * v^2; %[Pa] maximum dynamic pressure
 Ca1 = 1.3; %drag coefficient of first stage
 Ca2 = 1.3; %drag coefficient of second stage
 Caf = 1.3; %drag coefficient of the fairing
@@ -228,8 +228,14 @@ figure(3);
 
 x = [0, diam1/2, diam1/2, diam2/2, diam2/2, 0]';
 y = [0, 0, h1.til_tank-h1.dome_rp1, h1.attach, h.tot-2*diam2, h.tot]';
+xCG = 0;
+yCG = h.CG;
 figure(4)
-plot([x; -flip(x)], [y; flip(y)], '-k'); grid on; axis equal;
+plot([x; -flip(x)], [y; flip(y)], '-k'); grid on; axis equal; hold on;
+plot([diam1/2, -diam1/2], [h1.til_tank-h1.dome_rp1,h1.til_tank-h1.dome_rp1], '--k');
+plot([diam2/2, -diam2/2], [h1.attach,h1.attach], '--k');
+plot([diam2/2, -diam2/2], [h.tot-2*diam2,h.tot-2*diam2], '--k');
+plot(xCG, yCG, '+r'); 
 %% Functions
 
 function [m_stag, m_tot, m_prop] = tandem_opt_staging(Is, e, dv, m_pay, fzeroOut)
