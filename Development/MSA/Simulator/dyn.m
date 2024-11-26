@@ -76,23 +76,6 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     L = qdyn*S*stage.Cl;                            % [N]       - Lift force acting on the rocket
     
     % Thrust vectoring
-    % if stage.useTVC
-    %     t_turn = nan;
-    %     if current_stage == 1 && t >= params.t_turn && abs(theta - params.theta_turn) > 1e-3 && ~turn_complete
-    %         delta = stage.deltaMax;
-    %     elseif current_stage == 1 && t >= params.t_turn && abs(theta - params.theta_turn) <= 1e-3 && ~turn_complete
-    %         t_turn = t;
-    %         turn_complete = true;
-    %         % delta = -params.k1*theta - params.k2*thetaDot - params.k3*alpha;
-    %         delta = 0;
-    %     else
-    %         % delta = -params.k1*theta - params.k2*thetaDot - params.k3*alpha;
-    %         delta = 0;
-    %     end
-    % else
-    %     delta = 0;
-    % end
-
     if current_stage == 1
         if z < 50e3
             angle = 90;
