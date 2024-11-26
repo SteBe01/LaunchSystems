@@ -22,7 +22,8 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     thetaDot = y(6);
 
     velsNorm = norm([xDot zDot]);
-    dcm = [cos(theta) -sin(theta); sin(theta) cos(theta)]';
+    rot_angle = theta - pi/2;
+    dcm = [cos(rot_angle) -sin(rot_angle); sin(rot_angle) cos(rot_angle)];
     gamma = atan2(zDot, xDot);
     alpha = -theta+gamma;
 
@@ -31,13 +32,13 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     % else 
     %     t_wait = stage.t_ign;
     % end
+    t_wait = 0;
 
     % Retrieve data used multiple times 
     t_burn_tot = stage.t_burn_tot;
     Re = params.Re;
 
-    t_wait = 0;
-
+    % Mass estimation
     if t <= t_wait
         m = stage.m0;
     elseif t > t_wait && t <= t_burn_tot + t_wait
@@ -45,17 +46,11 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     else
         m = stage.m0 - stage.m_dot * t_burn_tot;
     end
-
-    % % Compute AoA
-    % vels_body = dcm*[xDot; zDot];
-    % wind_body = dcm*params.wind_ned;
-    % v_rel = vels_body - wind_body;
-    % alpha = atan2(v_rel(2), v_rel(1));
     
     % Environment data
     g = params.g0/((1+z/Re)^2);                     % [m/s^2]   - Gravity acceleration taking into account altitude
     rho = getDensity(z);                            % [kg/m^3]  - Density at current altitude
-    qdyn = 0.5*rho*velsNorm^2;                             % [Pa]      - Dynamic pressure
+    qdyn = 0.5*rho*velsNorm^2;                      % [Pa]      - Dynamic pressure
     S = pi*(stage.d^2/4);                           % [m^2]     - Rocket surface area
     
     % Aerodynamic forces
@@ -80,23 +75,16 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     %     delta = 0;
     % end
 
-    % if theta < 2*pi/5
-    %     delta = deg2rad(1);
-    % else
-    %     delta = deg2rad(-1);
-    % end
-
     if z < 50e3
         angle = 90;
     else
         angle = 45;
     end
-
     corrector = abs(theta - deg2rad(angle));
     if theta < deg2rad(angle)
-        delta = deg2rad(2*corrector);
+        delta = deg2rad(3*corrector);
     else
-        delta = deg2rad(-2*corrector);
+        delta = deg2rad(-3*corrector);
     end
 
     % Thrust
@@ -106,22 +94,12 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
         T = 0;
     end
 
-    % Forces on the rocket in body frame
-    % F_i = -D*cos(alpha) - L*sin(alpha) + T*cos(delta) - m*g*cos(gamma);
-    % F_j = +D*sin(alpha) - L*cos(alpha) + T*sin(delta) + m*g*sin(gamma);
+    % Forces on the rocket in inertial frame
     F_z = -g*m -D*cos(pi/2-gamma) +L*sin(pi/2-gamma) +T*cos(delta)*sin(theta);
     F_x = -D*sin(pi/2-gamma) -L*cos(pi/2-gamma) +T*cos(delta)*cos(theta);
 
-    % Moments on the rocket in body frame
-    % M_t = (D*sin(alpha)-L*cos(alpha))*(stage.xcp - stage.xcg) + T*sin(delta)*(stage.length - stage.xcg);
-    b1 = 2;
-    b2 = 5;
-    M_t = T*sin(delta)*b2 +D*sin(alpha)*b1 -L*cos(alpha)*b1;
-
-    % Forces in inertial frame
-    % Fxz = dcm'*[F_i; F_j];
-    % F_x = Fxz(1);
-    % F_z = Fxz(2);
+    % Moment on the rocket
+    M_t = T*sin(delta)*(stage.length - stage.xcg) +D*sin(alpha)*(stage.xcp - stage.xcg) -L*cos(alpha)*(stage.xcp - stage.xcg);
 
     % Derivative vector
     dY = zeros(6, 1);
@@ -133,14 +111,19 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     dY(5) = thetaDot;
     dY(6) = M_t/stage.I;
 
+    % Post processing:
+    % Forces in body frame
+    Fxz_body = dcm'*[F_x F_z]';
+
     % Prepare output struct for ode recall
     if nargout > 1
         parout.qdyn = qdyn;
-        % parout.acc = reshape(Fxz, [1 2])/m;
+        parout.acc = reshape(Fxz_body, [1 2])/m;
+        parout.alpha = alpha;
+        parout.moment = M_t;
         if exist("t_turn", 'var') && ~isnan(t_turn)
             parout.t_turn = t_turn;
         end
-        parout.alpha = alpha;
     end
 end
 

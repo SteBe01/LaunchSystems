@@ -17,12 +17,12 @@ stages.stg1.Cl = 0.0;
 stages.stg2.Cl = 0.0;
 stages.stg1.I = 4e5;
 stages.stg2.I = 5e4;
-stages.stg1.xcp = 4.7;
-stages.stg2.xcp = 2.5;
-stages.stg1.xcg = 2;
-stages.stg2.xcg = 4.5; 
-stages.stg1.length = 5;
-stages.stg2.length = 3;
+stages.stg1.xcp = 10;
+stages.stg2.xcp = 5;
+stages.stg1.xcg = 6;
+stages.stg2.xcg = 3; 
+stages.stg1.length = 12;
+stages.stg2.length = 6;
 
 % Initial conditions
 init.x0 = 0;                    % [m]

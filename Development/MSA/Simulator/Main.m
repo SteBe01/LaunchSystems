@@ -45,8 +45,9 @@ Y = Y1;
 
 % Retrieve data from ode
 qdyn = zeros(length(T), 1);
-% acc = zeros(length(T), 2);
+acc = zeros(length(T), 2);
 alpha = zeros(length(T), 1);
+moment = zeros(length(T), 1);
 for ii = 1:length(T)
     if ii <= length(T1)
         [~, parout] = dyn(T(ii), Y(ii, :), stages.stg1, params, 1);
@@ -54,11 +55,12 @@ for ii = 1:length(T)
         [~, parout] = dyn(T(ii), Y(ii, :), stages.stg2, params, 2);
     end
     qdyn(ii) = parout.qdyn;
-    % acc(ii,:) = parout.acc;
+    acc(ii,:) = parout.acc;
     if isfield(parout, "t_turn") && ~isnan(parout.t_turn)
         t_turn = parout.t_turn;
     end
     alpha(ii) = parout.alpha;
+    moment(ii) = parout.moment;
 end
 
 downrange = params.Re./(params.Re+Y(:,1)) .* Y(:,1);
@@ -98,19 +100,24 @@ subplot(2,1,2); hold on; grid on; title("Theta dot over time"), xlabel("Time [s]
 plot(T, rad2deg(Y(:, 6)));
 xline(T1(end), '--k', 'Staging');
 
-% figure; 
-% subplot(2,1,1); hold on; grid on; title("Axial acceleration over time"), xlabel("Time [s]"), ylabel("Acceleration [g]")
-% plot(T, acc(:,1)/params.g0);
-% xline(T1(end), '--k', 'Staging');
-% subplot(2,1,2); hold on; grid on; title("Normal acceleration over time"), xlabel("Time [s]"), ylabel("Acceleration [g]")
-% plot(T, acc(:,2)/params.g0);
-% plot(T, -1./((1+Y(:,2)./params.Re).^2), '--');
-% xline(T1(end), '--k', 'Staging');
+figure; 
+subplot(2,1,1); hold on; grid on; title("Axial acceleration over time"), xlabel("Time [s]"), ylabel("Acceleration [g]")
+plot(T, acc(:,2)/params.g0);
+xline(T1(end), '--k', 'Staging');
+subplot(2,1,2); hold on; grid on; title("Normal acceleration over time"), xlabel("Time [s]"), ylabel("Acceleration [g]")
+plot(T, acc(:,1)/params.g0);
+plot(T, -1./((1+Y(:,2)./params.Re).^2), '--');
+xline(T1(end), '--k', 'Staging');
 
-% figure;
-% hold on; grid on; title("Acceleration norm over time"), xlabel("Time [s]"), ylabel("Acceleration norm [g]")
-% plot(T, vecnorm(acc, 2,2)./params.g0);
-% xline(T1(end), '--k', 'Staging');
+figure;
+hold on; grid on; title("Acceleration norm over time"), xlabel("Time [s]"), ylabel("Acceleration norm [g]")
+plot(T, vecnorm(acc, 2,2)./params.g0);
+xline(T1(end), '--k', 'Staging');
+
+figure;
+hold on; grid on; title("Moments over time"), xlabel("Time [s]"), ylabel("Moment [Nm]")
+plot(T, moment);
+xline(T1(end), '--k', 'Staging');
 
 figure;
 subplot(2,2,1); hold on; grid on; title("$\Theta$ evolution", 'Interpreter', 'latex'); xlabel("Time [s]"), ylabel("Theta [deg]")
