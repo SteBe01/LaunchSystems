@@ -7,12 +7,6 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     % Y(5) = theta (pitch angle, positive counterclockwise)
     % Y(6) = thetaDot (pitch angular velocity, positive counterclockwise)
 
-    % Persistent data
-    persistent turn_complete
-    if isempty(turn_complete)
-        turn_complete = false;
-    end
-
     % Retrieve data from ode
     x = y(1);
     z = y(2);
@@ -20,6 +14,23 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     zDot = y(4);
     theta = y(5);
     thetaDot = y(6);
+
+    % Persistent states
+    persistent MECO SEPARATION SECO
+    if isempty(MECO)
+        MECO = false;
+    end
+    if isempty(SEPARATION)
+        SEPARATION = false;
+    end
+    if isempty(SECO)
+        SECO = false;
+    end
+
+    if current_stage == 2 && ~SEPARATION && nargout > 1
+        fprintf("[%3.1f km] - Stage separation\n", z*1e-3)
+        SEPARATION = true;
+    end
 
     velsNorm = norm([xDot zDot]);
     rot_angle = theta - pi/2;
@@ -45,6 +56,13 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
         m = stage.m0 - stage.m_dot * (t-t_wait);
     else
         m = stage.m0 - stage.m_dot * t_burn_tot;
+        if current_stage == 1 && ~MECO && nargout > 1
+            fprintf("[%3.1f km] - MECO\n", z*1e-3)
+            MECO = true;
+        elseif current_stage == 2 && ~SECO && nargout > 1
+            fprintf("[%3.1f km] - SECO\n", z*1e-3)
+            SECO = true;
+        end
     end
     
     % Environment data
@@ -75,12 +93,24 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     %     delta = 0;
     % end
 
-    if z < 50e3
-        angle = 90;
-    else
-        angle = 45;
+    if current_stage == 1
+        if z < 50e3
+            angle = 90;
+        else
+            angle = 45;
+        end
+    elseif current_stage == 2
+        if z < 300e3
+            angle = 45;
+        else
+            angle = 0;
+        end
     end
+
     corrector = abs(theta - deg2rad(angle));
+    if current_stage == 2
+        corrector = corrector*3;
+    end
     if theta < deg2rad(angle)
         delta = deg2rad(3*corrector);
     else
