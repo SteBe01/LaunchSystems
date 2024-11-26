@@ -37,18 +37,18 @@ m_dotfuel_1 = Engine1.m_dot_fuel;
 
 if strcmp(Tank2.OX.FLAG, 'Cyl') && strcmp(Tank2.FU.FLAG, 'Cyl')
 Diam_2 = TR.Diameter;
-
+TR.Diam_2 = Diam_2;
 elseif strcmp(Tank2.OX.FLAG, 'Sphere') && strcmp(Tank2.FU.FLAG, 'Sphere')
 Diam_2 = 2*(max([Tank2.OX.R_sphere_lox;Tank2.FU.R_sphere_fuel]));
-
+TR.Diam_2 = Diam_2;
 end
 
 if strcmp(Tank1.OX.FLAG, 'Cyl') && strcmp(Tank1.FU.FLAG, 'Cyl')
 Diam_1 = TR.Diameter;
-
+TR.Diam_1 = Diam_1;
 elseif strcmp(Tank1.OX.FLAG, 'Sphere') && strcmp(Tank1.FU.FLAG, 'Sphere')
 Diam_1 = 2*(max([Tank1.OX.R_sphere_lox;Tank1.FU.R_sphere_fuel]));
-
+TR.Diam_1 = Diam_1;
 end
 
 M_cables = 1.058*(TR.Length^(0.25))*sqrt(TR.M.M01); % [kg] Empirical formula slides Maggi 06, structures part 1
