@@ -1,4 +1,4 @@
-function [dY, parout] = dyn(t,y, stage, params, current_stage)
+function [dY, parout] = dyn(t,y, stage, params, current_stage, delta)
 
     % Y(1) = x (horizontal position, inertial)
     % Y(2) = z (vertical position, inertial)
@@ -76,29 +76,29 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     L = qdyn*S*stage.Cl;                            % [N]       - Lift force acting on the rocket
     
     % Thrust vectoring
-    if current_stage == 1
-        if z < 50e3
-            angle = 90;
-        else
-            angle = 45;
-        end
-    elseif current_stage == 2
-        if z < 300e3
-            angle = 45;
-        else
-            angle = 0;
-        end
-    end
+    % if current_stage == 1
+    %     if z < 50e3
+    %         angle = 90;
+    %     else
+    %         angle = 45;
+    %     end
+    % elseif current_stage == 2
+    %     if z < 300e3
+    %         angle = 45;
+    %     else
+    %         angle = 0;
+    %     end
+    % end
 
-    corrector = abs(theta - deg2rad(angle));
-    if current_stage == 2
-        corrector = corrector*3;
-    end
-    if theta < deg2rad(angle)
-        delta = deg2rad(3*corrector);
-    else
-        delta = deg2rad(-3*corrector);
-    end
+    % corrector = abs(theta - deg2rad(angle));
+    % if current_stage == 2
+    %     corrector = corrector*3;
+    % end
+    % if theta < deg2rad(angle)
+    %     delta = deg2rad(3*corrector);
+    % else
+    %     delta = deg2rad(-3*corrector);
+    % end
 
     % Thrust
     if t > t_wait && t <= t_burn_tot + t_wait       % [N]       - Thrust force acting on the rocket
@@ -134,9 +134,9 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
         parout.acc = reshape(Fxz_body, [1 2])/m;
         parout.alpha = alpha;
         parout.moment = M_t;
-        if exist("t_turn", 'var') && ~isnan(t_turn)
-            parout.t_turn = t_turn;
-        end
+        % if exist("t_turn", 'var') && ~isnan(t_turn)
+        %     parout.t_turn = t_turn;
+        % end
     end
 end
 

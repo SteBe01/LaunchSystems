@@ -36,12 +36,15 @@ init.thetaDot0 = deg2rad(0);                    % [rad/s]
 params.g0 = 9.81;
 params.Re = 6378000;
 
-% PID data
-params.k1 = 0;
-params.k2 = 0.8;
-params.k3 = 3.614;
+% PID data - Feedback load minimum
+params.k1 = deg2rad(3);
+params.k2 = 0.08;
+params.k3 = 0*3.614;
 
 %% hardcoded data
+
+% Controller frequency
+params.u_freq = 100;
 
 % Pitch maneuver
 params.t_turn = 5;                      % [s]       - Initial maneuver time
