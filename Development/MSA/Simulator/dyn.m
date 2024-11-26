@@ -38,12 +38,12 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, delta)
     gamma = atan2(zDot, xDot);
     alpha = -theta+gamma;
 
-    % if current_stage == 1
-    %     t_wait = params.t_turn;
-    % else 
-    %     t_wait = stage.t_ign;
-    % end
-    t_wait = 0;
+    if current_stage == 1
+        t_wait = params.t_turn;
+    else 
+        t_wait = stage.t_ign;
+    end
+    % t_wait = 0;
 
     % Retrieve data used multiple times 
     t_burn_tot = stage.t_burn_tot;

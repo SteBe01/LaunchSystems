@@ -127,6 +127,7 @@ delta_vec_stg2(idx:end, :) = [];
 clear dyn
 
 %% Retrieve data from ode
+clc
 T = [T1; T2+T1(end)];
 Y = [Y1; Y2];
 delta_vec = [delta_vec_stg1; delta_vec_stg2];
@@ -139,7 +140,7 @@ for ii = 1:length(T)
     if ii <= length(T1)
         [~, parout] = dyn(T(ii), Y(ii, :), stages.stg1, params, 1, delta_vec(ii));
     else
-        [~, parout] = dyn(T(ii), Y(ii, :), stages.stg2, params, 2, 0);
+        [~, parout] = dyn(T(ii), Y(ii, :), stages.stg2, params, 2, delta_vec(ii));
     end
     qdyn(ii) = parout.qdyn;
     acc(ii,:) = parout.acc;
@@ -213,7 +214,7 @@ xline(T1(end), '--k', 'Staging')
 %% Event functions
 
 function [value, isterminal, direction] = stage_Separation(t, ~, stage)
-    value = t - (stage.t_burn_tot + stage.t_wait);
+    value = t - (stage.t_burn_tot + stage.t_wait + 1);
     isterminal = 1;
     direction = 1;
 end
