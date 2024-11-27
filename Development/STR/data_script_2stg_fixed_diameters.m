@@ -121,8 +121,8 @@ while i < Nmax && err > tol
     %fairing
     Sf = pi * diam2^2 / 4; %fairing cross section [m^2]
     loads_f = loads;
-    loads.F_drag(4) = maxQ * Caf * Sf; %compose aerodynamic forces vector [N]
-    loads_f.F_drag = loads.F_drag(4); %aerodynamic force acting on fairing [N]
+    loads.F_drag(3) = maxQ * Caf * Sf; %compose aerodynamic forces vector [N]
+    loads_f.F_drag = loads.F_drag(3); %aerodynamic force acting on fairing [N]
     [fairing, loads_f] = fairing_fun1(M.pay, fairing, loads_f);
 
     %stage 2:
@@ -151,8 +151,8 @@ while i < Nmax && err > tol
     loads1.m = M1.avionics + M1.wiring + M2.tot + M.pay_effective + M1.fairing;%sustained mass [kg] M2.tot comprises the adapter
     % loads1.h_m = 
     loads1.M_exp = loads.M_max; 
-    if (S1-S2-Sf) > 0
-        loads.F_drag(1) = maxQ * Ca1 * (S1-S2-Sf); %compose aerodynamic forces vector [N]
+    if (S1-S2) > 0
+        loads.F_drag(1) = maxQ * Ca1 * (S1-S2); %compose aerodynamic forces vector [N]
     else
         loads.F_drag(1) = 0; %compose aerodynamic forces vector [N]
     end
