@@ -1,4 +1,4 @@
-function [X_COM,J_y] = COM_MoI_Stk1(M_prop_t,MASS)
+function [X_COM,J_yaw,J_pitch,J_roll] = COM_MoI_Stk1(M_prop_t,MASS)
 
 OF = MASS.OF; %[-] Ox/Fu ratio for LOX-RP1
 
@@ -30,6 +30,9 @@ x_connection_2 = x_cyl_22 + L_connection_2;
 x_cyl_21 = x_connection_2 + L_cyl_tank_OX2;
 x_dwrd_skirt_s2 = x_cyl_21 + L_dwrd_skirt_s2;
 
+R_tank2_FU = MASS.Tank2.FU.R_cyl_fuel;
+R_tank2_OX = MASS.Tank2.OX.R_cyl_lox;
+
 elseif strcmp( MASS.Tank2.OX.FLAG, 'Sphere') && strcmp( MASS.Tank2.FU.FLAG, 'Sphere')
 
    L_fwrd_skirt_s2 = ( MASS.Tank2.FU.R_sphere_fuel/2);
@@ -45,6 +48,8 @@ x_connection_2 = x_sph_22 + L_connection_2;
 x_sph_21 = x_connection_2 + L_rem_sphere_OX2;
 x_dwrd_skirt_s2 = x_sph_21 + L_dwrd_skirt_s2;
 
+R_tank2_FU = MASS.Tank2.FU.R_sphere_fuel;
+R_tank2_OX = MASS.Tank2.OX.R_sphere_lox;
 
 end
 
@@ -78,6 +83,9 @@ x_connection_1 = x_cyl_12 + L_connection_1;
 x_cyl_11 = L_cyl_tank_OX1 + x_connection_1;
 x_end = x_cyl_11 + L_end;
 
+R_tank1_FU = MASS.Tank1.FU.R_cyl_fuel;
+R_tank1_OX = MASS.Tank1.OX.R_cyl_lox;
+
 elseif strcmp(MASS.Tank1.OX.FLAG, 'Sphere') && strcmp(MASS.Tank1.FU.FLAG, 'Sphere')
 
    L_rem_sphere_FU1 = (Tank1.FU.R_sphere_fuel);
@@ -90,6 +98,9 @@ x_sph_12 = x_interstage + L_rem_sphere_FU1;
 x_connection_1 = x_sph_12 + L_connection_1;
 x_sph_11 = L_rem_sphere_OX1 + x_connection_1;
 x_end = x_sph_11 + L_end;
+
+R_tank1_FU = MASS.Tank1.FU.R_sphere_fuel;
+R_tank1_OX = MASS.Tank1.OX.R_sphere_lox;
 
 end
 
@@ -390,21 +401,37 @@ end
 
 % All in [kg/m^2]:
 
-MoI.Stk1.Fair.J0_fair = (3/10)*MASS.TR.Fair.M_fair*((Diam_2)^2);
+MoI.Stk1.Fair.J0r_fair = (3/10)*MASS.TR.Fair.M_fair*((Diam_2/2)^2);
+
+MoI.Stk1.Fair.J0y_fair = (3/5)*MASS.TR.Fair.M_fair*((MASS.TR.Fair.fair_length)^2) + (3/20)*MASS.TR.Fair.M_fair*((Diam_2/2)^2);
 
 if strcmp(MASS.Tank2.OX.FLAG, 'Cyl') && strcmp(MASS.Tank2.FU.FLAG, 'Cyl')
 
 t_2O = (MASS.Tank2.OX.t_lox)/(MASS.Tank2.OX.R_cyl_lox + MASS.Tank2.OX.t_lox);
 t_2F = (MASS.Tank2.FU.t_fuel)/(MASS.Tank2.FU.R_cyl_fuel + MASS.Tank2.FU.t_fuel);
 
-MoI.Stk1.Tank2_OX.J0_tank2_OX = (MASS.Tank2.OX.M_tot_tank_lox*((MASS.Tank2.OX.R_cyl_lox)^2)*(1 - t_2O + ((t_2O^2)/2))) + ((4/5)*MASS.Tank2.OX.M_spherical_cap_lox*(MASS.Tank2.OX.R_cyl_lox));
-MoI.Stk1.Tank2_FU.J0_tank2_FU = (MASS.Tank2.FU.M_tot_tank_fuel*((MASS.Tank2.FU.R_cyl_fuel)^2)*(1 - t_2F + ((t_2F^2)/2))) + ((4/5)*MASS.Tank2.FU.M_spherical_cap_fuel*(MASS.Tank2.FU.R_cyl_fuel));
+r_2O = MASS.Tank2.OX.R_cyl_lox + MASS.Tank2.OX.t_lox;
+r_1O =  MASS.Tank2.OX.R_cyl_lox;
+
+r_2F = MASS.Tank2.FU.R_cyl_fuel + MASS.Tank2.FU.t_fuel;
+r_1F =  MASS.Tank2.FU.R_cyl_fuel;
+
+
+MoI.Stk1.Tank2_OX.J0r_tank2_OX = (MASS.Tank2.OX.M_tot_tank_lox*((MASS.Tank2.OX.R_cyl_lox)^2)*(1 - t_2O + ((t_2O^2)/2))) + ((4/5)*MASS.Tank2.OX.M_spherical_cap_lox*(MASS.Tank2.OX.R_cyl_lox));
+MoI.Stk1.Tank2_FU.J0r_tank2_FU = (MASS.Tank2.FU.M_tot_tank_fuel*((MASS.Tank2.FU.R_cyl_fuel)^2)*(1 - t_2F + ((t_2F^2)/2))) + ((4/5)*MASS.Tank2.FU.M_spherical_cap_fuel*(MASS.Tank2.FU.R_cyl_fuel));
+
+MoI.Stk1.Tank2_OX.J0y_tank2_OX = (1/12)*(MASS.Tank2.OX.M_tot_tank_lox*((3*((r_2O^2) +(r_1O^2))) + MASS.Tank2.OX.H_cyl));
+MoI.Stk1.Tank2_FU.J0y_tank2_FU = (1/12)*(MASS.Tank2.FU.M_tot_tank_fuel*((3*((r_2F^2) +(r_1F^2))) + MASS.Tank2.FU.H_cyl));
+
 
 elseif strcmp(MASS.Tank2.OX.FLAG, 'Sphere') && strcmp(MASS.Tank2.FU.FLAG, 'Sphere')
 
-MoI.Stk1.Tank2_OX.J0_tank2_OX = (2/5)*(MASS.Tank2.OX.M_tot_tank_lox)*((((MASS.Tank2.OX.R_sphere_lox+ MASS.Tank2.OX.t_lox)^5)-((MASS.Tank2.OX.R_sphere_lox)^5))/(((MASS.Tank2.OX.R_sphere_lox+ MASS.Tank2.OX.t_lox)^3)-((MASS.Tank2.OX.R_sphere_lox)^3))); % [kg*m^2]
+MoI.Stk1.Tank2_OX.J0r_tank2_OX = (2/5)*(MASS.Tank2.OX.M_tot_tank_lox)*((((MASS.Tank2.OX.R_sphere_lox+ MASS.Tank2.OX.t_lox)^5)-((MASS.Tank2.OX.R_sphere_lox)^5))/(((MASS.Tank2.OX.R_sphere_lox+ MASS.Tank2.OX.t_lox)^3)-((MASS.Tank2.OX.R_sphere_lox)^3))); % [kg*m^2]
 
-MoI.Stk1.Tank2_FU.J0_tank2_FU = (2/5)*(MASS.Tank2.FU.M_tot_tank_fuel)*((((MASS.Tank2.FU.R_sphere_fuel+ MASS.Tank2.FU.t_fuel)^5)-((MASS.Tank2.FU.R_sphere_fuel)^5))/(((MASS.Tank2.FU.R_sphere_fuel+ MASS.Tank2.FU.t_fuel)^3)-((MASS.Tank2.FU.R_sphere_fuel)^3)));% [kg*m^2]
+MoI.Stk1.Tank2_FU.J0r_tank2_FU = (2/5)*(MASS.Tank2.FU.M_tot_tank_fuel)*((((MASS.Tank2.FU.R_sphere_fuel+ MASS.Tank2.FU.t_fuel)^5)-((MASS.Tank2.FU.R_sphere_fuel)^5))/(((MASS.Tank2.FU.R_sphere_fuel+ MASS.Tank2.FU.t_fuel)^3)-((MASS.Tank2.FU.R_sphere_fuel)^3)));% [kg*m^2]
+
+MoI.Stk1.Tank2_OX.J0y_tank2_OX = MoI.Stk1.Tank2_OX.J0r_tank2_OX;
+MoI.Stk1.Tank2_FU.J0y_tank2_FU = MoI.Stk1.Tank2_FU.J0r_tank2_FU;
 
 end
 
@@ -413,11 +440,27 @@ Rad_2 = Diam_2/2;
 
 if Rad_1 == Rad_2
 
-MoI.Stk1.Interstage.J0_interstage = 0;
+MoI.Stk1.Interstage.J0r_interstage = 0;
+
+MoI.Stk1.Interstage.J0y_interstage = 0;
+
 
 elseif Rad_1~=Rad_2
 
-MoI.Stk1.Interstage.J0_interstage = COM.Stk1.Interstage.m_interstage*( (((Rad_1^2) + (Rad_2^2))/4) + (((L_interstage^2)/18)*(1 + ((2*Rad_1*Rad_2)/((Rad_1+Rad_2)^2))) ) );
+a = Rad_1;
+b = Rad_2;
+h = L_interstage;
+
+%MoI.Stk1.Interstage.J0r_interstage = COM.Stk1.Interstage.m_interstage*( (((Rad_1^2) + (Rad_2^2))/4) + (((L_interstage^2)/18)*(1 + ((2*Rad_1*Rad_2)/((Rad_1+Rad_2)^2))) ) );
+MoI.Stk1.Interstage.J0r_interstage = COM.Stk1.Interstage.m_interstage*(3*(a^4 + a^3*b + a^2*b^2 + a*b^3 + b^4)) / (10*(a^2 + a*b + b^2));
+
+
+MoI.Stk1.Interstage.J0y_interstage =COM.Stk1.Interstage.m_interstage*(2*h^2*(a^2 + 3*a*b + 6*b^2) + 3*(a^4 + a^3*b + a^2*b^2 + a*b^3 + b^4)) / (20*(a^2 + a*b + b^2));
+
+% Ixx = (2*h^2*(a^2 + 3*a*b + 6*b^2) + 3*(a^4 + a^3*b + a^2*b^2 + a*b^3 + b^4)) / (20*(a^2 + a*b + b^2));
+% Iyy = Ixx; % Since Ixx = Iyy
+% Izz = (3*(a^4 + a^3*b + a^2*b^2 + a*b^3 + b^4)) / (10*(a^2 + a*b + b^2));
+
 end
 
 if strcmp(MASS.Tank1.OX.FLAG, 'Cyl') && strcmp(MASS.Tank1.FU.FLAG, 'Cyl')
@@ -425,19 +468,31 @@ if strcmp(MASS.Tank1.OX.FLAG, 'Cyl') && strcmp(MASS.Tank1.FU.FLAG, 'Cyl')
 t_1O = (MASS.Tank1.OX.t_lox)/(MASS.Tank1.OX.R_cyl_lox + MASS.Tank1.OX.t_lox);
 t_1F = (MASS.Tank1.FU.t_fuel)/(MASS.Tank1.FU.R_cyl_fuel + MASS.Tank1.FU.t_fuel);
 
-MoI.Stk1.Tank1_OX.J0_tank1_OX = (MASS.Tank1.OX.M_tot_tank_lox*((MASS.Tank1.OX.R_cyl_lox)^2)*(1 - t_1O + ((t_1O^2)/2))) + ((4/5)*MASS.Tank1.OX.M_spherical_cap_lox*(MASS.Tank1.OX.R_cyl_lox));
-MoI.Stk1.Tank1_FU.J0_tank1_FU = (MASS.Tank1.FU.M_tot_tank_fuel*((MASS.Tank1.FU.R_cyl_fuel)^2)*(1 - t_1F + ((t_1F^2)/2))) + ((4/5)*MASS.Tank1.FU.M_spherical_cap_fuel*(MASS.Tank1.FU.R_cyl_fuel));
+MoI.Stk1.Tank1_OX.J0r_tank1_OX = (MASS.Tank1.OX.M_tot_tank_lox*((MASS.Tank1.OX.R_cyl_lox)^2)*(1 - t_1O + ((t_1O^2)/2))) + ((4/5)*MASS.Tank1.OX.M_spherical_cap_lox*(MASS.Tank1.OX.R_cyl_lox));
+MoI.Stk1.Tank1_FU.J0r_tank1_FU = (MASS.Tank1.FU.M_tot_tank_fuel*((MASS.Tank1.FU.R_cyl_fuel)^2)*(1 - t_1F + ((t_1F^2)/2))) + ((4/5)*MASS.Tank1.FU.M_spherical_cap_fuel*(MASS.Tank1.FU.R_cyl_fuel));
+
+r_2O = MASS.Tank1.OX.R_cyl_lox + MASS.Tank1.OX.t_lox;
+r_1O =  MASS.Tank1.OX.R_cyl_lox;
+
+r_2F = MASS.Tank1.FU.R_cyl_fuel + MASS.Tank1.FU.t_fuel;
+r_1F =  MASS.Tank1.FU.R_cyl_fuel;
+
+MoI.Stk1.Tank1_OX.J0y_tank1_OX = (1/12)*(MASS.Tank1.OX.M_tot_tank_lox*((3*((r_2O^2) +(r_1O^2))) + MASS.Tank1.OX.H_cyl));
+MoI.Stk1.Tank1_FU.J0y_tank1_FU = (1/12)*(MASS.Tank1.FU.M_tot_tank_fuel*((3*((r_2F^2) +(r_1F^2))) + MASS.Tank1.FU.H_cyl));
 
 elseif strcmp(MASS.Tank1.OX.FLAG, 'Sphere') && strcmp(MASS.Tank1.FU.FLAG, 'Sphere')
 
-MoI.Stk1.Tank1_OX.J0_tank1_OX = (2/5)*(MASS.Tank1.OX.M_tot_tank_lox)*((((MASS.Tank1.OX.R_sphere_lox+MASS.Tank1.OX.t_lox)^5)-((MASS.Tank1.OX.R_sphere_lox)^5))/(((MASS.Tank1.OX.R_sphere_lox+MASS.Tank1.OX.t_lox)^3)-((MASS.Tank1.OX.R_sphere_lox)^3)));
-MoI.Stk1.Tank1_FU.J0_tank1_FU = (2/5)*(MASS.Tank1.FU.M_tot_tank_fuel)*((((MASS.Tank1.FU.R_sphere_fuel+ MASS.Tank1.FU.t_fuel)^5)-((MASS.Tank1.FU.R_sphere_fuel)^5))/(((MASS.Tank1.FU.R_sphere_fuel+ MASS.Tank1.FU.t_fuel)^3)-((MASS.Tank1.FU.R_sphere_fuel)^3)));
+MoI.Stk1.Tank1_OX.J0r_tank1_OX = (2/5)*(MASS.Tank1.OX.M_tot_tank_lox)*((((MASS.Tank1.OX.R_sphere_lox+MASS.Tank1.OX.t_lox)^5)-((MASS.Tank1.OX.R_sphere_lox)^5))/(((MASS.Tank1.OX.R_sphere_lox+MASS.Tank1.OX.t_lox)^3)-((MASS.Tank1.OX.R_sphere_lox)^3)));
+MoI.Stk1.Tank1_FU.J0r_tank1_FU = (2/5)*(MASS.Tank1.FU.M_tot_tank_fuel)*((((MASS.Tank1.FU.R_sphere_fuel+ MASS.Tank1.FU.t_fuel)^5)-((MASS.Tank1.FU.R_sphere_fuel)^5))/(((MASS.Tank1.FU.R_sphere_fuel+ MASS.Tank1.FU.t_fuel)^3)-((MASS.Tank1.FU.R_sphere_fuel)^3)));
+
+MoI.Stk1.Tank1_OX.J0y_tank1_OX = MoI.Stk1.Tank1_OX.J0r_tank1_OX;
+MoI.Stk1.Tank1_FU.J0y_tank1_FU = MoI.Stk1.Tank1_FU.J0r_tank1_FU;
 
 end
 
 % Vector assembly (careful with associating right components)
 
-MoI_vec_J0 = [0;MoI.Stk1.Fair.J0_fair;0;0;MoI.Stk1.Tank2_FU.J0_tank2_FU;0;MoI.Stk1.Tank2_OX.J0_tank2_OX;0;0;0;MoI.Stk1.Interstage.J0_interstage;0;MoI.Stk1.Tank1_FU.J0_tank1_FU;0;0;MoI.Stk1.Tank1_OX.J0_tank1_OX;0;0;0];
+MoI_vec_J0y = [0;MoI.Stk1.Fair.J0y_fair;0;0;MoI.Stk1.Tank2_FU.J0y_tank2_FU;0;MoI.Stk1.Tank2_OX.J0y_tank2_OX;0;0;0;MoI.Stk1.Interstage.J0y_interstage;0;MoI.Stk1.Tank1_FU.J0y_tank1_FU;0;0;MoI.Stk1.Tank1_OX.J0y_tank1_OX;0;0;0];
 
 MoI_vec_x = [MoI.Stk1.Pay.x_pay;MoI.Stk1.Fair.x_fair;MoI.Stk1.Frw_struct2.x_parachute_2;MoI.Stk1.Prop2_FU.x_Mp2_FU;MoI.Stk1.Tank2_FU.x_tank2_FU;MoI.Stk1.Prop2_OX.x_Mp2_OX;MoI.Stk1.Tank2_OX.x_tank2_OX;MoI.Stk1.Pipes2.x_pipes2;MoI.Stk1.Aft_Struct2.x_aft_struct2;MoI.Stk1.Engine2.x_engine2;MoI.Stk1.Interstage.x_interstage;MoI.Stk1.Prop1_FU.x_Mp1_FU;MoI.Stk1.Tank1_FU.x_tank1_FU;MoI.Stk1.Pipes1.x_pipes1;MoI.Stk1.Prop1_OX.x_Mp1_OX;MoI.Stk1.Tank1_OX.x_tank1_OX;MoI.Stk1.Aft_Struct1.x_aft_struct1;MoI.Stk1.Engine1.x_engine1;MoI.Stk1.Fins.x_fins];
 
@@ -447,8 +502,64 @@ MoI_vec_mxquad = dot(COM_vec_m,MoI_vec_xquad);
 
 % Moments of inertia of our LV at t = t1 + t2 and at t = 0
 
-MoI.Stk1.TR.Jy = MoI_vec_mxquad + sum(MoI_vec_J0); % [kg m^2] t = t1 + t2
+MoI.Stk1.TR.Jy = MoI_vec_mxquad + sum(MoI_vec_J0y); % [kg m^2] t = t1 + t2
 
-J_y = MoI.Stk1.TR.Jy;
+J_yaw = MoI.Stk1.TR.Jy;
+
+J_pitch = J_yaw;
+
+%% Roll computation:
+
+MoI.Stk1.Pay.r_pay = Diam_2/4;
+
+MoI.Stk1.Fair.r_fair = Diam_2/2;
+
+MoI.Stk1.Frw_struct2.r_parachute_2 =Diam_2/2;
+
+MoI.Stk1.Prop2_FU.r_Mp2_FU = R_tank2_FU;
+
+MoI.Stk1.Tank2_FU.r_tank2_FU= R_tank2_FU;
+
+MoI.Stk1.Prop2_OX.r_Mp2_OX = R_tank2_OX;
+
+MoI.Stk1.Tank2_OX.r_tank2_OX= R_tank2_OX;
+
+MoI.Stk1.Pipes2.r_pipes2 = (R_tank2_OX+ R_tank2_FU)/2;
+
+MoI.Stk1.Aft_Struct2.r_aft_struct2= Diam_2/2;
+
+MoI.Stk1.Engine2.r_engine2= Diam_2/2;
+
+MoI.Stk1.Interstage.r_interstage = ((Diam_2/2)+(Diam_1/2))/2;
+
+MoI.Stk1.Prop1_FU.r_Mp1_FU =R_tank1_FU;
+
+MoI.Stk1.Tank1_FU.r_tank1_FU= R_tank1_FU;
+
+MoI.Stk1.Pipes1.r_pipes1 = (R_tank1_OX+ R_tank1_FU)/2;
+
+MoI.Stk1.Prop1_OX.r_Mp1_OX = R_tank1_OX;
+
+MoI.Stk1.Tank1_OX.r_tank1_OX= R_tank1_OX;
+
+MoI.Stk1.Aft_Struct1.r_aft_struct1= Diam_1/2;
+
+MoI.Stk1.Engine1.r_engine1=Diam_1/2;
+
+MoI.Stk1.Fins.r_fins= Diam_1/2;
+
+MoI_vec_J0r = [0;MoI.Stk1.Fair.J0r_fair;0;0;MoI.Stk1.Tank2_FU.J0r_tank2_FU;0;MoI.Stk1.Tank2_OX.J0r_tank2_OX;0;0;0;MoI.Stk1.Interstage.J0r_interstage;0;MoI.Stk1.Tank1_FU.J0r_tank1_FU;0;0;MoI.Stk1.Tank1_OX.J0r_tank1_OX;0;0;0];
+
+MoI_vec_r = [MoI.Stk1.Pay.r_pay;MoI.Stk1.Fair.r_fair;MoI.Stk1.Frw_struct2.r_parachute_2;MoI.Stk1.Prop2_FU.r_Mp2_FU;MoI.Stk1.Tank2_FU.r_tank2_FU;MoI.Stk1.Prop2_OX.r_Mp2_OX;MoI.Stk1.Tank2_OX.r_tank2_OX;MoI.Stk1.Pipes2.r_pipes2;MoI.Stk1.Aft_Struct2.r_aft_struct2;MoI.Stk1.Engine2.r_engine2;MoI.Stk1.Interstage.r_interstage;MoI.Stk1.Prop1_FU.r_Mp1_FU;MoI.Stk1.Tank1_FU.r_tank1_FU;MoI.Stk1.Pipes1.r_pipes1;MoI.Stk1.Prop1_OX.r_Mp1_OX;MoI.Stk1.Tank1_OX.r_tank1_OX;MoI.Stk1.Aft_Struct1.r_aft_struct1;MoI.Stk1.Engine1.r_engine1;MoI.Stk1.Fins.r_fins];
+
+MoI_vec_rquad = MoI_vec_r.*MoI_vec_r;
+
+MoI_vec_mrquad = dot(COM_vec_m,MoI_vec_rquad);
+
+% Moments of inertia of our LV at t = t1 + t2 and at t = 0
+
+MoI.Stk1.TR.Jr = MoI_vec_mrquad + sum(MoI_vec_J0r); % [kg m^2] t = t1 + t2
+
+J_roll = MoI.Stk1.TR.Jr;
 
 end
