@@ -44,10 +44,11 @@ thetaDot = 0;
 for ii = 2:length(tspan_stg1)-1
 
     if Y1(idx-1, 2) < 50e3
-        angle = 90;
+        angle = 70;
     else
         angle = 45;
     end
+    % angle = interp1([0 50e3 100e3], [0 deg2rad(90) pi/4], Y1(idx-1,2), "linear");
     err = theta - deg2rad(angle);
 
     delta = -stages.stg1.k1*err - stages.stg1.k2*thetaDot - stages.stg1.k3*alpha;
@@ -56,7 +57,7 @@ for ii = 2:length(tspan_stg1)-1
     end
     
     [tvect, yvect, tevent, yevent,~] = ode113(@(t,y) dyn(t, y, stages.stg1, params, 1, delta), [tspan_stg1(ii) tspan_stg1(ii+1)], Y1(idx-1,:), options_stg1);
-    parout = recallOdeFcn(tvect, yvect, stages.stg1, params, 1, delta);
+    parout = recallOdeFcn(tvect, yvect, stages.stg1, params, 1, delta*ones(length(tvect), 1));
     T1(idx:idx+length(tvect)-1) = tvect;
     Y1(idx:idx+length(tvect)-1, :) = yvect;
     delta_vec_stg1(idx:idx+length(tvect)-1) = repmat(delta, [length(tvect) 1]);
@@ -106,7 +107,7 @@ for ii = 2:length(tspan_stg2)-1
     end
     
     [tvect, yvect, tevent, yevent,~] = ode113(@(t,y) dyn(t, y, stages.stg2, params, 2, delta), [tspan_stg2(ii) tspan_stg2(ii+1)], Y2(idx-1,:), options_stg2);
-    parout = recallOdeFcn(tvect, yvect, stages.stg2, params, 2, delta);
+    parout = recallOdeFcn(tvect, yvect, stages.stg2, params, 2, delta*ones(length(tvect), 1));
     T2(idx:idx+length(tvect)-1) = tvect;
     Y2(idx:idx+length(tvect)-1, :) = yvect;
     delta_vec_stg2(idx:idx+length(tvect)-1) = repmat(delta, [length(tvect) 1]);
@@ -132,25 +133,39 @@ T = [T1; T2+T1(end)];
 Y = [Y1; Y2];
 delta_vec = [delta_vec_stg1; delta_vec_stg2];
 
-qdyn = zeros(length(T), 1);
-acc = zeros(length(T), 2);
-alpha = zeros(length(T), 1);
-moment = zeros(length(T), 1);
-for ii = 1:length(T)
-    if ii <= length(T1)
-        [~, parout] = dyn(T(ii), Y(ii, :), stages.stg1, params, 1, delta_vec(ii));
-    else
-        [~, parout] = dyn(T(ii), Y(ii, :), stages.stg2, params, 2, delta_vec(ii));
-    end
-    qdyn(ii) = parout.qdyn;
-    acc(ii,:) = parout.acc;
-    % if isfield(parout, "t_turn") && ~isnan(parout.t_turn)
-    %     t_turn = parout.t_turn;
-    % end
-    alpha(ii) = parout.alpha;
-    moment(ii) = parout.moment;
-end
+% qdyn = zeros(length(T), 1);
+% acc = zeros(length(T), 2);
+% alpha = zeros(length(T), 1);
+% moment = zeros(length(T), 1);
+% for ii = 1:length(T)
+%     if ii <= length(T1)
+%         [~, parout] = dyn(T(ii), Y(ii, :), stages.stg1, params, 1, delta_vec(ii));
+%     else
+%         [~, parout] = dyn(T(ii), Y(ii, :), stages.stg2, params, 2, delta_vec(ii));
+%     end
+%     qdyn(ii) = parout.qdyn;
+%     acc(ii,:) = parout.acc;
+%     % if isfield(parout, "t_turn") && ~isnan(parout.t_turn)
+%     %     t_turn = parout.t_turn;
+%     % end
+%     alpha(ii) = parout.alpha;
+%     moment(ii) = parout.moment;
+% end
 
+parout_stg1 = recallOdeFcn(T1, Y1, stages.stg1, params, 1, delta_vec_stg1);
+parout_stg2 = recallOdeFcn(T2, Y2, stages.stg2, params, 2, delta_vec_stg2);
+
+qdyn = [parout_stg1.qdyn; parout_stg2.qdyn];
+acc = [parout_stg1.acc; parout_stg2.acc];
+alpha = [parout_stg1.alpha; parout_stg2.alpha];
+moment = [parout_stg1.moment; parout_stg2.moment];
+dv_drag_vec = [parout_stg1.dv_drag_vec; parout_stg2.dv_drag_vec];
+dv_grav_vec = [parout_stg1.dv_grav_vec; parout_stg2.dv_grav_vec];
+
+dv_drag = cumtrapz(parout_stg1.dv_drag_vec, T1);
+dv_grav = cumtrapz(parout_stg1.dv_grav_vec, T1);
+
+g_vec = params.g0./((1+Y1(:,2)/params.Re).^2);
 downrange = params.Re./(params.Re+Y(:,1)) .* Y(:,1);
 
 

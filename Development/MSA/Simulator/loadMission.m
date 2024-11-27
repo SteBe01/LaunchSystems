@@ -41,8 +41,8 @@ stages.stg1.k1 = deg2rad(3*3);
 stages.stg1.k2 = 0.08;
 stages.stg1.k3 = 0;
 % Stage 2 PID Data
-stages.stg2.k1 = 0*deg2rad(9);
-stages.stg2.k2 = 0*0.08;
+stages.stg2.k1 = deg2rad(9);
+stages.stg2.k2 = 0.08;
 stages.stg2.k3 = 0;
 
 %% hardcoded data

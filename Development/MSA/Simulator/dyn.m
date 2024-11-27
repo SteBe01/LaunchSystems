@@ -134,6 +134,12 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, delta)
         parout.acc = reshape(Fxz_body, [1 2])/m;
         parout.alpha = alpha;
         parout.moment = M_t;
+        parout.rho = rho;
+        parout.velssqq = velsNorm^2;
+        parout.m = m;
+        parout.dv_grav = -g*abs(sin(theta));
+        parout.dv_drag = -0.5*S*stage.Cd/stage.m0*rho*velsNorm^2*stage.m0/m;
+        % parout.dv_grav = 
         % if exist("t_turn", 'var') && ~isnan(t_turn)
         %     parout.t_turn = t_turn;
         % end
