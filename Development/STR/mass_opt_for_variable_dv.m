@@ -1,13 +1,18 @@
 
+
 %% the iterative method verifies mass estimation and assesses optimal staging
 
 clc;
 clear;
 close all;
 
+n = 10;
+dv_it = linspace(8.5, 10, n);
+
+for j = 1:n
 %data from other departments:
 Is = [328; 343]; %[s] stages Is
-dv = 10.0; %[km/s] required dv
+dv = dv_it(j); %[km/s] required dv
 M.pay = 250; %[kg] nominal payload mass
 M.pay_max = 400; %[kg] maximum payload mass
 M.adapter = 0.0755 * M.pay + 50; %[kg] estimated mass from Edberg-Costa
@@ -143,6 +148,8 @@ while i < Nmax && err > tol
     end
     loads2.F_drag = sum( loads.F_drag ); %aerodynamic force [N]
     [M2, h2, th2] = inert_mass_common_dome(M2, h2, diam2, AR, loads2, mat2, press2);
+    diam2_old = diam2;
+    diam2 = M2.diam_cyl; %[m] correct the diameter to have a cylindrical tank on the second stage
 
     %stage 1:
     M1.R_next = M2.R_end; %[m]
@@ -210,6 +217,9 @@ M.avionics = M1.avionics + M2.avionics; %[kg] total avionics mass
 M.TW1 = T1 * M1.n_mot / ( M.M0 * 9.81 ); %[-] T/W of first stack
 M.TW2 = T2 * M2.n_mot / ( M.M1 * 9.81 ); %[-] T/W of second stack
 
+M_it(j) = M;
+end
+
 %height
 %h.stg1 = h1.tot + h1.C1 + h1.motor; %[m] height of first stage
 %h.stg2 = h2.tot + h2.C1 + h2.motor; %[m] height of second stage
@@ -236,6 +246,7 @@ plot([diam1/2, -diam1/2], [h1.til_tank-h1.dome_rp1,h1.til_tank-h1.dome_rp1], '--
 plot([diam2/2, -diam2/2], [h1.attach,h1.attach], '--k');
 plot([diam2/2, -diam2/2], [h.tot-2*diam2,h.tot-2*diam2], '--k');
 plot(xCG, yCG, '+r'); 
+
 %% Functions
 
 function [m_stag, m_tot, m_prop] = tandem_opt_staging(Is, e, dv, m_pay, fzeroOut)
@@ -422,6 +433,7 @@ h.CG.lox = h_cyl_lox / 2 + h_dome_lox + h0_lox; %[m] COG of lox tank
 h.CG.rp1 = h_cyl_rp1 / 2 + h_dome_rp1 + h0_rp1; %[m] COG of rp1 tank
 M.R_end = R_lox; %[m] ending radius of the stage
 M.R_sta = R_rp1; %[m] starting radius of the stage (w/o considering the top connector) 
+M.diam_cyl = 2 * ( 3*(v_min*AR) / (4*pi) )^(1/3) - 0.01; 
 
 %pressure at base with longitudinal acceleration (Stevin's law)
 p_lox = p + y_lox * rholox * long_acc; %[Pa] pressure at bottom of tank during acceleration
