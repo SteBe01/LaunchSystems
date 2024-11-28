@@ -6,225 +6,231 @@ clc;
 clear;
 close all;
 
-n = 10;
-dv_it = linspace(8.5, 10, n);
-
-for j = 1:n
 %data from other departments:
 Is = [328; 343]; %[s] stages Is
-dv = dv_it(j); %[km/s] required dv
 M.pay = 250; %[kg] nominal payload mass
 M.pay_max = 400; %[kg] maximum payload mass
 M.adapter = 0.0755 * M.pay + 50; %[kg] estimated mass from Edberg-Costa
 M.pay_effective = M.pay + M.adapter; %[kg] Edberg-Costa includes adapter mass in the payload
 % M.pay_effective = M.pay; %[kg] Edberg-Costa includes adapter mass in the payload
 OF = 2.58; %[-] Ox/Fu ratio for LOX-RP1
-diam1 = 1.4; %[m] external diameter of first stage
-diam2 = 1.05; %[m] external diameter of second stage and fairing
-AR = sqrt(2);%sqrt(3); %aspect ratio of oblate domes [-]
-loads.nx = 7; %longitudinal acceleration load factor [-]
-loads.nz = 1.8;%transversal acceleration load factor [-]
-loads.K = 1.25; %loads resistance safety factor [-]
-maxQ = 50000; %0.5 * rho_air * v^2; %[Pa] maximum dynamic pressure
-Ca1 = 1.3; %drag coefficient of first stage
-Ca2 = 1.3; %drag coefficient of second stage
-Caf = 1.3; %drag coefficient of the fairing
-S1 = pi * diam1^2 / 4; %first stage cross section [m^2]
-S2 = pi * diam2^2 / 4; %second stage cross section [m^2]
-loads.F_drag = zeros(3, 1); %aerodynamic forces acting on the three part of the launcher (fairing, stg2, stg1) [N]
-TW1 = 1.3; %[-] T/W ratio of first stage
-TW2 = 0.8; %[-] T/W ratio of second stage
-T1 = 27.4 * 1e3; %[N] 1 electron - rutherford motor thrust (first stage)
-T2 = 31 * 1e3; %[N] 1 electron - rutherford motor thrust (second stage)
 
-%stage 1
-M1.OF = OF;%[-] Ox/Fu ratio
-%M1.motor = 450; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
-M1.m_dot = 7.66; %[kg/s] mass propellant flow rate of each motor
-M1.rhorp1 = 820;  %[kg/m^3] density of rp1
-M1.rholox = 1140; %[kg/m^3] density of lox
-M1.avionics = 75 * 0.2; %[kg] from Edberg-Costa
-M1.other = 50; %[kg] 
-M1.stg = 1; %[#] stage ID
-h1.motor = 0.89; %[m] height of the motor
-h1.h0 = 0; %[m] starting height
-mat1 = 5; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX, 6 for Al 2090 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
-press1 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
+n = 10;
+m = 5;
+dv_it = linspace(8.5, 10, n);
+diam1_it = linspace(1, 1.4, m);
 
-%stage 2
-M2.OF = OF;%[-] Ox/Fu ratio
-%M2.motor = 45; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
-M2.m_dot = 7.66; %[kg/s] mass propellant flow rate of each motor
-M2.rhorp1 = 820;  %[kg/m^3] density of rp1
-M2.rholox = 1140; %[kg/m^3] density of lox
-M2.avionics = 75 * 0.8; %[kg] from Edberg-Costa
-M2.other = 0; %[kg] 
-M2.stg = 2; %[#] stage ID
-h2.motor = 0.89; %[m] height of the motor
-h2.h0 = 12; %[m] starting height
-mat2 = 4; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX, 6 for Al 2090 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
-press2 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
-
-%fairing:
-fairing.mat_id = 4; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
-
-%first guesses:
-eps0 = [0.05; 0.27]; %[0.06; 0.2]; %[-] stages structural mass indexes
-fairing.base_diam = diam2; %[m] first guess for fairing base diameter
-M.M0 = 17000; %[kg]
-M.M1 = 1800; %[kg]
-h.tot = 16.85; %[m]
-h.CG = 6.89; %[m]
-h1.tot = 11.8; %[m]
-h2.tot = 3.9; %[m]
-h1.attach = 12; %[m]
-h2.attach = 15.8; %[m]
-
-%while loop parameters:
-i = 2;
-Nmax = 5000;
-err = 1;
-tol = 1e-8;
-eps_real = zeros(2, Nmax-1);
-eps_real(:,1) = eps0;
-
-while i < Nmax && err > tol
-    %optimal staging:
-    [m_stag, m_init, m_prop] = tandem_opt_staging(Is, eps_real(:, i-1), dv, M.pay_effective, 0);
-
-    %compute stage parameters:
-    M1.motor = ceil(TW1 * M.M0 * 9.81 / T1) * 35; %[kg] total motor mass of first stage
-    M2.motor = ceil(TW2 * M.M1 * 9.81 / T2) * 45; %[kg] total motor mass of second stage
-    M1.n_mot = M1.motor / 35; %[-] number of motors of first stage
-    M2.n_mot = M2.motor / 45; %[-] number of motors of second stage
-    M1.Thrust = M1.n_mot * T1; %[N] total thrust of first stage
-    M2.Thrust = M2.n_mot * T2; %[N] total thrust of second stage
-
-    %recover MER data:
-    M.wiring = 1.43 * h.tot; %[kg] from Edberg-Costa
-
-    %divide MER data between stages:
-    M1.wiring = M.wiring * h1.tot / (h1.tot + h2.tot);%[kg]
-    M2.wiring = M.wiring * h2.tot / (h1.tot + h2.tot);%[kg]
-    M1.T_struct = 2.55 * M1.Thrust * 1e-4; %[kg]
-    M2.T_struct = 2.55 * M2.Thrust * 1e-4; %[kg]
-
-    %recover GLOM data:
-    M1.prop = m_prop(1);
-    M2.prop = m_prop(2);
-
-    %compute bending loads:
-    % loads.M_exp = loads.nz * M.M0 * 9.81 * h.tot / 5;
-    loads.M_max = loads.nz * M.M0 * 9.81 * h.CG * ( 1 - h.CG / h.tot );
-
-    % %fairing:
-    % Sf = pi * diam2^2 / 4; %fairing cross section [m^2]
-    % loads.F_drag(3) = maxQ * Caf * Sf; %compose aerodynamic forces vector [N]
-    % loads_f.F_drag = loads.F_drag(3); %aerodynamic force acting on fairing [N]
-    % [fairing] = fairing_fun(M.pay_max, M.pay, fairing);
-
-    %fairing
-    Sf = pi * diam2^2 / 4; %fairing cross section [m^2]
-    loads_f = loads;
-    loads.F_drag(3) = maxQ * Caf * Sf; %compose aerodynamic forces vector [N]
-    loads_f.F_drag = loads.F_drag(3); %aerodynamic force acting on fairing [N]
-    [fairing, loads_f] = fairing_fun1(M.pay, fairing, loads_f);
-
-    %stage 2:
-    M2.R_next = diam2 / 2; %[m]
-    M2.fairing = 0; %fairing.m; %[kg] WE ASSUME THE ADAPTER DETATCH FROM THE LAUNCHER TOGETHER WITH THE SECOND STAGE
-    loads2 = loads; %recover loads
-    loads2.m = M2.avionics + M2.wiring + M.pay_effective + fairing.m;%sustained mass [kg]
-    % loads2.h_m = fairing.h_m; %[m] barycenter height of sustained mass %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    if h1.attach > h.CG
-        loads2.M_exp = loads.M_max * ( h.tot - h1.attach ) / ( h.tot - h.CG );
-    else
-        loads2.M_exp = loads.M_max * h1.attach / h.CG;
-    end
-    if (S2-Sf) > 0
-        loads.F_drag(2) = maxQ * Ca2 * (S2-Sf); %compose aerodynamic forces vector [N]
-    else
-        loads.F_drag(2) = 0; %compose aerodynamic forces vector [N]
-    end
-    loads2.F_drag = sum( loads.F_drag ); %aerodynamic force [N]
-    [M2, h2, th2] = inert_mass_common_dome(M2, h2, diam2, AR, loads2, mat2, press2);
-    diam2_old = diam2;
-    diam2 = M2.diam_cyl; %[m] correct the diameter to have a cylindrical tank on the second stage
-
-    %stage 1:
-    M1.R_next = M2.R_end; %[m]
-    M1.fairing = fairing.m; %0; %[kg] WE ASSUME THE FAIRING DETATCH FROM THE LAUNCHER TOGETHER WITH THE FIRST STAGE
-    loads1 = loads; %recover loads
-    loads1.m = M1.avionics + M1.wiring + M2.tot + M.pay_effective + M1.fairing;%sustained mass [kg] M2.tot comprises the adapter
-    % loads1.h_m = 
-    loads1.M_exp = loads.M_max; 
-    if (S1-S2) > 0
-        loads.F_drag(1) = maxQ * Ca1 * (S1-S2); %compose aerodynamic forces vector [N]
-    else
-        loads.F_drag(1) = 0; %compose aerodynamic forces vector [N]
-    end
-    loads1.F_drag = sum( loads.F_drag ); %aerodynamic force [N]
-    [M1, h1, th1] = inert_mass_common_dome(M1, h1, diam1, AR, loads1, mat1, press1);
-
-    %recover eps_real:
-    a = 0.4;
-    eps_real(:,i) = (1-a) * eps_real(:,i-1) + (a) * [M1.eps; M2.eps];
-
-    %recover real dimensions of M1, M2, of the fairing and of the adapter:
-    M.M0 = M.pay_effective + M1.tot + M2.tot;%[kg] initial mass
-    M.M1 = M.M0 - M1.tot; %[kg] mass after first stage separation
-    M.eps1 = M1.eps; %[-] first stage eps
-    M.eps2 = M2.eps; %[-] second stage eps
-    M.tb1 = M1.tb; %[s] first stage burning time
-    M.tb2 = M2.tb; %[s] second stage burning time
-    M.nx1 = M1.n_final; %[-] ending longitudinal load factor
-    M.nx2 = M2.n_final; %[-] ending longitudinal load factor
-    h.tot = h1.tot - ( h2.motor ) + h2.tot + fairing.L; %[m] total height
-    fairing.h0 = h1.tot - ( h2.motor ) + h2.tot; %[m] 
-    h.CG = ( h1.CG.tot * (M1.tot - M1.fairing) + h2.CG.tot * (M2.tot - M2.fairing) +...
-            + ( fairing.h0 + (1/3) * fairing.L ) * (fairing.m + M.pay_effective) ) / M.M0;
-    h2.h0 = h1.attach - h2.motor; %[m] updated starting height of the second stage
-    fairing.h0 = h2.attach; % %[m] updated starting height of the fairing
-
+for j = 1:n
+    for k = 1:m
+    dv = dv_it(j); %[km/s] required dv
+    diam1 = diam1_it(k); %[m] external diameter of first stage
+    diam2 = 0.95 * diam1; %[m] external diameter of second stage and fairing
+    AR = sqrt(2);%sqrt(3); %aspect ratio of oblate domes [-]
+    loads.nx = 7; %longitudinal acceleration load factor [-]
+    loads.nz = 1.8;%transversal acceleration load factor [-]
+    loads.K = 1.25; %loads resistance safety factor [-]
+    maxQ = 50000; %0.5 * rho_air * v^2; %[Pa] maximum dynamic pressure
+    Ca1 = 1.3; %drag coefficient of first stage
+    Ca2 = 1.3; %drag coefficient of second stage
+    Caf = 1.3; %drag coefficient of the fairing
+    S1 = pi * diam1^2 / 4; %first stage cross section [m^2]
+    S2 = pi * diam2^2 / 4; %second stage cross section [m^2]
+    loads.F_drag = zeros(3, 1); %aerodynamic forces acting on the three part of the launcher (fairing, stg2, stg1) [N]
+    TW1 = 1.3; %[-] T/W ratio of first stage
+    TW2 = 0.8; %[-] T/W ratio of second stage
+    T1 = 27.4 * 1e3; %[N] 1 electron - rutherford motor thrust (first stage)
+    T2 = 31 * 1e3; %[N] 1 electron - rutherford motor thrust (second stage)
     
-    %recover errors:
-    err = norm( eps_real(:,i) - [M1.eps; M2.eps] ) / norm([M1.eps; M2.eps]);% + 1e-7 * norm( diam_fairing(i) - diam_fairing(i-1) );
-    % err2 = abs( h1.attach - h2.h0 + h2.motor );
-    % err = norm( [err1, err2 * 1e-6] );
+    %stage 1
+    M1.OF = OF;%[-] Ox/Fu ratio
+    %M1.motor = 450; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
+    M1.m_dot = 7.66; %[kg/s] mass propellant flow rate of each motor
+    M1.rhorp1 = 820;  %[kg/m^3] density of rp1
+    M1.rholox = 1140; %[kg/m^3] density of lox
+    M1.avionics = 75 * 0.2; %[kg] from Edberg-Costa
+    M1.other = 50; %[kg] 
+    M1.stg = 1; %[#] stage ID
+    h1.motor = 0.89; %[m] height of the motor
+    h1.h0 = 0; %[m] starting height
+    mat1 = 5; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX, 6 for Al 2090 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+    press1 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
+    
+    %stage 2
+    M2.OF = OF;%[-] Ox/Fu ratio
+    %M2.motor = 45; %[kg] only motor, pumps and batteries (electron - rutherford motor) %pump-fed
+    M2.m_dot = 7.66; %[kg/s] mass propellant flow rate of each motor
+    M2.rhorp1 = 820;  %[kg/m^3] density of rp1
+    M2.rholox = 1140; %[kg/m^3] density of lox
+    M2.avionics = 75 * 0.8; %[kg] from Edberg-Costa
+    M2.other = 0; %[kg] 
+    M2.stg = 2; %[#] stage ID
+    h2.motor = 0.89; %[m] height of the motor
+    h2.h0 = 12; %[m] starting height
+    mat2 = 4; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX, 6 for Al 2090 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+    press2 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
+    
+    %fairing:
+    fairing.mat_id = 4; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+    
+    %first guesses:
+    eps0 = [0.05; 0.27]; %[0.06; 0.2]; %[-] stages structural mass indexes
+    fairing.base_diam = diam2; %[m] first guess for fairing base diameter
+    M.M0 = 17000; %[kg]
+    M.M1 = 1800; %[kg]
+    h.tot = 16.85; %[m]
+    h.CG = 6.89; %[m]
+    h1.tot = 11.8; %[m]
+    h2.tot = 3.9; %[m]
+    h1.attach = 12; %[m]
+    h2.attach = 15.8; %[m]
+    
+    %while loop parameters:
+    i = 2;
+    Nmax = 5000;
+    err = 1;
+    tol = 1e-8;
+    eps_real = zeros(2, Nmax-1);
+    eps_real(:,1) = eps0;
+    
+    while i < Nmax && err > tol
+        %optimal staging:
+        [m_stag, m_init, m_prop] = tandem_opt_staging(Is, eps_real(:, i-1), dv, M.pay_effective, 0);
 
-    %update i:
-    i = i+1;
+        %compute stage parameters:
+        M1.motor = ceil(TW1 * M.M0 * 9.81 / T1) * 35; %[kg] total motor mass of first stage
+        M2.motor = ceil(TW2 * M.M1 * 9.81 / T2) * 45; %[kg] total motor mass of second stage
+        M1.n_mot = M1.motor / 35; %[-] number of motors of first stage
+        M2.n_mot = M2.motor / 45; %[-] number of motors of second stage
+        M1.Thrust = M1.n_mot * T1; %[N] total thrust of first stage
+        M2.Thrust = M2.n_mot * T2; %[N] total thrust of second stage
+    
+        %recover MER data:
+        M.wiring = 1.43 * h.tot; %[kg] from Edberg-Costa
+    
+        %divide MER data between stages:
+        M1.wiring = M.wiring * h1.tot / (h1.tot + h2.tot);%[kg]
+        M2.wiring = M.wiring * h2.tot / (h1.tot + h2.tot);%[kg]
+        M1.T_struct = 2.55 * M1.Thrust * 1e-4; %[kg]
+        M2.T_struct = 2.55 * M2.Thrust * 1e-4; %[kg]
+    
+        %recover GLOM data:
+        M1.prop = m_prop(1);
+        M2.prop = m_prop(2);
+    
+        %compute bending loads:
+        % loads.M_exp = loads.nz * M.M0 * 9.81 * h.tot / 5;
+        loads.M_max = loads.nz * M.M0 * 9.81 * h.CG * ( 1 - h.CG / h.tot );
+    
+        % %fairing:
+        % Sf = pi * diam2^2 / 4; %fairing cross section [m^2]
+        % loads.F_drag(3) = maxQ * Caf * Sf; %compose aerodynamic forces vector [N]
+        % loads_f.F_drag = loads.F_drag(3); %aerodynamic force acting on fairing [N]
+        % [fairing] = fairing_fun(M.pay_max, M.pay, fairing);
+    
+        %fairing
+        Sf = pi * diam2^2 / 4; %fairing cross section [m^2]
+        loads_f = loads;
+        loads.F_drag(3) = maxQ * Caf * Sf; %compose aerodynamic forces vector [N]
+        loads_f.F_drag = loads.F_drag(3); %aerodynamic force acting on fairing [N]
+        [fairing, loads_f] = fairing_fun1(M.pay, fairing, loads_f);
+    
+        %stage 2:
+        M2.R_next = diam2 / 2; %[m]
+        M2.fairing = 0; %fairing.m; %[kg] WE ASSUME THE ADAPTER DETATCH FROM THE LAUNCHER TOGETHER WITH THE SECOND STAGE
+        loads2 = loads; %recover loads
+        loads2.m = M2.avionics + M2.wiring + M.pay_effective + fairing.m;%sustained mass [kg]
+        % loads2.h_m = fairing.h_m; %[m] barycenter height of sustained mass %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+        if h1.attach > h.CG
+            loads2.M_exp = loads.M_max * ( h.tot - h1.attach ) / ( h.tot - h.CG );
+        else
+            loads2.M_exp = loads.M_max * h1.attach / h.CG;
+        end
+        if (S2-Sf) > 0
+            loads.F_drag(2) = maxQ * Ca2 * (S2-Sf); %compose aerodynamic forces vector [N]
+        else
+            loads.F_drag(2) = 0; %compose aerodynamic forces vector [N]
+        end
+        loads2.F_drag = sum( loads.F_drag ); %aerodynamic force [N]
+        [M2, h2, th2] = inert_mass_common_dome(M2, h2, diam2, AR, loads2, mat2, press2);
+        diam2_old = diam2;
+        diam2 = M2.diam_cyl; %[m] correct the diameter to have a cylindrical tank on the second stage
+    
+        %stage 1:
+        M1.R_next = M2.R_end; %[m]
+        M1.fairing = fairing.m; %0; %[kg] WE ASSUME THE FAIRING DETATCH FROM THE LAUNCHER TOGETHER WITH THE FIRST STAGE
+        loads1 = loads; %recover loads
+        loads1.m = M1.avionics + M1.wiring + M2.tot + M.pay_effective + M1.fairing;%sustained mass [kg] M2.tot comprises the adapter
+        % loads1.h_m = 
+        loads1.M_exp = loads.M_max; 
+        if (S1-S2) > 0
+            loads.F_drag(1) = maxQ * Ca1 * (S1-S2); %compose aerodynamic forces vector [N]
+        else
+            loads.F_drag(1) = 0; %compose aerodynamic forces vector [N]
+        end
+        loads1.F_drag = sum( loads.F_drag ); %aerodynamic force [N]
+        [M1, h1, th1] = inert_mass_common_dome(M1, h1, diam1, AR, loads1, mat1, press1);
+    
+        %recover eps_real:
+        a = 0.4;
+        eps_real(:,i) = (1-a) * eps_real(:,i-1) + (a) * [M1.eps; M2.eps];
+    
+        %recover real dimensions of M1, M2, of the fairing and of the adapter:
+        M.M0 = M.pay_effective + M1.tot + M2.tot;%[kg] initial mass
+        M.M1 = M.M0 - M1.tot; %[kg] mass after first stage separation
+        M.eps1 = M1.eps; %[-] first stage eps
+        M.eps2 = M2.eps; %[-] second stage eps
+        M.tb1 = M1.tb; %[s] first stage burning time
+        M.tb2 = M2.tb; %[s] second stage burning time
+        M.nx1 = M1.n_final; %[-] ending longitudinal load factor
+        M.nx2 = M2.n_final; %[-] ending longitudinal load factor
+        h.tot = h1.tot - ( h2.motor ) + h2.tot + fairing.L; %[m] total height
+        fairing.h0 = h1.tot - ( h2.motor ) + h2.tot; %[m] 
+        h.CG = ( h1.CG.tot * (M1.tot - M1.fairing) + h2.CG.tot * (M2.tot - M2.fairing) +...
+                + ( fairing.h0 + (1/3) * fairing.L ) * (fairing.m + M.pay_effective) ) / M.M0;
+        h2.h0 = h1.attach - h2.motor; %[m] updated starting height of the second stage
+        fairing.h0 = h2.attach; % %[m] updated starting height of the fairing
+    
+    
+        %recover errors:
+        err = norm( eps_real(:,i) - [M1.eps; M2.eps] ) / norm([M1.eps; M2.eps]);% + 1e-7 * norm( diam_fairing(i) - diam_fairing(i-1) );
+        % err2 = abs( h1.attach - h2.h0 + h2.motor );
+        % err = norm( [err1, err2 * 1e-6] );
+    
+        %update i:
+        i = i+1;
+    end
+    
+    eps_real(:, i:end) = [];
+    eps_end = eps_real(:, end);
+    
+    %recover loads
+    loads.F_drag_tot = sum( loads.F_drag ); %total aerodynamic drag [N]
+    
+    %mass related parameters
+    % M.M0 = M.pay + M1.tot + M2.tot;%[kg] initial mass
+    M.M0end = M.M0 - M1.prop;
+    % M.M1 = M.M0 - M1.tot; %[kg] mass after first stage separation
+    M.M1end = M.M1 - M2.prop;
+    M.mr1 = M.M0 / M.M0end; %[-] first stage mass ratio
+    M.mr2 = M.M1 / M.M1end; %[-] second stage mass ratio
+    M.str1 = M1.str; %[kg] first stage structural mass
+    M.str2 = M2.str; %[kg] second stage structural mass
+    M.fairing = fairing.m; %[kg] fairing mass
+    % M.adapter = adapter.m; %[kg] payload adapter mass
+    M.avionics = M1.avionics + M2.avionics; %[kg] total avionics mass
+    M.TW1 = T1 * M1.n_mot / ( M.M0 * 9.81 ); %[-] T/W of first stack
+    M.TW2 = T2 * M2.n_mot / ( M.M1 * 9.81 ); %[-] T/W of second stack
+    M.dv = dv;
+    M.err = err;
+
+    %height
+    h.fairing = fairing.L; %[m] height of the fairing
+    h.finesse_ratio = h.tot / diam1; %[-] finesse ratio
+    
+    M_it(m*(j-1)+k) = M;
+    h_it(m*(j-1)+k) = h;
+    end
 end
-
-eps_real(:, i:end) = [];
-eps_end = eps_real(:, end);
-
-%recover loads
-loads.F_drag_tot = sum( loads.F_drag ); %total aerodynamic drag [N]
-
-%mass related parameters
-% M.M0 = M.pay + M1.tot + M2.tot;%[kg] initial mass
-M.M0end = M.M0 - M1.prop;
-% M.M1 = M.M0 - M1.tot; %[kg] mass after first stage separation
-M.M1end = M.M1 - M2.prop;
-M.mr1 = M.M0 / M.M0end; %[-] first stage mass ratio
-M.mr2 = M.M1 / M.M1end; %[-] second stage mass ratio
-M.str1 = M1.str; %[kg] first stage structural mass
-M.str2 = M2.str; %[kg] second stage structural mass
-M.fairing = fairing.m; %[kg] fairing mass
-% M.adapter = adapter.m; %[kg] payload adapter mass
-M.avionics = M1.avionics + M2.avionics; %[kg] total avionics mass
-M.TW1 = T1 * M1.n_mot / ( M.M0 * 9.81 ); %[-] T/W of first stack
-M.TW2 = T2 * M2.n_mot / ( M.M1 * 9.81 ); %[-] T/W of second stack
-
-M_it(j) = M;
-end
-
-%height
-%h.stg1 = h1.tot + h1.C1 + h1.motor; %[m] height of first stage
-%h.stg2 = h2.tot + h2.C1 + h2.motor; %[m] height of second stage
-h.fairing = fairing.L; %[m] height of the fairing
-h.finesse_ratio = h.tot / diam1; %[-] finesse ratio
 
 %plot the two stages:
 figure(1);
@@ -277,8 +283,17 @@ if fzeroOut == 0
 else
     options = optimset('Display','on');
 end
-K = fzero(fun, [0, lim], options);
 
+if fun(0) * fun(lim) < 0
+    K = fzero(fun, [0, lim], options);
+else
+    m_stag = 1e12 * ones(n, 1);
+    m_tot = sum(m_stag) + m_pay;
+    m_str = e .* m_stag;
+    m_prop = m_stag - m_str;
+    warning('Optimal staging was not possible for this step')
+    return
+end
 %get the payload ratios of each stage ( lam_i = mPL_i / mST_i )
 lam = K * ( e ./ ( (1-e).*c - K ) );
 
@@ -747,8 +762,12 @@ f_eval = f(t_min);
 if f_eval < 0
     th = t_min;%[m]
 else
-    % a = f(1);
-    th = fzero( f, [t_min, 1]);%[m]
+    if f(t_min) * f(1) < 0 && imag((t_min)) == 0 && imag(f(1)) == 0
+        th = fzero( f, [t_min, 1]);%[m]
+    else
+        th = 10;
+        warning('For this step it is not possible to avoid buckling');
+    end
 end
 
 %compute the mass
