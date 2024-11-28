@@ -9,11 +9,11 @@ stages.stg1.Thrust = 27.4e3*9;
 stages.stg2.Thrust = 31e3;
 stages.stg1.m0 = 19.2e3;
 
-stages.stg1.d = 1.4;
-stages.stg2.d = 1.05;
-stages.stg1.Cd = 0.5;
+stages.stg1.d = 1.8;
+stages.stg2.d = 1.5;
+stages.stg1.Cd = 0.8;
 stages.stg2.Cd = 0.5;
-stages.stg1.Cl = 0.0;
+stages.stg1.Cl = 2;
 stages.stg2.Cl = 0.0;
 stages.stg1.I = 3.579e5;
 stages.stg2.I = 4.07e3;
@@ -38,8 +38,8 @@ params.Re = 6378000;
 
 % Stage 1 PID data
 stages.stg1.k1 = deg2rad(3*3);
-stages.stg1.k2 = 0.08;
-stages.stg1.k3 = 0;
+stages.stg1.k2 = 0.8;
+stages.stg1.k3 = 0*3;
 % Stage 2 PID Data
 stages.stg2.k1 = deg2rad(9);
 stages.stg2.k2 = 0.08;
@@ -64,7 +64,7 @@ stages.stg2.t_ign = 3;
 % TVC Parameters
 stages.stg1.useTVC = true;
 stages.stg2.useTVC = false;
-stages.stg1.deltaMax = deg2rad(12);
+stages.stg1.deltaMax = deg2rad(7);
 stages.stg2.deltaMax = deg2rad(5);
 
 end

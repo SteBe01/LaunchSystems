@@ -44,10 +44,11 @@ thetaDot = 0;
 for ii = 2:length(tspan_stg1)-1
 
     if Y1(idx-1, 2) < 50e3
-        angle = 70;
+        angle = 60;
     else
         angle = 45;
     end
+    % angle = 45;
     % angle = interp1([0 50e3 100e3], [0 deg2rad(90) pi/4], Y1(idx-1,2), "linear");
     err = theta - deg2rad(angle);
 
@@ -162,8 +163,15 @@ moment = [parout_stg1.moment; parout_stg2.moment];
 dv_drag_vec = [parout_stg1.dv_drag_vec; parout_stg2.dv_drag_vec];
 dv_grav_vec = [parout_stg1.dv_grav_vec; parout_stg2.dv_grav_vec];
 
-dv_drag = cumtrapz(parout_stg1.dv_drag_vec, T1);
-dv_grav = cumtrapz(parout_stg1.dv_grav_vec, T1);
+dv_drag_s1 = cumtrapz(parout_stg1.dv_drag_vec, T1);
+dv_grav_s1 = cumtrapz(parout_stg1.dv_grav_vec, T1);
+dv_thrust_s1 = stages.stg1.Isp*9.81*log(stages.stg1.m0/parout_stg1.m(end));
+dv_s1 = dv_drag_s1(end) + dv_grav_s1(end) + dv_thrust_s1;
+
+dv_drag_s2 = cumtrapz(parout_stg2.dv_drag_vec, T2);
+dv_grav_s2 = cumtrapz(parout_stg2.dv_grav_vec, T2);
+dv_thrust_s2 = stages.stg2.Isp*9.81*log(stages.stg2.m0/parout_stg2.m(end));
+dv_s2 = dv_drag_s2(end) + dv_grav_s2(end) + dv_thrust_s2;
 
 g_vec = params.g0./((1+Y1(:,2)/params.Re).^2);
 downrange = params.Re./(params.Re+Y(:,1)) .* Y(:,1);
@@ -228,10 +236,11 @@ xline(T1(end), '--k', 'Staging')
 
 %% Event functions
 
-function [value, isterminal, direction] = stage_Separation(t, ~, stage)
+function [value, isterminal, direction] = stage_Separation(t, y, stage)
     value = t - (stage.t_burn_tot + stage.t_wait + 1);
+    % value = y(2);
     isterminal = 1;
-    direction = 1;
+    direction = 0;
 end
 
 function [value, isterminal, direction] = orbit_insertion(~, y)

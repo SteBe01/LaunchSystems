@@ -112,7 +112,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, delta)
     F_x = -D*sin(pi/2-gamma) -L*cos(pi/2-gamma) +T*cos(delta)*cos(theta);
 
     % Moment on the rocket
-    M_t = T*sin(delta)*(stage.length - stage.xcg) +D*sin(alpha)*(stage.xcp - stage.xcg) -L*cos(alpha)*(stage.xcp - stage.xcg);
+    M_t = T*sin(delta)*(stage.length - stage.xcg) +D*sin(alpha)*(stage.xcp - stage.xcg) + L*cos(alpha)*(stage.xcp - stage.xcg);
 
     % Derivative vector
     dY = zeros(6, 1);
