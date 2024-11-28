@@ -1,6 +1,3 @@
-% TODO
-% Implement the fuel derivative as done during classes
-
 %% Simulator
 
 clear, clc
@@ -26,135 +23,23 @@ y0_stg1 = [init.x0 init.z0 init.vx0 init.vz0 init.theta0 init.thetaDot0];
 options_stg1 = odeset('RelTol',1e-8, 'MaxStep', 0.1, 'Events', @(t, y) stage_Separation(t, y, stages.stg1));
 options_stg2 = odeset('RelTol', 1e-8, 'MaxStep', 0.1, 'Events', @(t, y) orbit_insertion(t, y));
 
-%% First stage simulation
-tspan_stg1 = 0:1/stages.stg1.u_freq:1e4;
-
-T1 = zeros(length(tspan_stg1), 1);
-Y1 = zeros(length(tspan_stg1), 6);
-delta_vec_stg1 = zeros(length(tspan_stg1), 1);
-
-Y1(1, :) = y0_stg1;
-idx = 2;
-
-alpha = 0;
-theta = 0;
-thetaDot = 0;
-
-
-for ii = 2:length(tspan_stg1)-1
-
-    if Y1(idx-1, 2) < 50e3
-        angle = 60;
-    else
-        angle = 45;
-    end
-    % angle = 45;
-    % angle = interp1([0 50e3 100e3], [0 deg2rad(90) pi/4], Y1(idx-1,2), "linear");
-    err = theta - deg2rad(angle);
-
-    delta = -stages.stg1.k1*err - stages.stg1.k2*thetaDot - stages.stg1.k3*alpha;
-    if abs(delta) > stages.stg1.deltaMax 
-        delta = stages.stg1.deltaMax*sign(delta);
-    end
-    
-    [tvect, yvect, tevent, yevent,~] = ode113(@(t,y) dyn(t, y, stages.stg1, params, 1, delta), [tspan_stg1(ii) tspan_stg1(ii+1)], Y1(idx-1,:), options_stg1);
-    parout = recallOdeFcn(tvect, yvect, stages.stg1, params, 1, delta*ones(length(tvect), 1));
-    T1(idx:idx+length(tvect)-1) = tvect;
-    Y1(idx:idx+length(tvect)-1, :) = yvect;
-    delta_vec_stg1(idx:idx+length(tvect)-1) = repmat(delta, [length(tvect) 1]);
-    idx = idx+length(tvect);
-
-    alpha = parout.alpha(end);
-    theta = yvect(end, 5);
-    thetaDot = yvect(end, 6);
-
-    % Exit the loop if we have stage separation
-    if ~isempty(tevent)
-        break
-    end
-end
-T1(idx:end, :) = [];
-Y1(idx:end, :) = [];
-delta_vec_stg1(idx:end, :) = [];
+t_max = 1e4;
+% First stage simulation
+[T1, Y1] = ode113(@(t,y) dyn(t, y, stages.stg1, params, 1), [0 t_max], y0_stg1, options_stg1);
 clear dyn
 
-%% Second stage simulation
-tspan_stg2 = 0:1/stages.stg2.u_freq:1e4;
-
-T2 = zeros(length(tspan_stg2), 1);
-Y2 = zeros(length(tspan_stg2), 6);
-delta_vec_stg2 = zeros(length(tspan_stg2), 1);
-
-Y2(1, :) = Y1(end,:);
-idx = 2;
-
-alpha = 0;
-theta = 0;
-thetaDot = 0;
-
-
-for ii = 2:length(tspan_stg2)-1
-
-    if Y2(idx-1, 2) < 300e3
-        angle = 45;
-    else
-        angle = 0;
-    end
-    err = theta - deg2rad(angle);
-
-    delta = -stages.stg2.k1*err - stages.stg2.k2*thetaDot - stages.stg2.k3*alpha;
-    if abs(delta) > stages.stg2.deltaMax 
-        delta = stages.stg2.deltaMax*sign(delta);
-    end
-    
-    [tvect, yvect, tevent, yevent,~] = ode113(@(t,y) dyn(t, y, stages.stg2, params, 2, delta), [tspan_stg2(ii) tspan_stg2(ii+1)], Y2(idx-1,:), options_stg2);
-    parout = recallOdeFcn(tvect, yvect, stages.stg2, params, 2, delta*ones(length(tvect), 1));
-    T2(idx:idx+length(tvect)-1) = tvect;
-    Y2(idx:idx+length(tvect)-1, :) = yvect;
-    delta_vec_stg2(idx:idx+length(tvect)-1) = repmat(delta, [length(tvect) 1]);
-    idx = idx+length(tvect);
-
-    alpha = parout.alpha(end);
-    theta = yvect(end, 5);
-    thetaDot = yvect(end, 6);
-
-    % Exit the loop if we have stage separation
-    if ~isempty(tevent)
-        break
-    end
-end
-T2(idx:end, :) = [];
-Y2(idx:end, :) = [];
-delta_vec_stg2(idx:end, :) = [];
+% Second stage simulation
+[T2, Y2] = ode113(@(t,y) dyn(t, y, stages.stg2, params, 2), [0 t_max], Y1(end,:), options_stg2);
 clear dyn
+
 
 %% Retrieve data from ode
-clc
+
 T = [T1; T2+T1(end)];
 Y = [Y1; Y2];
-delta_vec = [delta_vec_stg1; delta_vec_stg2];
 
-% qdyn = zeros(length(T), 1);
-% acc = zeros(length(T), 2);
-% alpha = zeros(length(T), 1);
-% moment = zeros(length(T), 1);
-% for ii = 1:length(T)
-%     if ii <= length(T1)
-%         [~, parout] = dyn(T(ii), Y(ii, :), stages.stg1, params, 1, delta_vec(ii));
-%     else
-%         [~, parout] = dyn(T(ii), Y(ii, :), stages.stg2, params, 2, delta_vec(ii));
-%     end
-%     qdyn(ii) = parout.qdyn;
-%     acc(ii,:) = parout.acc;
-%     % if isfield(parout, "t_turn") && ~isnan(parout.t_turn)
-%     %     t_turn = parout.t_turn;
-%     % end
-%     alpha(ii) = parout.alpha;
-%     moment(ii) = parout.moment;
-% end
-
-parout_stg1 = recallOdeFcn(T1, Y1, stages.stg1, params, 1, delta_vec_stg1);
-parout_stg2 = recallOdeFcn(T2, Y2, stages.stg2, params, 2, delta_vec_stg2);
+parout_stg1 = recallOdeFcn(T1, Y1, stages.stg1, params, 1);
+parout_stg2 = recallOdeFcn(T2, Y2, stages.stg2, params, 2);
 
 qdyn = [parout_stg1.qdyn; parout_stg2.qdyn];
 acc = [parout_stg1.acc; parout_stg2.acc];
@@ -162,6 +47,7 @@ alpha = [parout_stg1.alpha; parout_stg2.alpha];
 moment = [parout_stg1.moment; parout_stg2.moment];
 dv_drag_vec = [parout_stg1.dv_drag_vec; parout_stg2.dv_drag_vec];
 dv_grav_vec = [parout_stg1.dv_grav_vec; parout_stg2.dv_grav_vec];
+delta_vec = [parout_stg1.delta; parout_stg2.delta];
 
 dv_drag_s1 = cumtrapz(parout_stg1.dv_drag_vec, T1);
 dv_grav_s1 = cumtrapz(parout_stg1.dv_grav_vec, T1);
@@ -211,7 +97,7 @@ subplot(4,1,2), hold on, grid on, title("Theta dot over time"), xlabel("Time [s]
 plot(T, rad2deg(Y(:, 6)))
 xline(T1(end), '--k', 'Staging')
 subplot(4,1,3), hold on, grid on, title("$\alpha$ evolution", 'Interpreter', 'latex'), xlabel("Time [s]"), ylabel("Alpha [deg]")
-plot(T, unwrap(rad2deg(alpha)))
+plot(T, rad2deg(alpha))
 xline(T1(end), '--k', 'Staging')
 subplot(4,1,4), hold on, grid on, title("$\delta$ evolution", 'Interpreter', 'latex'), xlabel("Time [s]"), ylabel("Delta [deg]")
 plot(T, rad2deg(delta_vec))

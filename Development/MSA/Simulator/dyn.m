@@ -1,4 +1,4 @@
-function [dY, parout] = dyn(t,y, stage, params, current_stage, delta)
+function [dY, parout] = dyn(t,y, stage, params, current_stage)
 
     % Y(1) = x (horizontal position, inertial)
     % Y(2) = z (vertical position, inertial)
@@ -8,7 +8,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, delta)
     % Y(6) = thetaDot (pitch angular velocity, positive counterclockwise)
 
     % Retrieve data from ode
-    x = y(1);
+    % x = y(1);
     z = y(2);
     xDot = y(3);
     zDot = y(4);
@@ -27,7 +27,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, delta)
         SECO = false;
     end
 
-    if current_stage == 2 && ~SEPARATION && nargout > 1
+    if current_stage == 2 && ~SEPARATION && nargout == 1
         fprintf("[%3.1f km] - Stage separation\n", z*1e-3)
         SEPARATION = true;
     end
@@ -56,10 +56,10 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, delta)
         m = stage.m0 - stage.m_dot * (t-t_wait);
     else
         m = stage.m0 - stage.m_dot * t_burn_tot;
-        if current_stage == 1 && ~MECO && nargout > 1
+        if current_stage == 1 && ~MECO && nargout == 1
             fprintf("[%3.1f km] - MECO\n", z*1e-3)
             MECO = true;
-        elseif current_stage == 2 && ~SECO && nargout > 1
+        elseif current_stage == 2 && ~SECO && nargout == 1
             fprintf("[%3.1f km] - SECO\n", z*1e-3)
             SECO = true;
         end
@@ -75,30 +75,25 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, delta)
     D = qdyn*S*stage.Cd;                            % [N]       - Drag force acting on the rocket
     L = qdyn*S*stage.Cl;                            % [N]       - Lift force acting on the rocket
     
-    % Thrust vectoring
-    % if current_stage == 1
-    %     if z < 50e3
-    %         angle = 90;
-    %     else
-    %         angle = 45;
-    %     end
-    % elseif current_stage == 2
-    %     if z < 300e3
-    %         angle = 45;
-    %     else
-    %         angle = 0;
-    %     end
-    % end
-
-    % corrector = abs(theta - deg2rad(angle));
-    % if current_stage == 2
-    %     corrector = corrector*3;
-    % end
-    % if theta < deg2rad(angle)
-    %     delta = deg2rad(3*corrector);
-    % else
-    %     delta = deg2rad(-3*corrector);
-    % end
+    % PID controller
+    if current_stage == 1
+        if y(2) < 50e3
+            angle = 60;
+        else
+            angle = 45;
+        end
+    elseif current_stage == 2
+        if y(2) < 300e3
+            angle = 45;
+        else
+            angle = 0;
+        end
+    end
+    err = theta - deg2rad(angle);
+    delta = -stage.k1*err - stage.k2*thetaDot - stage.k3*alpha;
+    if abs(delta) > stage.deltaMax 
+        delta = stage.deltaMax*sign(delta);
+    end
 
     % Thrust
     if t > t_wait && t <= t_burn_tot + t_wait       % [N]       - Thrust force acting on the rocket
@@ -139,10 +134,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, delta)
         parout.m = m;
         parout.dv_grav = -g*abs(sin(theta));
         parout.dv_drag = -0.5*S*stage.Cd/stage.m0*rho*velsNorm^2*stage.m0/m;
-        % parout.dv_grav = 
-        % if exist("t_turn", 'var') && ~isnan(t_turn)
-        %     parout.t_turn = t_turn;
-        % end
+        parout.delta = delta;
     end
 end
 
