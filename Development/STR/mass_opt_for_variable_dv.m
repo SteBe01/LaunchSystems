@@ -19,9 +19,13 @@ loads.nz = 1.2;%transversal acceleration load factor [-]
 loads.K = 1.50; %loads resistance safety factor [-]
 
 n = 10;
-m = 5;
+m = 10;
 dv_it = linspace(8.5, 10, n);
-diam1_it = linspace(1, 1.4, m);
+diam1_it = linspace(0.9, 1.5, m);
+
+% M_it = zeros(n*m,1);
+% h_it = zeros(n*m,1);
+% loads_it = zeros(n*m,1);
 
 for j = 1:n
     for k = 1:m
@@ -160,9 +164,18 @@ for j = 1:n
         end
         loads2.F_drag = sum( loads.F_drag ); %aerodynamic force [N]
         [M2, h2, th2] = inert_mass_common_dome(M2, h2, diam2, AR, loads2, mat2, press2);
-        diam2_old = diam2;
-        diam2 = M2.diam_cyl; %[m] correct the diameter to have a cylindrical tank on the second stage
+        
+        if M2.diam_cyl < diam1
+            diam2_old = diam2;
+            diam2 = M2.diam_cyl; %[m] correct the diameter to have a cylindrical tank on the second stage
+        else
+            diam2 = diam1;
+        end
     
+        % if diam2 > diam1
+        %     diam1 = diam2;
+        % end
+
         %stage 1:
         M1.R_next = M2.R_end; %[m]
         M1.fairing = fairing.m; %0; %[kg] WE ASSUME THE FAIRING DETATCH FROM THE LAUNCHER TOGETHER WITH THE FIRST STAGE
@@ -234,13 +247,21 @@ for j = 1:n
     M.TW2 = T2 * M2.n_mot / ( M.M1 * 9.81 ); %[-] T/W of second stack
     M.dv = dv;
     M.err = err;
+    M.n_mot1 = M1.n_mot;
+    M.n_mot2 = M2.n_mot;
+    M.diam1 = diam1;
+    M.diam2 = diam2;
 
     %height
     h.fairing = fairing.L; %[m] height of the fairing
     h.finesse_ratio = h.tot / diam1; %[-] finesse ratio
+    h.stg1 = h1;
+    h.stg2 = h2;
     
     M_it(m*(j-1)+k) = M;
     h_it(m*(j-1)+k) = h;
+    loads_it(m*(j-1)+k) = loads;
+
     end
 end
 
@@ -925,7 +946,12 @@ h.CG.lox = h_cyl_lox / 2 + h_dome_lox + h0_lox; %[m] COG of lox tank
 h.CG.rp1 = h_cyl_rp1 / 2 + h_dome_rp1 + h0_rp1; %[m] COG of rp1 tank
 M.R_end = R_lox; %[m] ending radius of the stage
 M.R_sta = R_rp1; %[m] starting radius of the stage (w/o considering the top connector) 
-M.diam_cyl = 2 * ( 3*(v_min*AR) / (4*pi) )^(1/3) - 0.01; 
+diam_cyl_max = 2 * ( 3*(v_min*AR) / (4*pi) )^(1/3) - 0.01;
+if diam_cyl_max > R_int
+    M.diam_cyl = diam_cyl_max; 
+else
+    M.diam_cyl = R_int;
+end
 
 %pressure at base with longitudinal acceleration (Stevin's law)
 p_lox = p + y_lox * rholox * long_acc; %[Pa] pressure at bottom of tank during acceleration
@@ -1176,7 +1202,7 @@ if length(r) > 1 %trucated-cone
     %check for p, p_hydro (hoop)
     t_min5 = K * abs( p + p_hydro ) * max(r) / sy; %minimum value to stay in elastic field of the material
     %check for M (horizontal unfilled rocket, p=p_hydro=0)
-    t_min6 = K * abs( M_exp ) / ( pi * min(r)^2 * sy ); %minimum value to stay in elastic field of the material
+    t_min6 = K * abs( M_exp / 2 ) / ( pi * min(r)^2 * sy ); %minimum value to stay in elastic field of the material
     %plot
     if nargin > 3
         h0 = shape.h0; %height at which the connector is placed 
@@ -1205,7 +1231,7 @@ else
     %check for p, p_hydro (tank hoop resistance)
     t_min5 = K * abs( p + p_hydro ) * r(1) / sy; %minimum value to stay in elastic field of the material
     %check for M (horizontal unfilled rocket, p=p_hydro=0)
-    t_min6 = K * abs( M_exp ) / ( pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material
+    t_min6 = K * abs( M_exp / 2 ) / ( pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material
 end
 
 %CHECK FOR BUCKLING IN AXIAL COMPRESSION + BENDING + INTERNAL PRESSURE:
