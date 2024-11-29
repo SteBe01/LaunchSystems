@@ -7,7 +7,7 @@ clear dyn
 [stages, params, init] = loadMission();
 
 % Trajectory propagation
-y0_stg1 = [init.x0 init.z0 init.vx0 init.vz0 init.theta0 init.thetaDot0];
+y0_stg1 = [init.x0 init.z0 init.vx0 init.vz0 init.theta0 init.thetaDot0 init.m_prop];
 
 options_stg1 = odeset('RelTol',1e-8, 'MaxStep', 0.1, 'Events', @(t, y) stage_Separation(t, y, stages.stg1));
 options_stg2 = odeset('RelTol', 1e-8, 'MaxStep', 0.1, 'Events', @(t, y) orbit_insertion(t, y));
@@ -18,7 +18,7 @@ t_max = 1e4;
 clear dyn
 
 % Second stage simulation
-[T2, Y2] = ode113(@(t,y) dyn(t, y, stages.stg2, params, 2), [0 t_max], Y1(end,:), options_stg2);
+[T2, Y2] = ode113(@(t,y) dyn(t, y, stages.stg2, params, 2), [0 t_max], [Y1(end,1:end-1) stages.stg2.m_prop], options_stg2);
 clear dyn
 
 

@@ -46,6 +46,7 @@ init.vx0 = 200;                                 % [m/s]
 init.vz0 = 0;                                   % [m/s]
 init.theta0 = atan2(init.vz0,init.vx0);         % [rad]
 init.thetaDot0 = deg2rad(0);                    % [rad/s]
+init.m_prop = stages.stg1.m_prop;               % [kg]
 
 % Environment data
 params.g0 = 9.81;

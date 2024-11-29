@@ -6,6 +6,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     % Y(4) = zDot (vertical velocity, inertial)
     % Y(5) = theta (pitch angle, positive counterclockwise)
     % Y(6) = thetaDot (pitch angular velocity, positive counterclockwise)
+    % Y(7) = mass_prop_left
 
     % Retrieve data from ode
     % x = y(1);
@@ -14,9 +15,12 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     zDot = y(4);
     theta = y(5);
     thetaDot = y(6);
+    m_prop_left = y(7);
+
+    m_prop_left = m_prop_left*(m_prop_left >= 0);
 
     % Persistent states
-    persistent MECO SEPARATION SECO m_prop_left t_old
+    persistent MECO SEPARATION SECO
     if isempty(MECO)
         MECO = false;
     end
@@ -25,12 +29,6 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     end
     if isempty(SECO)
         SECO = false;
-    end
-    if isempty(m_prop_left)
-        m_prop_left = stage.m_prop;
-    end
-    if isempty(t_old)
-        t_old = 0;
     end
 
     if current_stage == 2 && ~SEPARATION && nargout == 1
@@ -89,13 +87,9 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
 
     if t > t_wait && m_prop_left > 0
         T = Thrust;
-
-        dt = t - t_old;
-        m_prop_left = m_prop_left - m_dot * dt;
     else
         T = 0;
     end
-    m_prop_left = m_prop_left*(m_prop_left >= 0);
     m = stage.m0 - stage.m_prop + m_prop_left;
 
     % Callouts
@@ -122,7 +116,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     M_t = T*sin(delta)*(stage.length - xcg) +D*sin(alpha)*(stage.xcp - xcg) + L*cos(alpha)*(stage.xcp - xcg);
 
     % Derivative vector
-    dY = zeros(6, 1);
+    dY = zeros(7, 1);
 
     dY(1) = xDot;
     dY(2) = zDot;
@@ -130,6 +124,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     dY(4) = F_z/m;
     dY(5) = thetaDot;
     dY(6) = M_t/I;
+    dY(7) = -m_dot;
 
     % Post processing:
     % Forces in body frame
@@ -148,7 +143,5 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
         parout.dv_drag = -0.5*S*stage.Cd/stage.m0*rho*velsNorm^2*stage.m0/m;
         parout.delta = delta;
     end
-
-    t_old = t;
 end
 
