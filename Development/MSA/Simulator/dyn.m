@@ -56,6 +56,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     rho = getDensity(z);                            % [kg/m^3]  - Density at current altitude
     qdyn = 0.5*rho*velsNorm^2;                      % [Pa]      - Dynamic pressure
     S = pi*(stage.d^2/4);                           % [m^2]     - Rocket surface area
+    P = getPressure(z);
     
     % Aerodynamic forces
     D = qdyn*S*stage.Cd;                            % [N]       - Drag force acting on the rocket
@@ -85,9 +86,10 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     throttling = 1;
     Thrust = interp1(stage.throttling, stage.Thrust, throttling, 'linear', 'extrap');
     m_dot = interp1(stage.throttling, stage.m_dot, throttling, 'linear', 'extrap');
+    Pe = interp1(stage.throttling, stage.Pe, throttling, 'linear', 'extrap');
 
     if t > t_wait && m_prop_left > 0
-        T = Thrust;
+        T = Thrust + stage.A_eng*(Pe-P);
     else
         T = 0;
         m_dot = 0;

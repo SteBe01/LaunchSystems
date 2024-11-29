@@ -13,12 +13,16 @@ stages.stg1.m_dot = PRP_mat.m_dot.*9;
 stages.stg2.m_dot = PRP_mat.m_dot;
 stages.stg1.throttling = PRP_mat.manetta./100;
 stages.stg2.throttling = PRP_mat.manetta./100;
+stages.stg1.Pe = PRP_mat.p_e;%*1e5;
+stages.stg2.Pe = PRP_mat.p_e;%*1e5;
 
 %% General parameters
 stages.stg1.MR = 5.225;
 stages.stg2.MR = 4.022;
 stages.stg1.Isp = 328;
 stages.stg2.Isp = 343;
+stages.stg1.A_eng = 0.0953;
+stages.stg2.A_eng = 0.0953;
 % stages.stg1.Thrust = 27.4e3*9;
 % stages.stg2.Thrust = 31e3;
 stages.stg1.m0 = 19.2e3;
