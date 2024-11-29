@@ -32,6 +32,9 @@ stages.stg2.m0 = stages.stg1.m0 - stages.stg1.m_prop - 1091.3;
 stages.stg2.m_prop = stages.stg2.m0 * (1 - 1/stages.stg2.MR);
 stages.stg2.t_burn_tot = stages.stg2.m_prop/(stages.stg2.m_dot(end)*stages.stg2.N_mot);
 
+stages.stg1.m_prop_final = 0.1*stages.stg1.m_prop;
+stages.stg2.m_prop_final = 0.1*stages.stg2.m_prop;
+
 stages.stg1.d = 1.8;
 stages.stg2.d = 1.5;
 stages.stg1.Cd = 0.8;

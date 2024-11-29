@@ -88,7 +88,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     m_dot = interp1(stage.throttling, stage.m_dot, throttling, 'linear', 'extrap');
     Pe = interp1(stage.throttling, stage.Pe, throttling, 'linear', 'extrap');
 
-    if t > t_wait && m_prop_left > 0
+    if t > t_wait && m_prop_left > stage.m_prop_final
         T = (Thrust + stage.A_eng*(Pe-P))*stage.N_mot;
     else
         T = 0;
@@ -97,7 +97,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     m = stage.m0 - stage.m_prop + m_prop_left;
 
     % Callouts
-    if m_prop_left == 0
+    if m_prop_left <= stage.m_prop_final
         if current_stage == 1 && ~MECO && nargout == 1
             fprintf("[%3.1f km] - MECO\n", z*1e-3)
             MECO = true;
