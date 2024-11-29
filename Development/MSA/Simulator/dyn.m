@@ -82,13 +82,15 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     end
 
     % Thrust & mass estimation
-    Thrust = interp1(stage.throttling, stage.Thrust, 1, 'linear', 'extrap');
-    m_dot = interp1(stage.throttling, stage.m_dot, 1, 'linear', 'extrap');
+    throttling = 1;
+    Thrust = interp1(stage.throttling, stage.Thrust, throttling, 'linear', 'extrap');
+    m_dot = interp1(stage.throttling, stage.m_dot, throttling, 'linear', 'extrap');
 
     if t > t_wait && m_prop_left > 0
         T = Thrust;
     else
         T = 0;
+        m_dot = 0;
     end
     m = stage.m0 - stage.m_prop + m_prop_left;
 

@@ -108,6 +108,10 @@ subplot(2,2,4), hold on, grid on, title("Moments over time"), xlabel("Time [s]")
 plot(T, moment)
 xline(T1(end), '--k', 'Staging')
 
+figure, hold on, grid on, title("Propellant mass over time"), xlabel("Time [s]"), ylabel("Fuel mass [kg]")
+plot(T, Y(:,end))
+xline(T1(end), '--k', 'Staging')
+
 
 %% Event functions
 
