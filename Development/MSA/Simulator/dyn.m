@@ -46,16 +46,22 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     % t_wait = 0;
 
     % Retrieve data used multiple times 
-    t_burn_tot = stage.t_burn_tot;
+    % t_burn_tot = stage.t_burn_tot;
     Re = params.Re;
 
+    % Compute Thrust parameters
+    Thrust = interp1(stage.throttling, stage.Thrust, 1, 'linear', 'extrap');
+    m_dot = interp1(stage.throttling, stage.m_dot, 1, 'linear', 'extrap');
+
     % Mass estimation
+    mp_left = stage.m_prop;
     if t <= t_wait
         m = stage.m0;
-    elseif t > t_wait && t <= t_burn_tot + t_wait
-        m = stage.m0 - stage.m_dot * (t-t_wait);
+    elseif t > t_wait && mp_left > 0
+        m = stage.m0 - m_dot * (t-t_wait);
+        mp_left = stage.m_prop - m_dot * (t-t_wait);
     else
-        m = stage.m0 - stage.m_dot * t_burn_tot;
+        m = stage.m0 - (stage.m_prop - mp_left);
         if current_stage == 1 && ~MECO && nargout == 1
             fprintf("[%3.1f km] - MECO\n", z*1e-3)
             MECO = true;
@@ -64,7 +70,12 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
             SECO = true;
         end
     end
-    
+    mp_left = mp_left*(mp_left >= 0);
+
+    xcg = interp1(stage.STR_mat(:,1), stage.STR_mat(:,2), mp_left, "linear", "extrap");
+    I_mat = interp1(stage.STR_mat(:,1), stage.STR_mat(:, 3:5), mp_left, "linear", "extrap");
+    I = I_mat(2);
+
     % Environment data
     g = params.g0/((1+z/Re)^2);                     % [m/s^2]   - Gravity acceleration taking into account altitude
     rho = getDensity(z);                            % [kg/m^3]  - Density at current altitude
@@ -96,8 +107,8 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     end
 
     % Thrust
-    if t > t_wait && t <= t_burn_tot + t_wait       % [N]       - Thrust force acting on the rocket
-        T = stage.Thrust;
+    if t > t_wait && mp_left>0       % [N]       - Thrust force acting on the rocket
+        T = Thrust;
     else
         T = 0;
     end
@@ -107,7 +118,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     F_x = -D*sin(pi/2-gamma) -L*cos(pi/2-gamma) +T*cos(delta)*cos(theta);
 
     % Moment on the rocket
-    M_t = T*sin(delta)*(stage.length - stage.xcg) +D*sin(alpha)*(stage.xcp - stage.xcg) + L*cos(alpha)*(stage.xcp - stage.xcg);
+    M_t = T*sin(delta)*(stage.length - xcg) +D*sin(alpha)*(stage.xcp - xcg) + L*cos(alpha)*(stage.xcp - xcg);
 
     % Derivative vector
     dY = zeros(6, 1);
@@ -117,7 +128,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     dY(3) = F_x/m;
     dY(4) = F_z/m;
     dY(5) = thetaDot;
-    dY(6) = M_t/stage.I;
+    dY(6) = M_t/I;
 
     % Post processing:
     % Forces in body frame
