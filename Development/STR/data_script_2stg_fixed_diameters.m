@@ -18,7 +18,7 @@ diam1 = 1.4; %[m] external diameter of first stage
 diam2 = 1.05; %[m] external diameter of second stage and fairing
 AR = sqrt(2);%sqrt(3); %aspect ratio of oblate domes [-]
 loads.nx = 7; %longitudinal acceleration load factor [-]
-loads.nz = 1.8;%transversal acceleration load factor [-]
+loads.nz = 1.5;%transversal acceleration load factor [-]
 loads.K = 1.25; %loads resistance safety factor [-]
 maxQ = 50000; %0.5 * rho_air * v^2; %[Pa] maximum dynamic pressure
 Ca1 = 1.3; %drag coefficient of first stage
@@ -236,6 +236,7 @@ plot([diam1/2, -diam1/2], [h1.til_tank-h1.dome_rp1,h1.til_tank-h1.dome_rp1], '--
 plot([diam2/2, -diam2/2], [h1.attach,h1.attach], '--k');
 plot([diam2/2, -diam2/2], [h.tot-2*diam2,h.tot-2*diam2], '--k');
 plot(xCG, yCG, '+r'); 
+
 %% Functions
 
 function [m_stag, m_tot, m_prop] = tandem_opt_staging(Is, e, dv, m_pay, fzeroOut)
@@ -306,6 +307,7 @@ long_acc = nx*g; %[m/s^2] longitudinal acceleration
 nz = loads.nz;
 tran_acc = nz*g; %[m/s^2] transversal acceleration
 m_sust = loads.m; %[kg] sustained mass
+loads.p_hydro = 0; %[Pa] set to zero for connectors 
 %h_m_sust = loads.h_m_sust; %[m] height of the lumped mass representing the sustained mass
 
 %propellant masses
@@ -431,7 +433,6 @@ p_rp1 = p + y_rp1 * rhorp1 * long_acc; %[Pa] pressure at bottom of tank during a
 t_p_lox = diam*p_lox/( 2*sy ); %[m] lox tank thickness
 t_p_rp1 = diam*p_rp1/( 2*sy ); %[m] rp1 tank thickness
 
-
 %MASSES ESTIMATION
 
 %top interstage (first connector) (between top part of the stage and subsequent stage)
@@ -462,11 +463,12 @@ if h_cyl_rp1 > 0    %cyl tank
     shape_rp1.r = R_rp1;
     shape_rp1.h = h_cyl_rp1;
     load_rp1 = loads;
+    load_rp1.p_hydro = y_lox * rholox * long_acc; %[Pa] hydrostatic pressure due to liquid
     load_rp1.m = m_sust + C1.m + mrp1 * 0.11; %accounts for sustained masses : upper stages, first connector, fairing and rp1 tank structural mass (approximated as 11% of rp1 mass)
     % load_rp1.F_drag = loads.F_drag; %aerodynamic drag force [N]
     load_rp1.p = MEOP;%[Pa]
     [~, t_bb_rp1] = buckling_bending(shape_rp1, load_rp1, mat);
-    t_rp1 = max( t_p_rp1, t_bb_rp1 ); %correction of rp1 tank thickness in case the previous can't sustain the load
+    t_rp1 = t_bb_rp1; %correction of rp1 tank thickness in case the previous can't sustain the load
 else %spherical tank
     t_rp1 = max( t_p_rp1, t_min );
 end
@@ -505,11 +507,12 @@ if h_cyl_lox > 0 %cyl tank
     shape_lox.r = R_int;
     shape_lox.h = h_cyl_lox;
     load_lox = loads;
+    load_lox.p_hydro = y_rp1 * rhorp1 * long_acc; %[Pa] hydrostatic pressure due to liquid
     load_lox.m = m_sust + C1.m + M.tot_rp1 + C2.m + mlox * 0.11; %accounts for sustained masses : upper stages, first and second connector, fairing, rp1 tank and lox tank structural mass (approximated as 11% of lox mass)
     % load_lox.F_drag = loads.F_drag; %aerodynamic drag force [N]
     load_lox.p = MEOP; %[Pa] internal pressure
     [~,t_bb_lox] = buckling_bending(shape_lox, load_lox, mat);
-    t_lox = max( t_p_lox, t_bb_lox ); %correction of lox tank thickness in case the previous can't sustain the load
+    t_lox = t_bb_lox; %correction of lox tank thickness in case the previous can't sustain the load
 else %spherical tank
     t_lox = max( t_p_lox, t_min);
 end
@@ -563,7 +566,9 @@ h.dome_rp1 = h_dome_rp1; %[m]
 h.R_lox = R_lox; %[m]
 h.R_rp1 = R_rp1; %[m]
 h.C1 = shape1.h; %[m] first connector / top interstage
+h.cyl_rp1 = h_cyl_rp1; %[m] rp1 tank cylindrical part
 h.C2 = shape2.h; %[m] second connector / intertank
+h.cyl_lox = h_cyl_lox; %[m] lox tank cylindrical part
 h.C3 = shape3.h; %[m] thirk connector / aft skirt
 h.til_tank = h_motor + h.C3 + h_cyl_lox + h.C2 + h_cyl_rp1 + h_dome_rp1; %[m] height of stage until last tank
 h.tot =      h_motor + h.C3 + h_cyl_lox + h.C2 + h_cyl_rp1 + (5/2)*R_rp1; %[m] total height of stage
@@ -626,6 +631,7 @@ nx = load.nx; %longitudinal load factor [-]
 K = load.K; %factor of safety [-]
 F_aero = load.F_drag; %aerodynamic drag force [N]
 p = load.p; %internal pressure [Pa]
+p_hydro = load.p_hydro; %hydrostatic pressure [Pa]
 M_exp = load.M_exp; %expected flessional 
 
 %recover material characteristics:
@@ -653,11 +659,22 @@ if length(r) > 1 %trucated-cone
     r(2) = cos(alpha) * r(2); 
     r(1) = cos(alpha) * r(1);
     t_min2 = r(2) / 1500; %minimum value for the NASA papers study
+    %check for P, M, p (top of tank)
     t_min3a = K * ( r(1) * abs( F_load - p * pi * r(1)^2 ) + 2 * abs( M_exp ) ) /...
     ( 2 * pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material (bigger base)
     t_min3b = K * ( r(2) * abs( F_load - p * pi * r(2)^2 ) + 2 * abs( M_exp ) ) /...
     ( 2 * pi * r(2)^2 * sy ); %minimum value to stay in elastic field of the material (larger base)
     t_min3 = min([t_min3a, t_min3b]);%minimum value to stay in elastic field of the material
+    %check for P, M, p, p_hydro (bottom of tank)
+    t_min4a = K * ( r(1) * abs( F_load - ( p + p_hydro ) * pi * r(1)^2 ) + 2 * abs( M_exp ) ) /...
+    ( 2 * pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material (bigger base)
+    t_min4b = K * ( r(2) * abs( F_load - ( p + p_hydro ) * pi * r(2)^2 ) + 2 * abs( M_exp ) ) /...
+    ( 2 * pi * r(2)^2 * sy ); %minimum value to stay in elastic field of the material (larger base)
+    t_min4 = min([t_min4a, t_min4b]);%minimum value to stay in elastic field of the material
+    %check for p, p_hydro (hoop)
+    t_min5 = K * abs( p + p_hydro ) * max(r) / sy; %minimum value to stay in elastic field of the material
+    %check for M (horizontal unfilled rocket, p=p_hydro=0)
+    t_min6 = K * abs( M_exp ) / ( pi * min(r)^2 * sy ); %minimum value to stay in elastic field of the material
     %plot
     if nargin > 3
         h0 = shape.h0; %height at which the connector is placed 
@@ -677,8 +694,16 @@ else
         y = h0 + [0, 0, L, L, 0, 0];
         XY = [0, r, r, -r, -r, 0; y];
     end
+    %check for P, M, p (top of tank)
     t_min3 = K * ( r(1) * abs( F_load - p * pi * r(1)^2 ) + 2 * abs( M_exp ) ) /...
     ( 2 * pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material
+    %check for P, M, p, p_hidro (bottom of tank)
+    t_min4 = K * ( r(1) * abs( F_load - ( p + p_hydro ) * pi * r(1)^2 ) + 2 * abs( M_exp ) ) /...
+    ( 2 * pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material
+    %check for p, p_hydro (tank hoop resistance)
+    t_min5 = K * abs( p + p_hydro ) * r(1) / sy; %minimum value to stay in elastic field of the material
+    %check for M (horizontal unfilled rocket, p=p_hydro=0)
+    t_min6 = K * abs( M_exp ) / ( pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material
 end
 
 %CHECK FOR BUCKLING IN AXIAL COMPRESSION + BENDING + INTERNAL PRESSURE:
@@ -725,18 +750,29 @@ Pcr = @(th) k2 * kx(th) * 2 * pi^3 * D(th) * min(r)   / L^2 +...   %if cyl and p
 Mcr = @(th) k2 * kx(th)   *   pi^3 * D(th) * min(r)^2 / L^2 +...   %if cyl and p=0 (only metals)
          + (1-k2) * pi*min(r) * E * th.^2 .* ( gM(th) ./ sqrt( 3 * (1-nu^2) ) + dg(th) ) + p * pi * min(r)^2 * k1;%in any other case (only metals)
 
+Mcr_unp = @(th) kx(th) * pi^3 * D(th) * min(r)^2 / L^2;   %if cyl and p=0 (only metals)
+
 %relation to be satisfied in combined stress condition (for AXIAL COMPRESSION + BENDING + INTERNAL PRESSURE)
-f = @(th) K*F_load./Pcr(th) + K*M_exp./Mcr(th) - 1; %this must be <0 to save the structure from failure
+f1 = @(th) K*F_load./Pcr(th) + K*M_exp./Mcr(th) - 1; %this must be <0 to save the structure from failure
+
+%relation to be satisfied in horizontal, unfilled rocket (ONLY BENDING)
+f2 = @(th) K*M_exp - Mcr_unp(th); %this must be <0 to save the structure from failure
 
 %check if one of the already existing lower bounds satisfies the relation
 %to avoid buckling in axial compression + bending + internal pressure
-t_min = max([t_min1, t_min2, t_min3]);%in order: manufacturability, validity of buckling theory, resistance in plastic field
-f_eval = f(t_min);
-if f_eval < 0
+t_min = max([t_min1, t_min2, t_min3, t_min4, t_min5, t_min6]);%in order: manufacturability, validity of buckling theory, resistance in plastic field (for P+M+p, P+M+p+p_hydro, hoop, only M) 
+f_eval1 = f1(t_min);
+f_eval2 = f2(t_min);
+if f_eval1 < 0 && f_eval2 < 0
     th = t_min;%[m]
+elseif f_eval1 < 0 && f_eval2 > 0
+    th = fzero( f2, [t_min, 10]);%[m]
+elseif f_eval1 > 0 && f_eval2 < 0
+    th = fzero( f1, [t_min, 10]);%[m]
 else
-    % a = f(1);
-    th = fzero( f, [t_min, 1]);%[m]
+    th1 = fzero( f1, [t_min, 10]);%[m]
+    th2 = fzero( f2, [t_min, 10]);%[m]
+    th = max( th1, th2 );%[m]
 end
 
 %compute the mass

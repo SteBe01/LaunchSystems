@@ -14,6 +14,9 @@ M.adapter = 0.0755 * M.pay + 50; %[kg] estimated mass from Edberg-Costa
 M.pay_effective = M.pay + M.adapter; %[kg] Edberg-Costa includes adapter mass in the payload
 % M.pay_effective = M.pay; %[kg] Edberg-Costa includes adapter mass in the payload
 OF = 2.58; %[-] Ox/Fu ratio for LOX-RP1
+loads.nx = 7; %longitudinal acceleration load factor [-]
+loads.nz = 1.2;%transversal acceleration load factor [-]
+loads.K = 1.50; %loads resistance safety factor [-]
 
 n = 10;
 m = 5;
@@ -22,13 +25,11 @@ diam1_it = linspace(1, 1.4, m);
 
 for j = 1:n
     for k = 1:m
+        skipcycle = false;
     dv = dv_it(j); %[km/s] required dv
     diam1 = diam1_it(k); %[m] external diameter of first stage
     diam2 = 0.95 * diam1; %[m] external diameter of second stage and fairing
     AR = sqrt(2);%sqrt(3); %aspect ratio of oblate domes [-]
-    loads.nx = 7; %longitudinal acceleration load factor [-]
-    loads.nz = 1.8;%transversal acceleration load factor [-]
-    loads.K = 1.25; %loads resistance safety factor [-]
     maxQ = 50000; %0.5 * rho_air * v^2; %[Pa] maximum dynamic pressure
     Ca1 = 1.3; %drag coefficient of first stage
     Ca2 = 1.3; %drag coefficient of second stage
@@ -95,6 +96,13 @@ for j = 1:n
     while i < Nmax && err > tol
         %optimal staging:
         [m_stag, m_init, m_prop] = tandem_opt_staging(Is, eps_real(:, i-1), dv, M.pay_effective, 0);
+
+        if m_init > 1e10
+            %M = 0;
+            %h = 0;
+            skipcycle = true;
+            break
+        end
 
         %compute stage parameters:
         M1.motor = ceil(TW1 * M.M0 * 9.81 / T1) * 35; %[kg] total motor mass of first stage
@@ -200,6 +208,10 @@ for j = 1:n
         i = i+1;
     end
     
+    if skipcycle%isa(M, "double")
+        continue
+    end
+
     eps_real(:, i:end) = [];
     eps_end = eps_real(:, end);
     
@@ -316,6 +328,470 @@ m_tot = sum(m_stag) + m_pay;
 
 end
 
+% function [M, h, th] = inert_mass_common_dome(M, h, diam, AR, loads, mat_id, pressure_type, plotcase)
+% 
+% % considers thickness equal along the whole tank.
+% % safety factor to be defined.
+% % the volume is the volume of propellant to be contained: you cannot use
+% % this function to evaluate blowdown architectures.
+% 
+% %constants:
+% g = 9.81; %[m/s^2]
+% 
+% %recover loads:
+% nx = loads.nx;
+% long_acc = nx*g; %[m/s^2] longitudinal acceleration
+% nz = loads.nz;
+% tran_acc = nz*g; %[m/s^2] transversal acceleration
+% m_sust = loads.m; %[kg] sustained mass
+% %h_m_sust = loads.h_m_sust; %[m] height of the lumped mass representing the sustained mass
+% 
+% %propellant masses
+% OF = M.OF;%[-] Ox/Fu ratio
+% mlox = M.prop * OF / (1+OF);%[kg] mass of lox
+% mrp1 = M.prop * 1  / (1+OF);%[kg] mass of rp1
+% 
+% %burning time
+% M.tb = (mlox+mrp1) / (M.m_dot * M.n_mot); %[s] stage burning time
+% 
+% %propellant densities
+% rholox = M.rholox; %[kg/m^3]
+% rhorp1 = M.rhorp1; %[kg/m^3]
+% 
+% %propellant volumes
+% vlox = 1.10 * mlox / rholox; %[m^3] %added 10% margin
+% vrp1 = 1.05 * mrp1 / rhorp1; %[m^3] %added 5% margin
+% 
+% %recover dimensions:
+% h_motor = h.motor; %[m] height of the motor
+% h0 = h.h0; %[m] height of the bottom part of the stage with the launcher vertically placed on a launch pad 
+% R_next = M.R_next; %[m] radius of the subsequent stage
+% 
+% %get material properties
+% mat = mat_switch(mat_id);
+% rho = mat.rho;%[kg/m^3] material density
+% t_min = mat.t_min; %[m] material manufacturability minimum thickness
+% E = mat.E; %[Pa] Young modulus
+% sy = mat.sy; %[Pa] yelding stress
+% su = mat.su; %[Pa] ultimate stress
+% nu = mat.nu; %[-] Poisson's ratio
+% 
+% %get MEOP (maximum expected operating pressure)
+% switch pressure_type 
+%     case 0 % case for unpressurized vessel
+%         MEOP = 0;
+%     case 1 %case for pressure-fed
+%         MEOP = 2.8 * 1e6; %[Pa] internal tank pressure
+%     case 2 %case for pump-fed
+%         MEOP = 500 * 1e3; %[Pa] internal tank pressure
+%     case 3 % case for blowdown
+%         MEOP = 50 * 1e6; %[Pa] internal tank pressure
+% end
+% 
+% %correction factor
+% Km = 1.1; 
+% Kp = 1.0;
+% MDP = MEOP * Km * Kp;
+% jproof = 1.25;
+% jburst = 1.5;
+% p = MDP * jburst;
+% 
+% %tanks shape definition
+% e = sqrt( 1 - 1 / AR^2 );         %eccentricity of oblate part [-]
+% R_int = diam / 2;    %internal radius of the tank [m]
+% V_obl = (4/3)*pi*R_int^3 / AR; %volume of the two oblate parts [m^3]
+% 
+% %check on tank shape
+% v_min = min(vlox, vrp1);
+% 
+% if v_min < (4/3) * pi * R_int^3 / AR  %adopt spherical tanks
+%     %lox
+%     R_lox = ( 3 * vlox / ( 4*pi ) )^(1/3); %[m] radius of lox spherical tank
+%     h_dome_lox = R_lox; %dome height [m]
+%     h_cyl_lox = 0;%height of cylindrical part [m]
+%     S_lox = 4 * pi * R_lox^2;%surface of tank [m^2]
+%     y_lox = 2*R_lox;%fluid level inside the tank [m]
+%     AR_lox = 1;
+%     h0_lox = (2/3)*R_lox + h0 + h_motor;%[m]
+% 
+%     %rp1
+%     R_rp1 = ( 3 * vrp1 / ( 4*pi ) )^(1/3); %[m] radius of rp1 spherical tank
+%     h_dome_rp1 = R_rp1; %dome height [m]
+%     h_cyl_rp1 = 0;%height of cylindrical part [m]
+%     S_rp1 = 4 * pi * R_rp1^2;%surface of tank [m^2]
+%     y_rp1 = 2*R_rp1;%fluid level inside the tank [m]
+%     AR_rp1 = 1;
+%     h0_rp1 = h0_lox + 2*h_dome_lox + (1/2)*R_rp1;%[m]
+%     h0_C1 = h0_rp1 + R_rp1;%[m]
+%     h0_C2 = h0_lox + R_lox;%[m]
+%     h0_C3 = h0 + h_motor;%[m]
+% else  %adopt cyl tanks with shared dome
+%     %lox
+%     R_lox = R_int; %[m] radius of the lox tank
+%     h_dome_lox = R_lox/AR; %dome height [m]
+%     V_cyl_lox = vlox - V_obl; %volume of the cylindrical part [m^3]
+%     h_cyl_lox = V_cyl_lox / (pi*R_lox^2); %height of cylindrical part [m]
+%     y_lox = h_cyl_lox + 2*R_lox/AR;%fluid level inside the tank [m]
+%     S_cyl_lox = 2*pi*R_lox* h_cyl_lox; %surface of cylindrical part [m^2]
+%     S_obl_lox = 2*pi * R_lox^2 * ( 1 + (1/(e*AR^2)) * atanh( e ) ); %surface of the oblate parts together [m^2]
+%     S_lox = S_obl_lox + S_cyl_lox; %surface of the lox tank [m^2]
+%     AR_lox = AR;
+%     h0_lox = (2/3)*R_lox + h0 + h_motor;%[m] 
+% 
+%     %rp1
+%     R_rp1 = R_int; %[m] radius of the rp1 tank
+%     h_dome_rp1 = R_rp1/AR; %dome height [m]
+%     V_cyl_rp1 = vrp1; %volume of the cylindrical part [m^3]
+%     h_cyl_rp1 = V_cyl_rp1 / (pi*R_rp1^2); %height of cylindrical part [m]
+%     y_rp1 = h_cyl_rp1 + 2*R_rp1/AR;%fluid level inside the tank [m]
+%     S_cyl_rp1 = 2*pi*R_rp1* h_cyl_rp1; %surface of cylindrical part [m^2]
+%     S_obl_rp1 = 2*pi * R_rp1^2 * ( 1 + (1/(e*AR^2)) * atanh( e ) ); %surface of the oblate parts together [m^2]
+%     S_rp1 = S_obl_rp1 + S_cyl_rp1; %surface of the rp1 tank [m^2]
+%     AR_rp1 = AR;
+%     h0_rp1 = h0_lox + h_dome_lox + h_cyl_lox + 0.16; %[m]. 0.16m added based on Edberg-Costa to account for insulation
+%     h0_C1 = h0_rp1 + h_cyl_rp1;%[m]
+%     h0_C3 = h0 + h_motor;%[m]
+% end
+% 
+% %recover dimensions
+% l_lox = @(t) y_lox + 2*t;%height of the tank [m]
+% l_rp1 = @(t) y_rp1 + 2*t;%height of the tank [m]
+% h.CG.lox = h_cyl_lox / 2 + h_dome_lox + h0_lox; %[m] COG of lox tank
+% h.CG.rp1 = h_cyl_rp1 / 2 + h_dome_rp1 + h0_rp1; %[m] COG of rp1 tank
+% M.R_end = R_lox; %[m] ending radius of the stage
+% M.R_sta = R_rp1; %[m] starting radius of the stage (w/o considering the top connector) 
+% M.diam_cyl = 2 * ( 3*(v_min*AR) / (4*pi) )^(1/3) - 0.01; 
+% 
+% %pressure at base with longitudinal acceleration (Stevin's law)
+% p_lox = p + y_lox * rholox * long_acc; %[Pa] pressure at bottom of tank during acceleration
+% p_rp1 = p + y_rp1 * rhorp1 * long_acc; %[Pa] pressure at bottom of tank during acceleration
+% 
+% %thickness of tanks for pressure
+% t_p_lox = diam*p_lox/( 2*sy ); %[m] lox tank thickness
+% t_p_rp1 = diam*p_rp1/( 2*sy ); %[m] rp1 tank thickness
+% 
+% 
+% %MASSES ESTIMATION
+% 
+% %top interstage (first connector) (between top part of the stage and subsequent stage)
+% % if R_next > R_rp1  %that is, if  next stage radius is NOT less than this one's
+% %     shape1.r = R_rp1; %[m] radius of the cylindrical connector
+% %     shape1.h = shape1.r * 5 / 2;
+% % else %that is, if  next stage radius is less than this one's
+%     shape1.r = [R_next, R_rp1]; %for simplicity we take the same dimensions of the "both-spherical" case
+%     shape1.h = shape1.r(2) * 5 / 2;
+% % end 
+% load1 = loads;
+% load1.p = 0; %internal pressure [Pa]
+% if nargin < 8
+%     [C1.m, C1.th] = buckling_bending(shape1, load1, mat);
+% else
+%     shape1.h0 = h0_C1;
+%     shape1.AR = AR_rp1;
+%     [C1.m, C1.th, C1.XY] = buckling_bending(shape1, load1, mat, 1);
+%     plot(C1.XY(1,:), C1.XY(2,:), '--k', DisplayName='true');grid on; axis equal; hold on;
+% end
+% h.CG.C1 = h0_C1 + shape1.h / 2;%[m] exact solution for cyl, approx for cones
+% th.C1 = C1.th; %[m] thickness of first connector (interstage)
+% 
+% 
+% %mass estimation of the first tank
+% if h_cyl_rp1 > 0    %cyl tank
+%     %validate rp1 tank size
+%     shape_rp1.r = R_rp1;
+%     shape_rp1.h = h_cyl_rp1;
+%     load_rp1 = loads;
+%     load_rp1.m = m_sust + C1.m + mrp1 * 0.11; %accounts for sustained masses : upper stages, first connector, fairing and rp1 tank structural mass (approximated as 11% of rp1 mass)
+%     % load_rp1.F_drag = loads.F_drag; %aerodynamic drag force [N]
+%     load_rp1.p = MEOP;%[Pa]
+%     [~, t_bb_rp1] = buckling_bending(shape_rp1, load_rp1, mat);
+%     t_rp1 = max( t_p_rp1, t_bb_rp1 ); %correction of rp1 tank thickness in case the previous can't sustain the load
+% else %spherical tank
+%     t_rp1 = max( t_p_rp1, t_min );
+% end
+% th.rp1 = t_rp1;%[m]
+% M.tank_rp1 = rho * S_rp1 * t_rp1; %mass of the empty rp1 tank [kg]
+% M.tot_rp1 = M.tank_rp1 + mrp1; %[kg] mass of full rp1 tank
+% 
+% %middle connector (intertank) (between two tanks)
+% if R_rp1 == R_lox %that is, if tanks have the same diameter
+%     C2.m = 0;%[kg] %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     shape2.h = 0.16; %[m]
+%     h.CG.C2 = 0; %[m]
+%     th.C2 = 0; %[m] thickness of second connector (intertank)
+% else %that is, if at least one tank is spherical
+%     shape2.r = [R_rp1, R_lox]; %for simplicity we take the same dimensions of the "both-spherical" case
+%     shape2.h = 0.5 * R_rp1 + h_dome_lox + h_dome_rp1;%[m] lenght of the connector between the two tanks
+%     load2 = loads;
+%     load2.m = m_sust + C1.m + M.tot_rp1; %accounts for sustained masses : upper stages (m_sust), fairing, first connector and rp1 tank mass
+%     % load2.F_drag = loads.F_drag; %aerodynamic drag force [N]
+%     load2.p = 0; %internal pressure [Pa]
+%     if nargin < 8
+%         [C2.m, C2.th] = buckling_bending(shape2, load2, mat);
+%     else
+%         shape2.h0 = h0_C2;
+%         shape2.AR = AR_lox;
+%         [C2.m, C2.th, C2.XY] = buckling_bending(shape2, load2, mat, 1);
+%         plot(C2.XY(1,:), C2.XY(2,:), '--k', DisplayName='true');
+%     end
+%     h.CG.C2 = h0_C2 + shape2.h / 2;%[m] exact solution for cyl, approx for cones
+%     th.C2 = C2.th; %[m] thickness of second connector (intertank)
+% end
+% 
+% %mass estimation of the second tank
+% if h_cyl_lox > 0 %cyl tank
+%     %validate lox tank size
+%     shape_lox.r = R_int;
+%     shape_lox.h = h_cyl_lox;
+%     load_lox = loads;
+%     load_lox.m = m_sust + C1.m + M.tot_rp1 + C2.m + mlox * 0.11; %accounts for sustained masses : upper stages, first and second connector, fairing, rp1 tank and lox tank structural mass (approximated as 11% of lox mass)
+%     % load_lox.F_drag = loads.F_drag; %aerodynamic drag force [N]
+%     load_lox.p = MEOP; %[Pa] internal pressure
+%     [~,t_bb_lox] = buckling_bending(shape_lox, load_lox, mat);
+%     t_lox = max( t_p_lox, t_bb_lox ); %correction of lox tank thickness in case the previous can't sustain the load
+% else %spherical tank
+%     t_lox = max( t_p_lox, t_min);
+% end
+% th.lox = t_lox;%[m]
+% M.lox_insulation = 1.12 * S_lox; %[kg] mass of the insulation layer (from "Launch and Entry Vehicle Design, Univ. Maryland, D.L. Akin")
+% M.tank_lox = rho * S_lox * t_lox + M.lox_insulation; %mass of the empty lox tank [kg]
+% M.tot_lox = M.tank_lox + mlox; %[kg] mass of full lox tank
+% 
+% %last connector (aft skirt) (between second tank and motors)
+% shape3.r = R_lox;
+% shape3.h = (2/3) * R_lox + h_dome_lox; 
+% load3 = loads;
+% load3.m = m_sust + C1.m + M.tot_rp1 + C2.m + M.tot_lox; %accounts for sustained masses : upper stages, first and second connector, fairing, rp1 tank and lox tank structural mass (approximated as 11% of lox mass)
+% % load3.F_drag = loads.F_drag; %aerodynamic force [N]
+% load3.p = 0; %internal pressure [Pa]
+% if nargin < 8
+%     [C3.m, C3.th] = buckling_bending(shape3, load3, mat);
+% else
+%     shape3.h0 = h0_C3;
+%     shape3.AR = AR_lox;
+%     [C3.m, C3.th, C3.XY] = buckling_bending(shape3, load3, mat, 1);
+%     plot(C3.XY(1,:), C3.XY(2,:), '--k', DisplayName='true');
+% end
+% C3.m = 0;
+% h.CG.C3 = h0_C3 + shape3.h / 2;%[m]
+% th.C3 = C3.th; %[m] thickness of third connector (aft skirt)
+% 
+% %TOTAL MASSES:
+% M.tanks = M.tank_lox + M.tank_rp1; %[kg] mass of the two empty tanks
+% M.str = M.tanks + M.motor + M.fairing + M.avionics + M.T_struct + M.wiring + M.other + C1.m + C2.m + C3.m; %[kg] inert mass of stage (motors, tanks, connectors, stage fairing, wiring, avionics, structures)
+% if M.stg == 1
+%     M.recovery = ( 0.07 / ( 1 - 0.07 ) ) * M.str; %[kg]
+%     M.str = M.str + M.recovery; %[kg]
+% else
+%     M.recovery = 0; %[kg]
+% end
+% M.tot = M.tot_lox + M.tot_rp1 + M.motor + M.fairing + M.avionics + M.T_struct + M.wiring + M.recovery + M.other + C1.m + C2.m + C3.m; %[kg] total mass of motors, tanks, propellant, connectors, wiring, avionics, structures
+% M.eps = M.str / M.tot;
+% M.C1 = C1;
+% M.C2 = C2;
+% M.C3 = C3;
+% M.mr = ( M.tot + m_sust ) / ( M.str + m_sust ); %[-] approx mass ratio of the stage
+% M.n_final = M.Thrust / ( M.str + m_sust ) * 1/g; %[-] ending longitudinal acceleration
+% 
+% 
+% %HEIGHTS
+% h.tank_lox = l_lox(t_lox); %[m] height of tank
+% h.tank_rp1 = l_rp1(t_rp1); %[m] height of tank
+% h.dome_lox = h_dome_lox; %[m]
+% h.dome_rp1 = h_dome_rp1; %[m]
+% h.R_lox = R_lox; %[m]
+% h.R_rp1 = R_rp1; %[m]
+% h.C1 = shape1.h; %[m] first connector / top interstage
+% h.C2 = shape2.h; %[m] second connector / intertank
+% h.C3 = shape3.h; %[m] thirk connector / aft skirt
+% h.til_tank = h_motor + h.C3 + h_cyl_lox + h.C2 + h_cyl_rp1 + h_dome_rp1; %[m] height of stage until last tank
+% h.tot =      h_motor + h.C3 + h_cyl_lox + h.C2 + h_cyl_rp1 + (5/2)*R_rp1; %[m] total height of stage
+% h.CG.avionics = h0_C1 + R_rp1; %[m]
+% h.CG.T_struct = h_motor + 0.5 * R_lox; %[m]
+% h.CG.tot = (h.CG.lox * M.tot_lox + h.CG.rp1 * M.tot_rp1 +...
+%         + h.CG.C1 * C1.m + h.CG.C2 * C2.m + h.CG.C3 * C3.m +...
+%         + h.CG.avionics * M.avionics + 0.5 * h_motor * M.motor +...
+%         + h.CG.T_struct * M.T_struct) / M.tot;
+% h.attach = h0 + h.tot; %[m] height at which the subsequent stage is attached
+% 
+% %PLOT OF STAGE:
+% if nargin > 7
+%     if R_lox == R_rp1
+%         c = 1;
+%     else
+%         c = -1;
+%     end
+%         %lox
+%         bottom = @(k) h0_lox + h_dome_lox -sqrt(R_lox^2 - k.^2)/AR_lox;
+%         top = @(k) bottom(R_lox) + h_cyl_lox + sqrt(R_lox^2 - k.^2)/AR_lox;
+%         K = linspace(-R_lox, R_lox, 1e4);
+%         plot(K, bottom(K), 'k'); grid on; axis equal; hold on;
+%         plot(K, top(K), 'k');
+%         plot([ R_lox,  R_lox], [bottom(R_lox), top(R_lox)], 'k');
+%         plot([-R_lox, -R_lox], [bottom(R_lox), top(R_lox)], 'k');
+% 
+%         %rp1 
+%         bottom = @(k) h0_rp1 + c* sqrt(R_rp1^2 - k.^2)/AR_rp1 + 0.5*(1-c)*h_dome_rp1;
+%         top = @(k) bottom(R_rp1) + sqrt(R_rp1^2 - k.^2)/AR_rp1 + h_cyl_rp1;
+%         K = linspace(-R_rp1, R_rp1, 1e4);
+%         plot(K, bottom(K), 'k');
+%         plot(K, top(K), 'k');
+%         plot([ R_rp1,  R_rp1], [bottom(R_rp1), top(R_rp1)], 'k');
+%         plot([-R_rp1, -R_rp1], [bottom(R_rp1), top(R_rp1)], 'k');
+% 
+%     if h_cyl_lox == 0 %sphere
+%         plot(0, h0_lox + h_dome_lox, '+k');
+%     end
+%     if h_cyl_rp1 == 0 %sphere
+%         plot(0, h0_rp1 + h_dome_rp1, '+k');
+%     end
+%     xlabel('x [m]', 'Interpreter','latex');
+%     ylabel('y [m]', 'Interpreter','latex');
+% end
+% end
+
+% function [m, th, XY] = buckling_bending(shape, load, mat, plotcase)
+% 
+% % based on NASA papers in shared folder (SP-8007 & SP-8019)
+% % computes connectors masses, heights and thicknesses to sustain
+% % compression loads and avoid buckling effect
+% 
+% %constants:
+% g = 9.81; %[m/s^2] gravitational acceleration
+% 
+% %recover loads:
+% m = load.m; %sustained mass [kg]
+% nx = load.nx; %longitudinal load factor [-]
+% K = load.K; %factor of safety [-]
+% F_aero = load.F_drag; %aerodynamic drag force [N]
+% p = load.p; %internal pressure [Pa]
+% M_exp = load.M_exp; %expected flessional 
+% 
+% %recover material characteristics:
+% id = mat.ID; %[-] ID of the material: 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX
+% E = mat.E; %[Pa] Young modulus
+% rho = mat.rho; %[kg/m^3]
+% t_min1 = mat.t_min; %[m] minimum thickness for manufacturability 
+% sy = mat.sy; %[Pa] tensile yield stress
+% su = mat.su; %[Pa] tensile ultimate stress
+% nu = mat.nu; %[-] Poisson's ratio
+% 
+% %compute sustained load:
+% F_load = m * nx * g + F_aero; %load [N]
+% 
+% %recover dimensions:
+% r = shape.r;
+% h = shape.h; %distance between the base of the domes
+% if length(r) > 1 %trucated-cone
+%     %recover cone shape characteristics
+%     alpha = asin( abs( r(2) - r(1) ) / h );
+%     L = sqrt( h^2 - (r(2) - r(1))^2 );
+%     l = cos(alpha) * L; %height of the shell
+%     rho1 = r(1);
+%     rho2 = r(2);
+%     r(2) = cos(alpha) * r(2); 
+%     r(1) = cos(alpha) * r(1);
+%     t_min2 = r(2) / 1500; %minimum value for the NASA papers study
+%     t_min3a = K * ( r(1) * abs( F_load - p * pi * r(1)^2 ) + 2 * abs( M_exp ) ) /...
+%     ( 2 * pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material (bigger base)
+%     t_min3b = K * ( r(2) * abs( F_load - p * pi * r(2)^2 ) + 2 * abs( M_exp ) ) /...
+%     ( 2 * pi * r(2)^2 * sy ); %minimum value to stay in elastic field of the material (larger base)
+%     t_min3 = min([t_min3a, t_min3b]);%minimum value to stay in elastic field of the material
+%     %plot
+%     if nargin > 3
+%         h0 = shape.h0; %height at which the connector is placed 
+%         AR = shape.AR;
+%         %for the plotting
+%         y = h0 + [rho2*sin(alpha/(2*AR)), rho2*sin(alpha/(2*AR)), rho2*sin(alpha/(2*AR))+l, rho2*sin(alpha/(2*AR))+l, rho2*sin(alpha/(2*AR)), rho2*sin(alpha/(2*AR))];
+%         XY = [0, rho2, rho1, -rho1, -rho2, 0; y];
+%     end
+% else
+%     %recover cylinder shape characteristics
+%     alpha = 0;
+%     L = h;
+%     t_min2 = r / 1500; %minimum value for the NASA papers study
+%     if nargin > 3
+%         h0 = shape.h0; %height at which the connector is placed 
+%         %for the plotting
+%         y = h0 + [0, 0, L, L, 0, 0];
+%         XY = [0, r, r, -r, -r, 0; y];
+%     end
+%     t_min3 = K * ( r(1) * abs( F_load - p * pi * r(1)^2 ) + 2 * abs( M_exp ) ) /...
+%     ( 2 * pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material
+% end
+% 
+% %CHECK FOR BUCKLING IN AXIAL COMPRESSION + BENDING + INTERNAL PRESSURE:
+% %get the wall flexural stiffness per unit width:
+% D = @(th) E * th.^3 / ( 12 * (1-nu^2) );
+% 
+% %compute delta_gamma for pressure-increased performances:
+% dg = @(th) d_gamma(p, E, r, th, alpha); 
+% 
+% 
+% %6 SITUATIONS: p OR NON p , CONICAL/CYLINDRICAL (BUT THERE AREN'T CONICAL TANKS), ISOTROPIC/ORTHOTROPIC
+% switch id
+%     case 600 %(for CF, orthotropic expressions)
+% 
+%     otherwise
+%         if alpha == 0 %(cylindrical shape, NASA SP-8007)
+%             k1 = 0.8;
+% 
+%             %compute knockdown factor:
+%             phi = @(th) (1/16) * sqrt(r(1)./th);
+%             gP = @(th) 1 - 0.901 * ( 1 - exp( -phi(th) ) );
+%             gM = @(th) 1 - 0.731 * ( 1 - exp( -phi(th) ) );
+% 
+%             %in cyl, distinguish between presurrized and unpressurized cases:
+%             if p == 0
+%                 k2 = 1;
+%             else %( p > 0 )
+%                 k2 = 0;
+%             end
+%         else %(alpha > 0) (conical shape, NASA SP-8019)
+%             k1 = 0.5;
+%             k2 = 0;
+% 
+%             %compute knockdown factor:
+%             gP = @(th) 0.33; 
+%             gM = @(th) 0.41;
+%         end
+% end
+% 
+% %compute critical loads expressions
+% kx = @(th) k_x(nu, L, min(r), th, gP(th));
+% Pcr = @(th) k2 * kx(th) * 2 * pi^3 * D(th) * min(r)   / L^2 +...   %if cyl and p=0 (only metals)
+%          + (1-k2) * ( 2*pi    * E * th.^2 .* ( gP(th) ./ sqrt( 3 * (1-nu^2) ) + dg(th) ) + p * pi * min(r)^2 ); %in any other case (only metals)
+% Mcr = @(th) k2 * kx(th)   *   pi^3 * D(th) * min(r)^2 / L^2 +...   %if cyl and p=0 (only metals)
+%          + (1-k2) * pi*min(r) * E * th.^2 .* ( gM(th) ./ sqrt( 3 * (1-nu^2) ) + dg(th) ) + p * pi * min(r)^2 * k1;%in any other case (only metals)
+% 
+% %relation to be satisfied in combined stress condition (for AXIAL COMPRESSION + BENDING + INTERNAL PRESSURE)
+% f = @(th) K*F_load./Pcr(th) + K*M_exp./Mcr(th) - 1; %this must be <0 to save the structure from failure
+% 
+% %check if one of the already existing lower bounds satisfies the relation
+% %to avoid buckling in axial compression + bending + internal pressure
+% t_min = max([t_min1, t_min2, t_min3]);%in order: manufacturability, validity of buckling theory, resistance in plastic field
+% f_eval = f(t_min);
+% if f_eval < 0
+%     th = t_min;%[m]
+% else
+%     if f(t_min) * f(1) < 0 && imag((t_min)) == 0 && imag(f(1)) == 0
+%         th = fzero( f, [t_min, 1]);%[m]
+%     else
+%         th = 10;
+%         warning('For this step it is not possible to avoid buckling');
+%     end
+% end
+% 
+% %compute the mass
+% if length(r) > 1
+%     S = pi * L * ( r(2) + r(1) ); %surface of the truncated cone
+%     m = S * th * rho; %[kg]
+% else
+%     m = 2*pi * r * h * th * rho; %[kg]
+% end
+% end
+% 
+
 function [M, h, th] = inert_mass_common_dome(M, h, diam, AR, loads, mat_id, pressure_type, plotcase)
 
 % considers thickness equal along the whole tank.
@@ -332,6 +808,7 @@ long_acc = nx*g; %[m/s^2] longitudinal acceleration
 nz = loads.nz;
 tran_acc = nz*g; %[m/s^2] transversal acceleration
 m_sust = loads.m; %[kg] sustained mass
+loads.p_hydro = 0; %[Pa] set to zero for connectors 
 %h_m_sust = loads.h_m_sust; %[m] height of the lumped mass representing the sustained mass
 
 %propellant masses
@@ -458,7 +935,6 @@ p_rp1 = p + y_rp1 * rhorp1 * long_acc; %[Pa] pressure at bottom of tank during a
 t_p_lox = diam*p_lox/( 2*sy ); %[m] lox tank thickness
 t_p_rp1 = diam*p_rp1/( 2*sy ); %[m] rp1 tank thickness
 
-
 %MASSES ESTIMATION
 
 %top interstage (first connector) (between top part of the stage and subsequent stage)
@@ -489,11 +965,12 @@ if h_cyl_rp1 > 0    %cyl tank
     shape_rp1.r = R_rp1;
     shape_rp1.h = h_cyl_rp1;
     load_rp1 = loads;
+    load_rp1.p_hydro = y_lox * rholox * long_acc; %[Pa] hydrostatic pressure due to liquid
     load_rp1.m = m_sust + C1.m + mrp1 * 0.11; %accounts for sustained masses : upper stages, first connector, fairing and rp1 tank structural mass (approximated as 11% of rp1 mass)
     % load_rp1.F_drag = loads.F_drag; %aerodynamic drag force [N]
     load_rp1.p = MEOP;%[Pa]
     [~, t_bb_rp1] = buckling_bending(shape_rp1, load_rp1, mat);
-    t_rp1 = max( t_p_rp1, t_bb_rp1 ); %correction of rp1 tank thickness in case the previous can't sustain the load
+    t_rp1 = t_bb_rp1; %correction of rp1 tank thickness in case the previous can't sustain the load
 else %spherical tank
     t_rp1 = max( t_p_rp1, t_min );
 end
@@ -532,11 +1009,12 @@ if h_cyl_lox > 0 %cyl tank
     shape_lox.r = R_int;
     shape_lox.h = h_cyl_lox;
     load_lox = loads;
+    load_lox.p_hydro = y_rp1 * rhorp1 * long_acc; %[Pa] hydrostatic pressure due to liquid
     load_lox.m = m_sust + C1.m + M.tot_rp1 + C2.m + mlox * 0.11; %accounts for sustained masses : upper stages, first and second connector, fairing, rp1 tank and lox tank structural mass (approximated as 11% of lox mass)
     % load_lox.F_drag = loads.F_drag; %aerodynamic drag force [N]
     load_lox.p = MEOP; %[Pa] internal pressure
     [~,t_bb_lox] = buckling_bending(shape_lox, load_lox, mat);
-    t_lox = max( t_p_lox, t_bb_lox ); %correction of lox tank thickness in case the previous can't sustain the load
+    t_lox = t_bb_lox; %correction of lox tank thickness in case the previous can't sustain the load
 else %spherical tank
     t_lox = max( t_p_lox, t_min);
 end
@@ -590,7 +1068,9 @@ h.dome_rp1 = h_dome_rp1; %[m]
 h.R_lox = R_lox; %[m]
 h.R_rp1 = R_rp1; %[m]
 h.C1 = shape1.h; %[m] first connector / top interstage
+h.cyl_rp1 = h_cyl_rp1; %[m] rp1 tank cylindrical part
 h.C2 = shape2.h; %[m] second connector / intertank
+h.cyl_lox = h_cyl_lox; %[m] lox tank cylindrical part
 h.C3 = shape3.h; %[m] thirk connector / aft skirt
 h.til_tank = h_motor + h.C3 + h_cyl_lox + h.C2 + h_cyl_rp1 + h_dome_rp1; %[m] height of stage until last tank
 h.tot =      h_motor + h.C3 + h_cyl_lox + h.C2 + h_cyl_rp1 + (5/2)*R_rp1; %[m] total height of stage
@@ -653,6 +1133,7 @@ nx = load.nx; %longitudinal load factor [-]
 K = load.K; %factor of safety [-]
 F_aero = load.F_drag; %aerodynamic drag force [N]
 p = load.p; %internal pressure [Pa]
+p_hydro = load.p_hydro; %hydrostatic pressure [Pa]
 M_exp = load.M_exp; %expected flessional 
 
 %recover material characteristics:
@@ -680,11 +1161,22 @@ if length(r) > 1 %trucated-cone
     r(2) = cos(alpha) * r(2); 
     r(1) = cos(alpha) * r(1);
     t_min2 = r(2) / 1500; %minimum value for the NASA papers study
+    %check for P, M, p (top of tank)
     t_min3a = K * ( r(1) * abs( F_load - p * pi * r(1)^2 ) + 2 * abs( M_exp ) ) /...
     ( 2 * pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material (bigger base)
     t_min3b = K * ( r(2) * abs( F_load - p * pi * r(2)^2 ) + 2 * abs( M_exp ) ) /...
     ( 2 * pi * r(2)^2 * sy ); %minimum value to stay in elastic field of the material (larger base)
     t_min3 = min([t_min3a, t_min3b]);%minimum value to stay in elastic field of the material
+    %check for P, M, p, p_hydro (bottom of tank)
+    t_min4a = K * ( r(1) * abs( F_load - ( p + p_hydro ) * pi * r(1)^2 ) + 2 * abs( M_exp ) ) /...
+    ( 2 * pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material (bigger base)
+    t_min4b = K * ( r(2) * abs( F_load - ( p + p_hydro ) * pi * r(2)^2 ) + 2 * abs( M_exp ) ) /...
+    ( 2 * pi * r(2)^2 * sy ); %minimum value to stay in elastic field of the material (larger base)
+    t_min4 = min([t_min4a, t_min4b]);%minimum value to stay in elastic field of the material
+    %check for p, p_hydro (hoop)
+    t_min5 = K * abs( p + p_hydro ) * max(r) / sy; %minimum value to stay in elastic field of the material
+    %check for M (horizontal unfilled rocket, p=p_hydro=0)
+    t_min6 = K * abs( M_exp ) / ( pi * min(r)^2 * sy ); %minimum value to stay in elastic field of the material
     %plot
     if nargin > 3
         h0 = shape.h0; %height at which the connector is placed 
@@ -704,8 +1196,16 @@ else
         y = h0 + [0, 0, L, L, 0, 0];
         XY = [0, r, r, -r, -r, 0; y];
     end
+    %check for P, M, p (top of tank)
     t_min3 = K * ( r(1) * abs( F_load - p * pi * r(1)^2 ) + 2 * abs( M_exp ) ) /...
     ( 2 * pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material
+    %check for P, M, p, p_hidro (bottom of tank)
+    t_min4 = K * ( r(1) * abs( F_load - ( p + p_hydro ) * pi * r(1)^2 ) + 2 * abs( M_exp ) ) /...
+    ( 2 * pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material
+    %check for p, p_hydro (tank hoop resistance)
+    t_min5 = K * abs( p + p_hydro ) * r(1) / sy; %minimum value to stay in elastic field of the material
+    %check for M (horizontal unfilled rocket, p=p_hydro=0)
+    t_min6 = K * abs( M_exp ) / ( pi * r(1)^2 * sy ); %minimum value to stay in elastic field of the material
 end
 
 %CHECK FOR BUCKLING IN AXIAL COMPRESSION + BENDING + INTERNAL PRESSURE:
@@ -752,18 +1252,32 @@ Pcr = @(th) k2 * kx(th) * 2 * pi^3 * D(th) * min(r)   / L^2 +...   %if cyl and p
 Mcr = @(th) k2 * kx(th)   *   pi^3 * D(th) * min(r)^2 / L^2 +...   %if cyl and p=0 (only metals)
          + (1-k2) * pi*min(r) * E * th.^2 .* ( gM(th) ./ sqrt( 3 * (1-nu^2) ) + dg(th) ) + p * pi * min(r)^2 * k1;%in any other case (only metals)
 
+Mcr_unp = @(th) kx(th) * pi^3 * D(th) * min(r)^2 / L^2;   %if cyl and p=0 (only metals)
+
 %relation to be satisfied in combined stress condition (for AXIAL COMPRESSION + BENDING + INTERNAL PRESSURE)
-f = @(th) K*F_load./Pcr(th) + K*M_exp./Mcr(th) - 1; %this must be <0 to save the structure from failure
+f1 = @(th) K*F_load./Pcr(th) + K*M_exp./Mcr(th) - 1; %this must be <0 to save the structure from failure
+
+%relation to be satisfied in horizontal, unfilled rocket (ONLY BENDING)
+f2 = @(th) K*M_exp - Mcr_unp(th); %this must be <0 to save the structure from failure
 
 %check if one of the already existing lower bounds satisfies the relation
 %to avoid buckling in axial compression + bending + internal pressure
-t_min = max([t_min1, t_min2, t_min3]);%in order: manufacturability, validity of buckling theory, resistance in plastic field
-f_eval = f(t_min);
-if f_eval < 0
+t_min = max([t_min1, t_min2, t_min3, t_min4, t_min5, t_min6]);%in order: manufacturability, validity of buckling theory, resistance in plastic field (for P+M+p, P+M+p+p_hydro, hoop, only M) 
+f_eval1 = f1(t_min);
+f_eval2 = f2(t_min);
+if f_eval1 < 0 && f_eval2 < 0
     th = t_min;%[m]
 else
-    if f(t_min) * f(1) < 0 && imag((t_min)) == 0 && imag(f(1)) == 0
-        th = fzero( f, [t_min, 1]);%[m]
+    if imag(f_eval1) == 0 && imag(f_eval2) == 0
+        if f_eval1 < 0 && f_eval2 > 0
+            th = fzero( f2, [t_min, 1e6]);%[m]
+        elseif f_eval1 > 0 && f_eval2 < 0
+            th = fzero( f1, [t_min, 1e6]);%[m]
+        else
+            th1 = fzero( f1, [t_min, 1e6]);%[m]
+            th2 = fzero( f2, [t_min, 1e6]);%[m]
+            th = max( th1, th2 );%[m]
+        end
     else
         th = 10;
         warning('For this step it is not possible to avoid buckling');
