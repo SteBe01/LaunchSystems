@@ -12,6 +12,9 @@ function P = getPressure(h)
     R =  8.3144598;     % J/(mol*K)
 
     idx = sum(h >= H0_vec);
+    if idx < 1
+        idx = 1;
+    end
     hb = H0_vec(idx);
     Pb = P0_vec(idx);
     Tb = T0_vec(idx);

@@ -20,7 +20,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     m_prop_left = m_prop_left*(m_prop_left >= 0);
 
     % Persistent states
-    persistent MECO SEPARATION SECO
+    persistent MECO SEPARATION SECO APOGEE
     if isempty(MECO)
         MECO = false;
     end
@@ -30,10 +30,17 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     if isempty(SECO)
         SECO = false;
     end
+    if isempty(APOGEE)
+        APOGEE = false;
+    end
 
     if current_stage == 2 && ~SEPARATION && nargout == 1
         fprintf("[%3.1f km] - Stage separation\n", z*1e-3)
         SEPARATION = true;
+    end
+    if current_stage == 2 && y(4) < 0 && ~APOGEE && nargout == 1
+        fprintf("[%3.1f km, vx = %4.3f km/s] - Apogee\n", z*1e-3, y(3)*1e-3)
+        APOGEE = true;
     end
 
     velsNorm = norm([xDot zDot]);
@@ -63,20 +70,26 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     L = qdyn*S*stage.Cl;                            % [N]       - Lift force acting on the rocket
     
     % PID controller
-    if current_stage == 1
-        if y(2) < 50e3
-            angle = 60;
-        else
-            angle = 45;
-        end
-    elseif current_stage == 2
-        if y(2) < 300e3
-            angle = 45;
-        else
-            angle = 0;
-        end
-    end
-    err = theta - deg2rad(angle);
+    % if current_stage == 1
+    %     if y(2) < 50e3
+    %         angle = 60;
+    %     else
+    %         angle = 45;
+    %     end
+    % elseif current_stage == 2
+    %     if y(2) < 300e3
+    %         angle = 45;
+    %     else
+    %         angle = 0;
+    %     end
+    % end
+    % err = theta - deg2rad(angle);
+    % delta = -stage.k1*err - stage.k2*thetaDot - stage.k3*alpha;
+    % if abs(delta) > stage.deltaMax 
+    %     delta = stage.deltaMax*sign(delta);
+    % end
+    angle = getPitch(params, z);
+    err = theta - angle;
     delta = -stage.k1*err - stage.k2*thetaDot - stage.k3*alpha;
     if abs(delta) > stage.deltaMax 
         delta = stage.deltaMax*sign(delta);

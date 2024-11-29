@@ -32,8 +32,8 @@ stages.stg2.m0 = stages.stg1.m0 - stages.stg1.m_prop - 1091.3;
 stages.stg2.m_prop = stages.stg2.m0 * (1 - 1/stages.stg2.MR);
 stages.stg2.t_burn_tot = stages.stg2.m_prop/(stages.stg2.m_dot(end)*stages.stg2.N_mot);
 
-stages.stg1.m_prop_final = 0.1*stages.stg1.m_prop;
-stages.stg2.m_prop_final = 0.1*stages.stg2.m_prop;
+stages.stg1.m_prop_final = 0.05*stages.stg1.m_prop;
+stages.stg2.m_prop_final = 0.05*stages.stg2.m_prop;
 
 stages.stg1.d = 1.8;
 stages.stg2.d = 1.5;
@@ -75,7 +75,7 @@ stages.stg1.u_freq = 100;
 stages.stg2.u_freq = 100;
 
 % Pitch maneuver
-params.t_turn = 5;                      % [s]       - Initial maneuver time
+params.t_turn = 1;                      % [s]       - Initial maneuver time
 params.theta_turn = deg2rad(45);        % [rad]     - Initial flight path angle
 
 % MECO to stage separation wait time
@@ -89,6 +89,22 @@ stages.stg1.useTVC = true;
 stages.stg2.useTVC = false;
 stages.stg1.deltaMax = deg2rad(7);
 stages.stg2.deltaMax = deg2rad(5);
+
+%% pitch program
+
+num_of_elem = 100;
+initial_angle = deg2rad(60);
+order = 2;
+initial_altitude = 11e3;
+final_altitude = 400e3;
+
+y = @(x) (-1)^order * initial_angle*(x).^order;
+
+x_vect = linspace(-1,0,num_of_elem);
+y_vect = y(x_vect);
+
+new_vect = linspace(initial_altitude, final_altitude, num_of_elem);
+params.angle_data = [new_vect' y_vect'];
 
 end
 
