@@ -11,6 +11,7 @@ m = zeros(length(T), 1);
 dv_grav_vec = zeros(length(T), 1);
 delta = zeros(length(T),1);
 
+clear dyn
 for ii = 1:length(T)
     [~, parout] = dyn(T(ii), Y(ii, :), stage, params, curr_stage);
     qdyn(ii) = parout.qdyn;

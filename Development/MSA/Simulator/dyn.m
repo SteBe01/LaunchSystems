@@ -16,7 +16,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     thetaDot = y(6);
 
     % Persistent states
-    persistent MECO SEPARATION SECO
+    persistent MECO SEPARATION SECO m_prop_left t_old
     if isempty(MECO)
         MECO = false;
     end
@@ -25,6 +25,12 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     end
     if isempty(SECO)
         SECO = false;
+    end
+    if isempty(m_prop_left)
+        m_prop_left = stage.m_prop;
+    end
+    if isempty(t_old)
+        t_old = 0;
     end
 
     if current_stage == 2 && ~SEPARATION && nargout == 1
@@ -43,38 +49,9 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     else 
         t_wait = stage.t_ign;
     end
-    % t_wait = 0;
 
     % Retrieve data used multiple times 
-    % t_burn_tot = stage.t_burn_tot;
     Re = params.Re;
-
-    % Compute Thrust parameters
-    Thrust = interp1(stage.throttling, stage.Thrust, 1, 'linear', 'extrap');
-    m_dot = interp1(stage.throttling, stage.m_dot, 1, 'linear', 'extrap');
-
-    % Mass estimation
-    mp_left = stage.m_prop;
-    if t <= t_wait
-        m = stage.m0;
-    elseif t > t_wait && mp_left > 0
-        m = stage.m0 - m_dot * (t-t_wait);
-        mp_left = stage.m_prop - m_dot * (t-t_wait);
-    else
-        m = stage.m0 - (stage.m_prop - mp_left);
-        if current_stage == 1 && ~MECO && nargout == 1
-            fprintf("[%3.1f km] - MECO\n", z*1e-3)
-            MECO = true;
-        elseif current_stage == 2 && ~SECO && nargout == 1
-            fprintf("[%3.1f km] - SECO\n", z*1e-3)
-            SECO = true;
-        end
-    end
-    mp_left = mp_left*(mp_left >= 0);
-
-    xcg = interp1(stage.STR_mat(:,1), stage.STR_mat(:,2), mp_left, "linear", "extrap");
-    I_mat = interp1(stage.STR_mat(:,1), stage.STR_mat(:, 3:5), mp_left, "linear", "extrap");
-    I = I_mat(2);
 
     % Environment data
     g = params.g0/((1+z/Re)^2);                     % [m/s^2]   - Gravity acceleration taking into account altitude
@@ -106,12 +83,36 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
         delta = stage.deltaMax*sign(delta);
     end
 
-    % Thrust
-    if t > t_wait && mp_left>0       % [N]       - Thrust force acting on the rocket
+    % Thrust & mass estimation
+    Thrust = interp1(stage.throttling, stage.Thrust, 1, 'linear', 'extrap');
+    m_dot = interp1(stage.throttling, stage.m_dot, 1, 'linear', 'extrap');
+
+    if t > t_wait && m_prop_left > 0
         T = Thrust;
+
+        dt = t - t_old;
+        m_prop_left = m_prop_left - m_dot * dt;
     else
         T = 0;
     end
+    m_prop_left = m_prop_left*(m_prop_left >= 0);
+    m = stage.m0 - stage.m_prop + m_prop_left;
+
+    % Callouts
+    if m_prop_left == 0
+        if current_stage == 1 && ~MECO && nargout == 1
+            fprintf("[%3.1f km] - MECO\n", z*1e-3)
+            MECO = true;
+        elseif current_stage == 2 && ~SECO && nargout == 1
+            fprintf("[%3.1f km] - SECO\n", z*1e-3)
+            SECO = true;
+        end
+    end
+
+    % Compute geom properties
+    xcg = interp1(stage.STR_mat(:,1), stage.STR_mat(:,2), m_prop_left, "linear", "extrap");
+    I_mat = interp1(stage.STR_mat(:,1), stage.STR_mat(:, 3:5), m_prop_left, "linear", "extrap");
+    I = I_mat(2);
 
     % Forces on the rocket in inertial frame
     F_z = -g*m -D*cos(pi/2-gamma) +L*sin(pi/2-gamma) +T*cos(delta)*sin(theta);
@@ -147,5 +148,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
         parout.dv_drag = -0.5*S*stage.Cd/stage.m0*rho*velsNorm^2*stage.m0/m;
         parout.delta = delta;
     end
+
+    t_old = t;
 end
 
