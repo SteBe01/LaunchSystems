@@ -7,30 +7,30 @@ stages.stg1.STR_mat = STR_mat(:,:,1);
 stages.stg2.STR_mat = STR_mat(:,:,2);
 
 PRP_mat = load("..\MAT_Files\PRP_mat.mat").throttle;
-stages.stg1.Thrust = PRP_mat.TT.*9;
+stages.stg1.Thrust = PRP_mat.TT;
 stages.stg2.Thrust = PRP_mat.TT.*1.05;
-stages.stg1.m_dot = PRP_mat.m_dot.*9;
+stages.stg1.m_dot = PRP_mat.m_dot;
 stages.stg2.m_dot = PRP_mat.m_dot;
 stages.stg1.throttling = PRP_mat.manetta./100;
 stages.stg2.throttling = PRP_mat.manetta./100;
-stages.stg1.Pe = PRP_mat.p_e;%*1e5;
-stages.stg2.Pe = PRP_mat.p_e;%*1e5;
+stages.stg1.Pe = PRP_mat.p_e;
+stages.stg2.Pe = PRP_mat.p_e;
 
 %% General parameters
 stages.stg1.MR = 5.225;
 stages.stg2.MR = 4.022;
 stages.stg1.Isp = 328;
 stages.stg2.Isp = 343;
-stages.stg1.A_eng = 0.0953;
+stages.stg1.A_eng = 0.0953;%*9;
 stages.stg2.A_eng = 0.0953;
-% stages.stg1.Thrust = 27.4e3*9;
-% stages.stg2.Thrust = 31e3;
+stages.stg1.N_mot = 9;
+stages.stg2.N_mot = 1;
 stages.stg1.m0 = 19.2e3;
 stages.stg1.m_prop = stages.stg1.m0 * (1 - 1/stages.stg1.MR);
-stages.stg1.t_burn_tot = stages.stg1.m_prop/stages.stg1.m_dot(end);
+stages.stg1.t_burn_tot = stages.stg1.m_prop/(stages.stg1.m_dot(end)*stages.stg1.N_mot);
 stages.stg2.m0 = stages.stg1.m0 - stages.stg1.m_prop - 1091.3;
 stages.stg2.m_prop = stages.stg2.m0 * (1 - 1/stages.stg2.MR);
-stages.stg2.t_burn_tot = stages.stg2.m_prop/stages.stg2.m_dot(end);
+stages.stg2.t_burn_tot = stages.stg2.m_prop/(stages.stg2.m_dot(end)*stages.stg2.N_mot);
 
 stages.stg1.d = 1.8;
 stages.stg2.d = 1.5;

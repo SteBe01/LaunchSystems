@@ -89,7 +89,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     Pe = interp1(stage.throttling, stage.Pe, throttling, 'linear', 'extrap');
 
     if t > t_wait && m_prop_left > 0
-        T = Thrust + stage.A_eng*(Pe-P);
+        T = (Thrust + stage.A_eng*(Pe-P))*stage.N_mot;
     else
         T = 0;
         m_dot = 0;
@@ -128,7 +128,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     dY(4) = F_z/m;
     dY(5) = thetaDot;
     dY(6) = M_t/I;
-    dY(7) = -m_dot;
+    dY(7) = -m_dot*stage.N_mot;
 
     % Post processing:
     % Forces in body frame
