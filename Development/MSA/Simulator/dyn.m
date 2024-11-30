@@ -35,11 +35,15 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     end
 
     if current_stage == 2 && ~SEPARATION && nargout == 1
-        fprintf("[%3.1f km] - Stage separation\n", z*1e-3)
+        if params.dispStat
+            fprintf("[%3.1f km] - Stage separation\n", z*1e-3)
+        end
         SEPARATION = true;
     end
     if current_stage == 2 && y(4) < 0 && ~APOGEE && nargout == 1
-        fprintf("[%3.1f km, vx = %4.3f km/s] - Apogee\n", z*1e-3, y(3)*1e-3)
+        if params.dispStat
+            fprintf("[%3.1f km, vx = %4.3f km/s] - Apogee\n", z*1e-3, y(3)*1e-3)
+        end
         APOGEE = true;
     end
 
@@ -70,25 +74,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     L = qdyn*S*stage.Cl;                            % [N]       - Lift force acting on the rocket
     
     % PID controller
-    % if current_stage == 1
-    %     if y(2) < 50e3
-    %         angle = 60;
-    %     else
-    %         angle = 45;
-    %     end
-    % elseif current_stage == 2
-    %     if y(2) < 300e3
-    %         angle = 45;
-    %     else
-    %         angle = 0;
-    %     end
-    % end
-    % err = theta - deg2rad(angle);
-    % delta = -stage.k1*err - stage.k2*thetaDot - stage.k3*alpha;
-    % if abs(delta) > stage.deltaMax 
-    %     delta = stage.deltaMax*sign(delta);
-    % end
-    angle = getPitch(params, z);
+    angle = getPitch(params.pitch, z);
     err = theta - angle;
     delta = -stage.k1*err - stage.k2*thetaDot - stage.k3*alpha;
     if abs(delta) > stage.deltaMax 
@@ -112,10 +98,14 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     % Callouts
     if m_prop_left <= stage.m_prop_final
         if current_stage == 1 && ~MECO && nargout == 1
-            fprintf("[%3.1f km] - MECO\n", z*1e-3)
+            if params.dispStat
+                fprintf("[%3.1f km] - MECO\n", z*1e-3)
+            end
             MECO = true;
         elseif current_stage == 2 && ~SECO && nargout == 1
-            fprintf("[%3.1f km] - SECO\n", z*1e-3)
+            if params.dispStat
+                fprintf("[%3.1f km] - SECO\n", z*1e-3)
+            end
             SECO = true;
         end
     end
