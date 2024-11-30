@@ -307,7 +307,7 @@ if nargin == 14
    elseif M^2 < 1+(8/(pi*A))^2
        Cn_s = abs(((pi*A/2)*abs(sin(alpha)*cos(alpha))+2*sin(alpha)^2)*(A_w/A_r));
    end
-   Cn = Cn_b + Cn_s;
+  Cn = (Cn_b*A_p + Cn_s*A_w)/(A_p+A_w);
 end
 
 
