@@ -86,8 +86,8 @@ for i = 1:length(Mach_v)
            q_inf(i,j) = 1/2*rho*V_inf(i,j)^2;
 
             % Calcolo del centro di pressione
-            [l_Cp_new] = l_CP(Mach_v(i), alpha_v(j), l_s,V_S,r_N,l_w,r, s_w,cr_w, q_inf(i,j), m_w, d, K_BW(i,j), K_WB(i,j), K_N(i,j), L(i,j), s_t, l_t,...
-                          cr_t,m_t, K_BT(i,j), K_TB(i,j), K_N(i,j), L(i,j),Cl_N(i,j),Cl_WB(i,j), Cl_BW(i,j), Cl_BT(i,j), Cl_TB(i,j), Cl_TV(i,j));
+            [l_Cp_new] = l_CP(Mach_v(i), alpha_v(j), l_s,V_S,r_N,l_w,r, s_w,cr_w, q_inf(i,j), m_w, d, K_BW(i,j), K_WB(i,j), K_N(i,j), L_tot(i,j), s_t, l_t,...
+                          cr_t,m_t, K_BT(i,j), K_TB(i,j), K_N(i,j), L_tot(i,j),Cl_N(i,j),Cl_WB(i,j), Cl_BW(i,j), Cl_BT(i,j), Cl_TB(i,j), Cl_TV(i,j));
 
             % Aggiorna delta
             delta = abs(l_Cp_new - l_Cp_old);
