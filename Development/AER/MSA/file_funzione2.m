@@ -15,7 +15,7 @@ function [CD, CL_NKP, l_Cp_results, Cm] = file_funzione2(Mach_v, alpha_v, h, Xcg
 
 %% INPUTS:
 geometry_funzione2
-
+a_stall = 12+(6*cr_t/(2*s_t));
 %% Calculation AXIAL COEFF.:
 
 Ca = [];
