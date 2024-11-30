@@ -15,13 +15,13 @@ M.pay_effective = M.pay + M.adapter; %[kg] Edberg-Costa includes adapter mass in
 % M.pay_effective = M.pay; %[kg] Edberg-Costa includes adapter mass in the payload
 OF = 2.58; %[-] Ox/Fu ratio for LOX-RP1
 loads.nx = 7; %longitudinal acceleration load factor [-]
-loads.nz = 1.2;%transversal acceleration load factor [-]
+loads.nz = 1.0;%transversal acceleration load factor [-]
 loads.K = 1.50; %loads resistance safety factor [-]
 
 n = 10;
 m = 10;
-dv_it = linspace(8.5, 10, n);
-diam1_it = linspace(0.9, 1.5, m);
+dv_it = linspace(9, 10.5, n);
+diam1_it = linspace(1, 1.6, m);
 
 % M_it = zeros(n*m,1);
 % h_it = zeros(n*m,1);
@@ -57,7 +57,7 @@ for j = 1:n
     M1.stg = 1; %[#] stage ID
     h1.motor = 0.89; %[m] height of the motor
     h1.h0 = 0; %[m] starting height
-    mat1 = 5; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX, 6 for Al 2090 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+    mat1 = 5; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
     press1 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
     
     %stage 2
@@ -71,7 +71,7 @@ for j = 1:n
     M2.stg = 2; %[#] stage ID
     h2.motor = 0.89; %[m] height of the motor
     h2.h0 = 12; %[m] starting height
-    mat2 = 4; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX, 6 for Al 2090 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+    mat2 = 4; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
     press2 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
     
     %fairing:
@@ -947,11 +947,11 @@ h.CG.rp1 = h_cyl_rp1 / 2 + h_dome_rp1 + h0_rp1; %[m] COG of rp1 tank
 M.R_end = R_lox; %[m] ending radius of the stage
 M.R_sta = R_rp1; %[m] starting radius of the stage (w/o considering the top connector) 
 diam_cyl_max = 2 * ( 3*(v_min*AR) / (4*pi) )^(1/3) - 0.01;
-if diam_cyl_max > R_int
-    M.diam_cyl = diam_cyl_max; 
-else
-    M.diam_cyl = R_int;
-end
+% if diam_cyl_max > R_int
+%     M.diam_cyl = R_int;
+% else
+    M.diam_cyl = diam_cyl_max;
+% end
 
 %pressure at base with longitudinal acceleration (Stevin's law)
 p_lox = p + y_lox * rholox * long_acc; %[Pa] pressure at bottom of tank during acceleration
@@ -1494,19 +1494,19 @@ switch mat_id
         sy = 350 * 1e6; %[Pa] tensile yield stress
         su = 420 * 1e6; %[Pa] tensile ultimate stress
         nu = 0.27; %[-] Poisson's ratio
-    case 4 % Carbon fiber
-        rho = 1800; %[kg/m^3]
+    case 4 % Carbon fiber  Toray M46J
+        rho = 1600; %[kg/m^3]
         t_min = 0.90 * 1e-3; %[m] minimum thickness for manufacturability
-        E = 250 * 1e9; %[Pa] young modulus
-        sy = 350 * 1e6; %[Pa] tensile yield stress
+        E = 222 * 1e9; %[Pa] young modulus
+        sy = 1090 * 1e6; %[Pa] tensile yield stress
         su = sy; %[Pa] tensile ultimate stress
-        nu = 0.27; %[-] Poisson's ratio
-    case 5 % Al 7XXX
-        rho = 2750; %[kg/m^3]
+        nu = 0.28; %[-] Poisson's ratio
+    case 5 % Al 7075 T6
+        rho = 2810; %[kg/m^3]
         t_min = 1.06 * 1e-3; %[m] minimum thickness for manufacturability
         E = 70 * 1e9; %[Pa] young modulus
-        sy = 500 * 1e6; %[Pa] tensile yield stress
-        su = 510 * 1e6; %[Pa] tensile ultimate stress
+        sy = 476 * 1e6; %[Pa] tensile yield stress
+        su = 538 * 1e6; %[Pa] tensile ultimate stress
         nu = 0.33; %[-] Poisson's ratio
     case 6 % AlLi (2090)
         rho = 2590; %[kg/m^3]
@@ -1515,6 +1515,13 @@ switch mat_id
         sy = 500 * 1e6; %[Pa] tensile yield stress
         su = 550 * 1e6; %[Pa] tensile ultimate stress
         nu = 0.34; %[-] Poisson's ratio
+    case 7 % Carbon fiber Hexcel® HexTow® IM7
+        rho = 1600; %[kg/m^3]
+        t_min = 0.90 * 1e-3; %[m] minimum thickness for manufacturability
+        E = 148 * 1e9; %[Pa] young modulus
+        sy = 1000 * 1e6; %[Pa] tensile yield stress
+        su = sy; %[Pa] tensile ultimate stress
+        nu = 0.28; %[-] Poisson's ratio
 end
 
 %recover material properties:
