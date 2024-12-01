@@ -87,8 +87,8 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     % Aerodynamic coefficients
     if current_stage == 1
         interpValues = params.coeffs({1:4, M, alpha, z});
-        Cd = interpValues(1);
-        Cl = interpValues(2);
+        Cd = interpValues(1)*params.CD_mult;
+        Cl = interpValues(2)*params.CL_mult;
         xcp = interpValues(3);
     else
         Cd = 0;
@@ -164,7 +164,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
         parout.velssqq = velsNorm^2;
         parout.m = m;
         parout.dv_grav = -g*abs(sin(theta));
-        parout.dv_drag = -0.5*S*stage.Cd/stage.m0*rho*velsNorm^2*stage.m0/m;
+        parout.dv_drag = -0.5*S*Cd/stage.m0*rho*velsNorm^2*stage.m0/m;
         parout.delta = delta;
         parout.coeffs = [Cd Cl xcp];
     end
