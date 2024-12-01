@@ -68,7 +68,7 @@ CN_cyl1 = 0;
 CN_cyl2 = 0;
 
 % Nose:
-CN_n_alpha = 2 / A_ref * ( A_nose );
+CN_n_alpha = 2; %/ A_ref * ( A_nose );
 CN_nose = CN_n_alpha * alpha;
 
 % Shoulder:
