@@ -99,61 +99,61 @@ GEO_funzione2 = struct('x', x, 'a', a, 'phi', phi, 'nose_type', nose_type, 'nose
 % GEO_funzione1 = struct('x', x, 'a', a, 'phi', phi, 'nose_type', nose_type, 'nose_data', data, 'S_wing', S_wing)
 
 
-% Xcg = 6;
-% tic
-% [CD, CL_NKP, l_Cp_results, Cm] = file_funzione2_final(Mach_v, alpha_v, h, Xcg, GEO_funzione2)
-% toc
-% 
-% figure
-% plot(Mach_v, CL_NKP, '.-', Color='b', LineWidth=2)
-% title('CL vs mach')
-% 
-% figure
-% plot(Mach_v, CD, '.-', Color='k', LineWidth=2)
-% title('CD vs mach')
-% 
-% figure
-% plot(Mach_v, Cm, 'k')
-% title('Cm vs Mach')
-% 
-% figure
-% plot(Mach_v, l_Cp_results, 'b')
-% title('Xcp vs Mach')
-
 Xcg = 6;
-
-% Matrice di risultati:
-h_v = 11000:500:84000;
-CL_mat = zeros(length(Mach_v), length(alpha_v), length(h_v));       % righe: Mach da 0.3 a 8 passo 0.1
-                                                                    % colonne:
-                                                                    % angolo d'attacco da 0 a 50 passo 5
-                                                                    % pagine: quote da 11000 a 84000 passo 500
-
-CD_mat = zeros(length(Mach_v), length(alpha_v), length(h_v));
-Xcp_mat = zeros(length(Mach_v), length(alpha_v), length(h_v));
 tic
-for p=1:length(h_v)
-
-    h = h_v(p);
-    [CD, CL, l_Cp_results, Cm] = file_funzione2_final(Mach_v, alpha_v, h, Xcg, GEO_funzione2);
-
-    CL_mat(:, :, p) = CL;
-    CD_mat(:, :, p) = CD;
-    Xcp_mat(:, :, p) = l_Cp_results;
-    p
-
-end
+[CD, CL_NKP, l_Cp_results, Cm] = file_funzione2_final(Mach_v, alpha_v, h, Xcg, GEO_funzione2)
 toc
 
-save('data_CD_GEO2_S3m^2.mat', 'CD_mat')
-save('data_CL_GEO2_S3m^2.mat', 'CL_mat')
-save('data_Xcp_GEO2_S3m^2.mat', 'Xcp_mat')
+figure
+plot(Mach_v, CL_NKP, '.-', Color='b', LineWidth=2)
+title('CL vs mach')
 
 figure
-hold on
-plot(Mach_v, CL, '.-', Color='b', LineWidth=2)
 plot(Mach_v, CD, '.-', Color='k', LineWidth=2)
-title('CL vs mach')
+title('CD vs mach')
+
+figure
+plot(Mach_v, Cm, 'k')
+title('Cm vs Mach')
+
+figure
+plot(Mach_v, l_Cp_results, 'b')
+title('Xcp vs Mach')
+
+% Xcg = 6;
+% 
+% % Matrice di risultati:
+% h_v = 11000:500:84000;
+% CL_mat = zeros(length(Mach_v), length(alpha_v), length(h_v));       % righe: Mach da 0.3 a 8 passo 0.1
+%                                                                     % colonne:
+%                                                                     % angolo d'attacco da 0 a 50 passo 5
+%                                                                     % pagine: quote da 11000 a 84000 passo 500
+% 
+% CD_mat = zeros(length(Mach_v), length(alpha_v), length(h_v));
+% Xcp_mat = zeros(length(Mach_v), length(alpha_v), length(h_v));
+% tic
+% for p=1:length(h_v)
+% 
+%     h = h_v(p);
+%     [CD, CL, l_Cp_results, Cm] = file_funzione2_final(Mach_v, alpha_v, h, Xcg, GEO_funzione2);
+% 
+%     CL_mat(:, :, p) = CL;
+%     CD_mat(:, :, p) = CD;
+%     Xcp_mat(:, :, p) = l_Cp_results;
+%     p
+% 
+% end
+% toc
+% 
+% save('data_CD_GEO2_S3m^2.mat', 'CD_mat')
+% save('data_CL_GEO2_S3m^2.mat', 'CL_mat')
+% save('data_Xcp_GEO2_S3m^2.mat', 'Xcp_mat')
+% 
+% figure
+% hold on
+% plot(Mach_v, CL, '.-', Color='b', LineWidth=2)
+% plot(Mach_v, CD, '.-', Color='k', LineWidth=2)
+% title('CL vs mach')
 
 
 
