@@ -8,12 +8,12 @@ alpha_v = 0:5:50;
 h = 11000;
 
 % GEOMETRY:
-D_ogiva = 0.525 * 2;
-D_base = 0.7 * 2;
-L_ogiva = 2.1;
-L_corpo_sup = 4.292;
-L_spalla = 1.751;
-L_corpo_inf = 12.013;
+D_ogiva = 0.6 * 2;
+D_base = 0.6 * 2;
+L_ogiva = 2.4;
+L_corpo_sup = 5;
+L_spalla = 1;
+L_corpo_inf = 12.85;
 a = [0, D_ogiva, D_ogiva, D_base, D_base];
 x = [0, L_ogiva, L_ogiva+L_corpo_sup, L_ogiva+L_corpo_sup+L_spalla, L_ogiva+L_corpo_sup+L_spalla+L_corpo_inf];
 b = a;      % radius is constant (no ellipse)
@@ -24,7 +24,7 @@ nose_type = 'C';    % C --> conical, TO --> tangent ogive
 % INPUT Area dell'ala:
 S_wing = 1;        % m^2
 
-GEO_funzione1 = struct('x', x, 'a', a, 'phi', phi, 'nose_type', nose_type, 'nose_data', data, 'S_wing', S_wing);
+GEO_funzione2 = struct('x', x, 'a', a, 'phi', phi, 'nose_type', nose_type, 'nose_data', data, 'S_wing', S_wing);
 % x --> vettore delle posizioni longitudinali
 % a --> verrore dei fìdiametri corrispettivi a tali posizioni
 % phi --> angolo di rotazione attorno all'asse x
@@ -122,7 +122,7 @@ GEO_funzione1 = struct('x', x, 'a', a, 'phi', phi, 'nose_type', nose_type, 'nose
 Xcg = 6;
 
 % Matrice di risultati:
-h_v = 11000%:500:84000;
+h_v = 11000:500:84000;
 CL_mat = zeros(length(Mach_v), length(alpha_v), length(h_v));       % righe: Mach da 0.3 a 8 passo 0.1
                                                                     % colonne:
                                                                     % angolo d'attacco da 0 a 50 passo 5
@@ -134,7 +134,7 @@ tic
 for p=1:length(h_v)
 
     h = h_v(p);
-    [CD, CL, l_Cp_results, Cm] = file_funzione2_final(Mach_v, alpha_v, h, Xcg, GEO_funzione1)
+    [CD, CL, l_Cp_results, Cm] = file_funzione2_final(Mach_v, alpha_v, h, Xcg, GEO_funzione2)
 
     CL_mat(:, :, p) = CL;
     CD_mat(:, :, p) = CD;
@@ -144,9 +144,9 @@ for p=1:length(h_v)
 end
 toc
 
-save('data_CD_GEO1_S1m^2.mat', 'CD_mat')
-save('data_CL_GEO1_S1m^2.mat', 'CL_mat')
-save('data_Xcp_GEO1_S1m^2.mat', 'Xcp_mat')
+save('data_CD_GEO2_S1m^2.mat', 'CD_mat')
+save('data_CL_GEO2_S1m^2.mat', 'CL_mat')
+save('data_Xcp_GEO2_S1m^2.mat', 'Xcp_mat')
 
 figure
 plot(Mach_v, CL, '.-', Color='b', LineWidth=2)
