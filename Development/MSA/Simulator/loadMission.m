@@ -19,6 +19,15 @@ stages.stg2.throttling = PRP_mat.manetta./100;
 stages.stg1.Pe = PRP_mat.p_e;
 stages.stg2.Pe = PRP_mat.p_e;
 
+wingSurf = 1;
+AER_mat_path = strcat("../../AER/MSA/RISULTATI v1/", "matrici funzione2 S", num2str(wingSurf),"m2/");
+CD_mat = load(strcat(AER_mat_path, "data_CD_GEO1_S1m^2.mat")).CD_mat;
+CL_mat = load(strcat(AER_mat_path, "data_CL_GEO1_S1m^2.mat")).CL_mat;
+Xcp_mat = load(strcat(AER_mat_path, "data_Xcp_GEO1_S1m^2.mat")).Xcp_mat;
+
+AER_mat = cat(4, CD_mat, CL_mat, Xcp_mat);
+AER_mat = permute(AER_mat, [4 1 2 3]);
+params.coeffs = griddedInterpolant({(1:3)', (0.3:0.1:8)', (0:5:50)', (11000:500:84000)'}, AER_mat, "linear", "nearest");
 %% General parameters
 stages.stg1.MR = 5.225;
 stages.stg2.MR = 4.022;

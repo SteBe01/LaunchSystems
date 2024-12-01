@@ -47,6 +47,8 @@ function [T, Y, idxStage, parout] = run_simulator(stages, params, init)
         dv_grav_s2 = cumtrapz(parout_stg2.dv_grav_vec, T2);
         dv_thrust_s2 = stages.stg2.Isp*9.81*log(stages.stg2.m0/parout_stg2.m(end));
         parout.dv_s2 = dv_drag_s2(end) + dv_grav_s2(end) + dv_thrust_s2;
+
+        parout.coeffs = [parout_stg1.coeffs; parout_stg2.coeffs];
     end
 
 end

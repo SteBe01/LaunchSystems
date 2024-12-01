@@ -10,6 +10,7 @@ velsqq = zeros(length(T), 1);
 m = zeros(length(T), 1);
 dv_grav_vec = zeros(length(T), 1);
 delta = zeros(length(T),1);
+coeffs = zeros(length(T), 3);
 
 clear dyn
 for ii = 1:length(T)
@@ -24,6 +25,7 @@ for ii = 1:length(T)
     m(ii) = parout.m;
     dv_grav_vec(ii) = parout.dv_grav;
     delta(ii) = parout.delta;
+    coeffs(ii, :) = parout.coeffs;
 end
 
 ode_out.qdyn = qdyn;
@@ -36,6 +38,7 @@ ode_out.velsqq = velsqq;
 ode_out.m = m;
 ode_out.dv_grav_vec = dv_grav_vec;
 ode_out.delta = delta;
+ode_out.coeffs = coeffs;
 
 end
 

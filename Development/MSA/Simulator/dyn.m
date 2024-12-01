@@ -51,7 +51,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     rot_angle = theta - pi/2;
     dcm = [cos(rot_angle) -sin(rot_angle); sin(rot_angle) cos(rot_angle)];
     gamma = atan2(zDot, xDot);
-    alpha = -theta+gamma;
+    alpha = theta-gamma;
 
     if current_stage == 1
         t_wait = params.t_turn;
@@ -63,15 +63,42 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     Re = params.Re;
 
     % Environment data
+    [~, a, P, rho] = computeAtmosphericData(z);
     g = params.g0/((1+z/Re)^2);                     % [m/s^2]   - Gravity acceleration taking into account altitude
-    rho = getDensity(z);                            % [kg/m^3]  - Density at current altitude
+    % rho = getDensity(z);                            % [kg/m^3]  - Density at current altitude
     qdyn = 0.5*rho*velsNorm^2;                      % [Pa]      - Dynamic pressure
     S = pi*(stage.d^2/4);                           % [m^2]     - Rocket surface area
-    P = getPressure(z);
+    % P = getPressure(z);
+    M = velsNorm/a;
+
+    % Compute all necessary interpolations
     
+    % Geometric parameters
+    xcg = interp1(stage.STR_mat(:,1), stage.STR_mat(:,2), m_prop_left, "linear", "extrap");
+    I_mat = interp1(stage.STR_mat(:,1), stage.STR_mat(:, 3:5), m_prop_left, "linear", "extrap");
+    I = I_mat(2);
+
+    % Engine parameters 
+    throttling = 1;
+    Thrust = interp1(stage.throttling, stage.Thrust, throttling, 'linear', 'extrap');
+    m_dot = interp1(stage.throttling, stage.m_dot, throttling, 'linear', 'extrap');
+    Pe = interp1(stage.throttling, stage.Pe, throttling, 'linear', 'extrap');
+
+    % Aerodynamic coefficients
+    if current_stage == 1
+        interpValues = params.coeffs({1:4, M, alpha, z});
+        Cd = interpValues(1);
+        Cl = interpValues(2);
+        xcp = interpValues(3);
+    else
+        Cd = 0;
+        Cl = 0;
+        xcp = 4;
+    end
+
     % Aerodynamic forces
-    D = qdyn*S*stage.Cd;                            % [N]       - Drag force acting on the rocket
-    L = qdyn*S*stage.Cl;                            % [N]       - Lift force acting on the rocket
+    D = qdyn*S*Cd;                            % [N]       - Drag force acting on the rocket
+    L = qdyn*S*Cl;                            % [N]       - Lift force acting on the rocket
     
     % PID controller
     angle = getPitch(params.pitch, z);
@@ -82,11 +109,6 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     end
 
     % Thrust & mass estimation
-    throttling = 1;
-    Thrust = interp1(stage.throttling, stage.Thrust, throttling, 'linear', 'extrap');
-    m_dot = interp1(stage.throttling, stage.m_dot, throttling, 'linear', 'extrap');
-    Pe = interp1(stage.throttling, stage.Pe, throttling, 'linear', 'extrap');
-
     if t > t_wait && m_prop_left > stage.m_prop_final
         T = (Thrust + stage.A_eng*(Pe-P))*stage.N_mot;
     else
@@ -110,17 +132,12 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
         end
     end
 
-    % Compute geom properties
-    xcg = interp1(stage.STR_mat(:,1), stage.STR_mat(:,2), m_prop_left, "linear", "extrap");
-    I_mat = interp1(stage.STR_mat(:,1), stage.STR_mat(:, 3:5), m_prop_left, "linear", "extrap");
-    I = I_mat(2);
-
     % Forces on the rocket in inertial frame
     F_z = -g*m -D*cos(pi/2-gamma) +L*sin(pi/2-gamma) +T*cos(delta)*sin(theta);
     F_x = -D*sin(pi/2-gamma) -L*cos(pi/2-gamma) +T*cos(delta)*cos(theta);
 
     % Moment on the rocket
-    M_t = T*sin(delta)*(stage.length - xcg) +D*sin(alpha)*(stage.xcp - xcg) + L*cos(alpha)*(stage.xcp - xcg);
+    M_t = T*sin(delta)*(stage.length - xcg) +D*sin(alpha)*(xcp - xcg) + L*cos(alpha)*(xcp - xcg);
 
     % Derivative vector
     dY = zeros(7, 1);
@@ -149,6 +166,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
         parout.dv_grav = -g*abs(sin(theta));
         parout.dv_drag = -0.5*S*stage.Cd/stage.m0*rho*velsNorm^2*stage.m0/m;
         parout.delta = delta;
+        parout.coeffs = [Cd Cl xcp];
     end
 end
 

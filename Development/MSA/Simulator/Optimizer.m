@@ -65,8 +65,10 @@ function [c, ceq] = nonlinconstr(x, stages, params, init)
 
     [~, Y] = run_simulator(stages, params, init);
 
+    v_orbit = sqrt(398600/(400+params.Re*1e-3));
+
     c(1) = abs(Y(end,2) - 400e3) - 100;
-    c(2) = abs(Y(end,3) - 7.6e3) - 100;
+    c(2) = abs(Y(end,3) - v_orbit) - 100;
     ceq = [];
 end
 
