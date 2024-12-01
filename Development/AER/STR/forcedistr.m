@@ -18,6 +18,8 @@ L_corpo_sup = 4.292;
 L_spalla = 1.751;
 L_corpo_inf = 12.013;
 
+% Se lo voglio unito metto stesso diametro ogiva e base
+
 % Input flusso:
 alpha = deg2rad(20);        % angolo d'attacco
 M = 1.5;                    % mach
