@@ -7,7 +7,7 @@ clear;
 close all;
 
 %data from other departments:
-Is = [328; 343]; %[s] stages Is
+Is = [323; 343]; %[s] stages Is
 M.pay = 250; %[kg] nominal payload mass
 M.pay_max = 400; %[kg] maximum payload mass
 M.adapter = 0.0755 * M.pay + 50; %[kg] estimated mass from Edberg-Costa
@@ -53,11 +53,11 @@ for j = 1:n
     M1.rhorp1 = 820;  %[kg/m^3] density of rp1
     M1.rholox = 1140; %[kg/m^3] density of lox
     M1.avionics = 75 * 0.2; %[kg] from Edberg-Costa
-    M1.other = 50; %[kg] 
+    M1.other = 250; %[kg] 
     M1.stg = 1; %[#] stage ID
     h1.motor = 0.89; %[m] height of the motor
     h1.h0 = 0; %[m] starting height
-    mat1 = 5; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+    mat1 = 8; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7, 8 for Al 6061 T6 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
     press1 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
     
     %stage 2
@@ -1505,8 +1505,8 @@ switch mat_id
         rho = 2810; %[kg/m^3]
         t_min = 1.06 * 1e-3; %[m] minimum thickness for manufacturability
         E = 70 * 1e9; %[Pa] young modulus
-        sy = 476 * 1e6; %[Pa] tensile yield stress
-        su = 538 * 1e6; %[Pa] tensile ultimate stress
+        sy = 440 * 1e6; %[Pa] tensile yield stress
+        su = 517 * 1e6; %[Pa] tensile ultimate stress
         nu = 0.33; %[-] Poisson's ratio
     case 6 % AlLi (2090)
         rho = 2590; %[kg/m^3]
@@ -1522,6 +1522,13 @@ switch mat_id
         sy = 1000 * 1e6; %[Pa] tensile yield stress
         su = sy; %[Pa] tensile ultimate stress
         nu = 0.28; %[-] Poisson's ratio
+    case 8 % Al 6061 T6
+        rho = 2700; %[kg/m^3]
+        t_min = 0.5 * 1e-3; %[m] minimum thickness for manufacturability
+        E = 68.9 * 1e9; %[Pa] young modulus
+        sy = 276 * 1e6; %[Pa] tensile yield stress
+        su = 310 * 1e6; %[Pa] tensile ultimate stress
+        nu = 0.33; %[-] Poisson's ratio
 end
 
 %recover material properties:
