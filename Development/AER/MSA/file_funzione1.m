@@ -110,81 +110,14 @@ end
 
 
 
-%% PLOTS:
-
-
-% figure
-% subplot(2, 2, 1)
-% plot(Mach_v, Ca)
-% xlabel('Mach')
-% ylabel('Ca')
-% legend('alpha: ',  int2str(alpha_v))
-% 
-% subplot(2, 2, 2)
-% plot(Mach_v, Ca_w)
-% xlabel('Mach')
-% ylabel('Ca_w')
-% 
-% 
-% subplot(2, 2, 3)
-% plot(Mach_v, Ca_b)
-% xlabel('Mach')
-% ylabel('Ca_b')
-% 
-% subplot(2, 2, 4)
-% plot(Mach_v, Ca_f)
-% xlabel('Mach')
-% ylabel('Ca_f')
-% 
-% 
-% 
-% figure
-% subplot(2, 2, 1)
-% plot(Mach_v, Cn)
-% grid on
-% xlabel('Mach')
-% ylabel('Cn')
-% legend('alpha: ',  int2str(alpha_v))
-% 
-% 
-% subplot(2, 2, 2)
-% plot(Mach_v, CL)
-% grid on
-% xlabel('Mach')
-% ylabel('CL')
-% legend('alpha: ',  int2str(alpha_v))
-% 
-% subplot(2, 2, 3)
-% plot(Mach_v, Ca)
-% grid on
-% xlabel('Mach')
-% ylabel('Ca')
-% legend('alpha: ',  int2str(alpha_v))
-% 
-% subplot(2, 2, 4)
-% plot(Mach_v, CD)
-% grid on
-% xlabel('Mach')
-% ylabel('CD')
-% legend('alpha: ',  int2str(alpha_v))
-% 
-% figure
-% plot(Mach_v, CD, LineWidth=1.75)
-% set(gca, 'FontSize', 30)
-% xlabel('Mach', FontSize=35)
-% ylabel('Cd', FontSize=35)
-% legend('AoA = 0°', 'AoA = 5°', 'AoA = 10°', 'AoA = 15°', 'AoA = 20°', FontSize=30)
-% axis square
-% 
-% figure
-% plot(Mach_v, CL, LineWidth=1.75)
-% set(gca, 'FontSize', 30)
-% xlabel('Mach', FontSize=35)
-% ylabel('Cl', FontSize=35)
-% legend('AoA = 0°', 'AoA = 5°', 'AoA = 10°', 'AoA = 15°', 'AoA = 20°', FontSize=30)
-% axis square
-
 end
+
+
+
+
+
+
+
 
 %% CDN
 function Cdn = CDN(Mach, Mn_sample, cd_n_sample)
@@ -221,7 +154,7 @@ function [Cn,Cn_Cn0_sb,Cn_Cn0_Newt, Cdn, Cn_s] =  CN (a, b, x, ln, d_nose, A_b, 
 % A_r --> area di riferimento (ref)
 % 
 
-eta = 0.7;      % varia in base al finesse ratio !!
+eta = 0.05*x(end)/max(a) + 0.52;
 
 if h > 84000
     Cn = 0;
@@ -274,9 +207,9 @@ A = x(end) / max(a); % body aspect ratio
 % Tails
 if nargin == 14
    if M^2 >= 1+(8/(pi*A))^2
-       Cn_s = abs((4*abs(sin(alpha)*cos(alpha))/(M^2-1)^(1/2)+ 2*sin(alpha)^2)*(A_w/A_r));
+       Cn_s = abs((4*abs(sin(alpha)*cos(alpha))/(M^2-1)^(1/2) + 2*sin(alpha)^2)*(A_w/A_r));
    elseif M^2 < 1+(8/(pi*A))^2
-       Cn_s = abs(((pi*A/2)*abs(sin(alpha)*cos(alpha))+2*sin(alpha)^2)*(A_w/A_r));
+       Cn_s = abs(((pi*A/2)*abs(sin(alpha)*cos(alpha)) + 2*sin(alpha)^2)*(A_w/A_r));
    end
    Cn = Cn_b + Cn_s;
 end
@@ -335,11 +268,13 @@ end
 
 switch nose_type
     case 'C'        % conical nose
-        if M <= 1
-            Ca_w = 0.8 * sin(theta)^2;
-        elseif M > 1
+        if M >= 1.3
+            Ca_w = 2.1 * sin(theta)^2 + 0.5 * sin(theta)/sqrt(M^2-1);
+        elseif M < 1.3 && M > 1
             beta = sqrt(M^2-1);
             Ca_w = (4 * sin(theta)^2 * (2.5 + 8 * beta * sin(theta))) / (1 + 16 * beta * sin(theta));
+        elseif M <= 1
+            Ca_w = sin(theta);
         end
 
     case 'TO'       % tangent ogive nose
@@ -361,7 +296,6 @@ gamma = 1.4;
 if M >= 1
 
     Cp_b = 2/(gamma * M^2) * ( (2/(gamma+1))^1.4 * (1/M)^2.8 * (2 * gamma * M^2 - gamma + 1)/(gamma + 1) - 1 );
-
     Ca_b = -Cp_b;
 
 elseif M < 1
@@ -394,7 +328,7 @@ V = M * a;                   % freestream velocity (m/s)
 Re_x = V * d / nu;        % Reynolds number based on length
 
 % Variables:
-Tw_Taw = 1 + 0.9 * (gamma - 1)/2 * M.^2            % Wall-to-adiabatic temperature ratio
+Tw_Taw = 1 + 0.9 * (gamma - 1)/2 * M.^2;            % Wall-to-adiabatic temperature ratio
 r = 0.88;                     % Recovery factor for supersonic flow
 A = ( ( (gamma-1) * M.^2 ) ./ ( 2 .* Tw_Taw ) ).^0.5;
 B = ( 1 + (gamma-1)/2 * M.^2 ) ./ ( Tw_Taw ) - 1;
@@ -405,10 +339,11 @@ Cf = [];
 for i = 1:length(M)
     f =@(x) log10(Re_x(i) .* x) - (1+2*r)/2 .* log10(Tw_Taw(i)) - ( 0.242 .* (asin(C1(i)) + asin(C2(i))) ) ./ ( A(i) .* x.^0.5 .* Tw_Taw(i).^0.5 );
     Cf = [Cf, fsolve(f, 0.01)];
+    clc
 end
 
 % Mean turbulent skin friction global:
-A_wet_body = (l-ln) * d * pi + (ln * dn * pi)/2 + A_w * 4;       % hp. cylindrical + 4 alette
+A_wet_body = (l-ln) * d * pi + (ln * dn * pi)/2 + A_w * 2;       % hp. cylindrical + 4 alette
 A_ref = pi * d^2 / 4;
 Cf_tot = Cf * A_wet_body/A_ref;
 
@@ -421,9 +356,7 @@ Ca_f = Cf_tot * (1 + 0.5 / (l/d) * A_wet_body) / A_ref;
 
 
 % SUM:
-
 Ca = Ca_w + Ca_f + Ca_b;
-Ca = Ca * 1.1;      % there might be other types of drag sources (parasitic drag)
 
 Ca = Ca*cos(alpha)^2;
 end
