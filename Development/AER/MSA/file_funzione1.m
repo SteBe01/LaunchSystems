@@ -42,7 +42,7 @@ A_w = GEO.S_wing;
 % REF. DATA:
 data = GEO.nose_data;
 % HP.: sezione circolare
-A_b = pi * a_max^2;     % area della base
+A_b = pi * a_max^2 / 4;     % area della base
 A_r = A_b;              % area di riferimento
 A_p = trapz(x, a)*2;    % area planform
 
@@ -76,11 +76,16 @@ for i = 1:length(Mach_v)
 
     for j = 1:length(alpha_v)
 
-        %alpha = alpha_v(j);       
+        alpha = alpha_v(j);       
+        alpha_stall = deg2rad(20);
+        if alpha > alpha_stall
+            alpha = alpha_stall;
+        end
 
-        [Ca(i,j), Ca_w(i,j), Ca_f(i,j), Ca_b(i,j)] = drag_estimation( a, b, x, ln, dn, nose_type, Mach_v(i), alpha_v(j), h, A_w);
+        [Ca(i,j), Ca_w(i,j), Ca_f(i,j), Ca_b(i,j)] = drag_estimation( a, b, x, ln, dn, nose_type, Mach_v(i), alpha, h, A_w);
 
     end
+
 end
 
 
@@ -95,11 +100,15 @@ for i = 1:length(Mach_v)
 
     for j = 1:length(alpha_v)
 
-        %alpha = alpha_v(j);       
-
-        [Cn(i,j),Cn_Cn0_sb(i,j),Cn_Cn0_Newt(i,j), Cdn(i,j),Cn_s(i,j)] =  CN (max(a), max(b), x, ln, dn, A_b, A_r, A_p, Mach_v(i), alpha_v(j), h, phi, data,A_w);
+        alpha = alpha_v(j);       
+        alpha_stall = deg2rad(20);
+        if alpha > alpha_stall
+            alpha = alpha_stall;
+        end
+        [Cn(i,j),Cn_Cn0_sb(i,j),Cn_Cn0_Newt(i,j), Cdn(i,j),Cn_s(i,j)] =  CN (max(a), max(b), x, ln, dn, A_b, A_r, A_p, Mach_v(i), alpha, h, phi, data,A_w);
 
     end
+
 end
 
 
@@ -160,7 +169,9 @@ if h > 84000
     Cn = 0;
 end
 
-alpha = deg2rad(alpha); % [rad]
+
+
+
 l = x(end);
 y = a;
 R = y; % radius
@@ -168,10 +179,10 @@ R = y; % radius
 fn_nose = ln/d_nose;
 
 % deal with AoA
-if alpha <= deg2rad(90) && alpha >= 0
+if alpha <= pi/2 && alpha >= 0
     alpha = + alpha;
-elseif alpha <= deg2rad(180) && alpha >= deg2rad(90)
-    alpha = deg2rad(180) - alpha;
+elseif alpha <= pi && alpha >= pi/2
+    alpha = pi - alpha;
 end
 
 Cn_Cn0_sb = a/b*cos(deg2rad(phi))^2 + b/a*sin(deg2rad(phi))^2; % Slender-body experimental ratio
@@ -241,7 +252,6 @@ if h > 84000
     Ca = 0;
 end
 
-alpha = deg2rad(alpha);     % deg to rad
 
 l = x(end);
 d = max(a);
@@ -254,15 +264,15 @@ fn_nose = ln/dn;        % finesse ratio of nose cone
 
 % Deal with AoA:
 
-if alpha <= deg2rad(90) && alpha >= 0
+if alpha <= pi/2 && alpha >= 0
     alpha = + alpha;
-elseif alpha >= deg2rad(180) && alpha <= deg2rad(360)
-    alpha = deg2rad(180);
+elseif alpha >= pi && alpha <= 2*pi
+    alpha = pi;
 end
 
-if alpha <= deg2rad(90)
+if alpha <= pi/2
     theta = atan(0.5 / fn_nose);
-elseif alpha > deg2rad(90)
+elseif alpha > pi/2
     theta = pi/2;
 end
 
@@ -379,8 +389,8 @@ function [CL, CD] = body2wind(Cn, Ca, alpha_v)
 CL = [];
 CD = [];
 
-CL = Cn .* cos(deg2rad(alpha_v)) - Ca .* sin(deg2rad(alpha_v));
-CD = Cn .* sin(deg2rad(alpha_v)) + Ca .* cos(deg2rad(alpha_v));
+CL = Cn .* cos(alpha_v) - Ca .* sin(alpha_v);
+CD = Cn .* sin(alpha_v) + Ca .* cos(alpha_v);
 end
 %% Excel file loading:
 function data = excel_load

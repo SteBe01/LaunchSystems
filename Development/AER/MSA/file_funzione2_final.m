@@ -103,11 +103,14 @@ nose_type = GEO.nose_type;
 
 % INPUT Area dell'ala:
 A_w = GEO.S_wing;
+temp_t = A_w;
+temp_w = 0;
 
 % REF. DATA:
 data = GEO.nose_data;
 % HP.: sezione circolare
-A_b = pi * a_max^2;     % area della base
+A_b = pi * a_max^2 / 4;     % area della base
+A_n = dn*ln/2;      % adim area for nose
 A_r = A_b;              % area di riferimento
 A_p = trapz(x, a)*2;    % area planform
 
@@ -116,7 +119,7 @@ A_p = trapz(x, a)*2;    % area planform
 r_N = dn/2;
 r = max(a)/2;
 % Wing:
-S_w = 0;        % area di sola ala (no body compreso)
+S_w = temp_w;        % area di sola ala (no body compreso)
 s_w = 0;        % wing semi-span
 betaAR_w = 0.8*(2*s_w)^2/S_w;
 lambda_w = 0;
@@ -127,7 +130,7 @@ c_w = 0;
 l_w = 0;
 AR_w = 0;
 % Tail:
-S_t = A_w; %(1.92+0.764)*1.08;
+S_t = temp_t; %(1.92+0.764)*1.08;
 s_t = 1;
 AR_t = (2*s_t)^2/S_t;
 % AR_t = 4;           % fixed from laucherone
@@ -146,7 +149,6 @@ d = r*2;                    % max diameter
 
 S = A_p + S_w + S_t;
 S_surface = S_w + S_t;
-
 
 
 %% PLOT GEOMETRIA:
@@ -182,11 +184,19 @@ toll = 1e-2;
 max_iter = 100;
 
 for i = 1:length(Mach_v)
+
+
     for j = 1:length(alpha_v)
         % Inizializza variabili per il ciclo while
         l_Cp_old = 7;  % Ipotesi iniziale per il centro di pressione
         delta = inf;   % Delta iniziale
         iter = 0;
+
+        alpha = alpha_v(j);       
+        alpha_stall = deg2rad(20);
+        if alpha > alpha_stall
+            alpha = alpha_stall;
+        end
 
         while delta > toll && iter < max_iter
             iter = iter + 1;
@@ -198,15 +208,15 @@ for i = 1:length(Mach_v)
 
             % Calcolo del coefficiente di portanza
             x_hat_t = l_t - l_Cp_old;
-             [CL_NKP(i,j),K_BT(i,j), K_TB(i,j),K_BW(i,j),K_WB(i,j),K_N(i,j),Cl_N(i,j),Cl_WB(i,j),Cl_BW(i,j),Cl_BT(i,j),Cl_TB(i,j),Cl_TV(i,j)] = Cl_NKP(alpha_v(j), Mach_v(i), h, r_N, S_w, s_w, r, cr_w, r_w, S_t,s_t,...
-                           lambda_t, AR_w, AR_t, V_inf(i,j), r_t, l_w, l_t, x_hat_t,c_ave_t, A_p, A_r);
+             [CL_NKP(i,j),K_BT(i,j), K_TB(i,j),K_BW(i,j),K_WB(i,j),K_N(i,j),Cl_N(i,j),Cl_WB(i,j),Cl_BW(i,j),Cl_BT(i,j),Cl_TB(i,j),Cl_TV(i,j)] = Cl_NKP(alpha, Mach_v(i), h, r_N, S_w, s_w, r, cr_w, r_w, S_t,s_t,...
+                           lambda_t, AR_w, AR_t, V_inf(i,j), r_t, l_w, l_t, x_hat_t,c_ave_t, A_p, A_r, A_n);
            % Calcolo del lift totale
            rho = 1.225; % densità dell'aria a livello del mare
            L_tot(i,j) = 1/2*rho*V_inf(i,j)^2*S*CL_NKP(i,j);
            q_inf(i,j) = 1/2*rho*V_inf(i,j)^2;
 
             % Calcolo del centro di pressione
-            [l_Cp_new] = l_CP(Mach_v(i), alpha_v(j), l_s,V_S,r_N,l_w,r, s_w,cr_w, q_inf(i,j), m_w, d, K_BW(i,j), K_WB(i,j), K_N(i,j), L_tot(i,j), s_t, l_t,...
+            [l_Cp_new] = l_CP(Mach_v(i), alpha, l_s,V_S,r_N,l_w,r, s_w,cr_w, q_inf(i,j), m_w, d, K_BW(i,j), K_WB(i,j), K_N(i,j), L_tot(i,j), s_t, l_t,...
                           cr_t,m_t, K_BT(i,j), K_TB(i,j), K_N(i,j), L_tot(i,j),Cl_N(i,j),Cl_WB(i,j), Cl_BW(i,j), Cl_BT(i,j), Cl_TB(i,j), Cl_TV(i,j));
 
             % Aggiorna delta
@@ -233,12 +243,14 @@ Ca_b = [];
 
 for i = 1:length(Mach_v)
     %Mach = Mach_v(i);
-
     for j = 1:length(alpha_v)
 
-        %alpha = alpha_v(j);       
-
-        [Ca(i,j), Ca_w(i,j), Ca_f(i,j), Ca_b(i,j)] = drag_estimation( a, b, x, ln, dn, nose_type, Mach_v(i), alpha_v(j), h, S_surface);
+        alpha = alpha_v(j);       
+        alpha_stall = deg2rad(20);
+        if alpha > alpha_stall
+            alpha = alpha_stall;
+        end
+        [Ca(i,j), Ca_w(i,j), Ca_f(i,j), Ca_b(i,j)] = drag_estimation( a, b, x, ln, dn, nose_type, Mach_v(i), alpha, h, S_surface);
 
     end
 end
@@ -252,12 +264,14 @@ Cn = [];
 
 for i = 1:length(Mach_v)
     %Mach = Mach_v(i);
-
     for j = 1:length(alpha_v)
 
-        %alpha = alpha_v(j);       
-
-        [Cn(i,j),Cn_Cn0_sb(i,j),Cn_Cn0_Newt(i,j), Cdn(i,j),Cn_s(i,j)] =  CN (max(a), max(b), x, ln, dn, A_b, A_r, A_p, Mach_v(i), alpha_v(j), h, phi, data,S_surface);
+        alpha = alpha_v(j);       
+        alpha_stall = deg2rad(20);
+        if alpha > alpha_stall
+            alpha = alpha_stall;
+        end
+        [Cn(i,j),Cn_Cn0_sb(i,j),Cn_Cn0_Newt(i,j), Cdn(i,j),Cn_s(i,j)] =  CN (max(a), max(b), x, ln, dn, A_b, A_r, A_p, Mach_v(i), alpha, h, phi, data, S_surface);
 
     end
 end
@@ -323,7 +337,6 @@ if h > 84000
     Cn = 0;
 end
 
-alpha = deg2rad(alpha); % [rad]
 l = x(end);
 y = a;
 R = y; % radius
@@ -331,11 +344,12 @@ R = y; % radius
 fn_nose = ln/d_nose;
 
 % deal with AoA
-if alpha <= deg2rad(90) && alpha >= 0
+if alpha <= pi/2 && alpha >= 0
     alpha = + alpha;
-elseif alpha <= deg2rad(180) && alpha >= deg2rad(90)
-    alpha = deg2rad(180) - alpha;
+elseif alpha <= pi && alpha >= pi/2
+    alpha = pi - alpha;
 end
+
 
 Cn_Cn0_sb = a/b*cos(deg2rad(phi))^2 + b/a*sin(deg2rad(phi))^2; % Slender-body experimental ratio
 
@@ -404,7 +418,6 @@ if h > 84000
     Ca = 0;
 end
 
-alpha = deg2rad(alpha);     % deg to rad
 
 l = x(end);
 d = max(a);
@@ -417,15 +430,15 @@ fn_nose = ln/dn;        % finesse ratio of nose cone
 
 % Deal with AoA:
 
-if alpha <= deg2rad(90) && alpha >= 0
+if alpha <= pi/2 && alpha >= 0
     alpha = + alpha;
-elseif alpha >= deg2rad(180) && alpha <= deg2rad(360)
-    alpha = deg2rad(180);
+elseif alpha >= pi && alpha <= 2*pi
+    alpha = pi;
 end
 
-if alpha <= deg2rad(90)
+if alpha <= pi/2
     theta = atan(0.5 / fn_nose);
-elseif alpha > deg2rad(90)
+elseif alpha > pi/2
     theta = pi/2;
 end
 
@@ -544,8 +557,8 @@ function [CL, CD] = body2wind(Cn, Ca, alpha_v)
 CL = [];
 CD = [];
 
-CL = Cn .* cos(deg2rad(alpha_v)) - Ca .* sin(deg2rad(alpha_v));
-CD = Cn .* sin(deg2rad(alpha_v)) + Ca .* cos(deg2rad(alpha_v));
+CL = Cn .* cos(alpha_v) - Ca .* sin(alpha_v);
+CD = Cn .* sin(alpha_v) + Ca .* cos(alpha_v);
 end
 %% Excel file loading:
 function data = excel_load
@@ -557,7 +570,7 @@ end
 
 %% NKP function 
 function [CL_NKP,K_BT, K_TB,K_BW,K_WB,K_N,Cl_N,Cl_WB,Cl_BW,Cl_BT,Cl_TB,Cl_TV,Cl_a_w, Cl_a_t] = Cl_NKP(alpha, M, h, r_N, S_w, s_w, r, cr_w, r_w, S_t,s_t,...
-                           lambda_t, AR_w, AR_t,V_inf,r_t, l_w,l_t, x_hat_t,c_ave_t,A_p, A_r)
+                           lambda_t, AR_w, AR_t,V_inf,r_t, l_w,l_t, x_hat_t,c_ave_t,A_p, A_r, A_n)
 
 % INPUT:
 % alpha = angle of attack [deg]
@@ -592,8 +605,10 @@ function [CL_NKP,K_BT, K_TB,K_BW,K_WB,K_N,Cl_N,Cl_WB,Cl_BW,Cl_BT,Cl_TB,Cl_TV,Cl_
 % A_p = planform area [m^2]
 
 if abs(alpha) < 1e-6  % Soglia di tolleranza
-    alpha = 0.1;
+    alpha = 0.0001;
 end
+
+
 
 d = 2*r;  % d = body diameter [m]
 
@@ -601,13 +616,12 @@ if h > 84000
     CL_NKP = 0;
 end
 
-alpha = deg2rad(alpha); % [rad]
 
 % deal with AoA
-if alpha <= deg2rad(90) && alpha >= 0
+if alpha <= pi/2 && alpha >= 0
     alpha = + alpha;
-elseif alpha <= deg2rad(180) && alpha >= deg2rad(90)
-    alpha = deg2rad(180) - alpha;
+elseif alpha <= pi && alpha >= pi/2
+    alpha = pi - alpha;
 end
 
 
@@ -672,7 +686,7 @@ if s_w == 0 && s_t ~= 0  % BODY + TAIL (no wing)
 
     % TOTAL LIFT COEFFICIENT
    % CL_NKP = (Cl_N*A_p+Cl_WB*S_w+Cl_BW*A_p+Cl_TB*S_t+Cl_BT*A_p+Cl_TV*S_t)/(A_r);
-   CL_NKP = (Cl_N+Cl_WB+Cl_BW+Cl_TB+Cl_BT+Cl_TV);
+   CL_NKP = (Cl_N*A_n+Cl_WB*S_w+Cl_BW*A_p+Cl_TB*S_t+Cl_BT*A_r+Cl_TV*S_t)/(A_r);
 
 
 
@@ -723,7 +737,7 @@ elseif s_t == 0 && s_w ~= 0  %  BODY + WING (no tail)
 
 
     % TOTAL LIFT COEFFICIENT
-    CL_NKP = (Cl_N*A_p+Cl_WB*S_w+Cl_BW*A_p+Cl_TB*S_t+Cl_BT*A_p+Cl_TV*S_t)/(A_r);
+   CL_NKP = (Cl_N*A_n+Cl_WB*S_w+Cl_BW*A_p+Cl_TB*S_t+Cl_BT*A_r+Cl_TV*S_t)/(A_r);
     %CL_NKP = (Cl_N+Cl_WB+Cl_BW+Cl_TB+Cl_BT+Cl_TV);
 
 elseif s_w ~= 0 && s_t ~= 0  % BODY + WING + TAIL
@@ -817,8 +831,8 @@ elseif s_w ~= 0 && s_t ~= 0  % BODY + WING + TAIL
     
     % TOTAL LIFT COEFFICIENT
     
-   %CL_NKP = (Cl_N*A_p+Cl_WB*S_w+Cl_BW*A_p+Cl_TB*S_t+Cl_BT*A_p+Cl_TV*S_t)/(A_r);
-   CL_NKP = (Cl_N+Cl_WB+Cl_BW+Cl_TB+Cl_BT+Cl_TV);
+   CL_NKP = (Cl_N*A_n+Cl_WB*S_w+Cl_BW*A_p+Cl_TB*S_t+Cl_BT*A_r+Cl_TV*S_t)/(A_r);
+   %CL_NKP = (Cl_N+Cl_WB+Cl_BW+Cl_TB+Cl_BT+Cl_TV);
 
 end
 
@@ -884,16 +898,13 @@ if abs(alpha) < 1e-6  % Soglia di tolleranza
 end
 
 
-alpha = deg2rad(alpha);
 
-
-% alpha = deg2rad(alpha); % [rad]
 
 % deal with AoA
-if alpha <= deg2rad(90) && alpha >= 0
+if alpha <= pi/2 && alpha >= 0
     alpha = + alpha;
-elseif alpha <= deg2rad(180) && alpha >= deg2rad(90)
-    alpha = deg2rad(180) - alpha;
+elseif alpha <= pi && alpha >= pi/2
+    alpha = pi - alpha;
 end
 
 

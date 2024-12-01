@@ -4,8 +4,9 @@ close all
 
 %% INPUT:
 Mach_v = 0.3:0.1:8;
-alpha_v = 0:5:50;
-h = 11000;
+alpha_v = 0:5:50;           % deg
+alpha_v = deg2rad(alpha_v);     % rad
+h = 20000;
 
 % GEOMETRY:
 D_ogiva = 0.6 * 2;
@@ -21,7 +22,7 @@ b = a;      % radius is constant (no ellipse)
 phi = 0;       % IN CASE of ELLIPSE --> orientation wrt the normal velocity
 data = xlsread('Dataset Cdn.xlsx', 'Default Dataset');
 nose_type = 'C';    % C --> conical, TO --> tangent ogive
-% INPUT Area dell'ala:
+% INPUT Area dell'ala
 S_wing = 3;        % m^2
 
 GEO_funzione2 = struct('x', x, 'a', a, 'phi', phi, 'nose_type', nose_type, 'nose_data', data, 'S_wing', S_wing);
@@ -37,7 +38,7 @@ GEO_funzione2 = struct('x', x, 'a', a, 'phi', phi, 'nose_type', nose_type, 'nose
 
 %% TEST della funzione 1:
 % tic
-% [CL, CD] = file_funzione1(Mach_v, alpha_v, h, GEO_funzione1)
+% [CL, CD] = file_funzione1(Mach_v, alpha_v, h, GEO_funzione2)
 % toc
 % figure
 % hold on
@@ -68,8 +69,8 @@ GEO_funzione2 = struct('x', x, 'a', a, 'phi', phi, 'nose_type', nose_type, 'nose
 % end
 % toc
 % 
-% save('data_CD_GEO1_S3m^2.mat', 'CD_mat')
-% save('data_CL_GEO1_S3m^2.mat', 'CL_mat')
+% save('data_CD_GEO1_S1m^2.mat', 'CD_mat')
+% save('data_CL_GEO1_S1m^2.mat', 'CL_mat')
 
 
 %% TEST della funzione 2:
@@ -100,14 +101,14 @@ GEO_funzione2 = struct('x', x, 'a', a, 'phi', phi, 'nose_type', nose_type, 'nose
 
 % Xcg = 6;
 % tic
-% [CD, CL_NKP, l_Cp_results, Cm] = file_funzione2_jeno(Mach_v, alpha_v, h, Xcg, GEO_funzione1)
+% [CD, CL_NKP, l_Cp_results, Cm] = file_funzione2_final(Mach_v, alpha_v, h, Xcg, GEO_funzione2)
 % toc
 % 
-% % figure
+% figure
 % plot(Mach_v, CL_NKP, '.-', Color='b', LineWidth=2)
 % title('CL vs mach')
 % 
-% % figure
+% figure
 % plot(Mach_v, CD, '.-', Color='k', LineWidth=2)
 % title('CD vs mach')
 % 
@@ -134,7 +135,7 @@ tic
 for p=1:length(h_v)
 
     h = h_v(p);
-    [CD, CL, l_Cp_results, Cm] = file_funzione2_final(Mach_v, alpha_v, h, Xcg, GEO_funzione2)
+    [CD, CL, l_Cp_results, Cm] = file_funzione2_final(Mach_v, alpha_v, h, Xcg, GEO_funzione2);
 
     CL_mat(:, :, p) = CL;
     CD_mat(:, :, p) = CD;
@@ -149,8 +150,11 @@ save('data_CL_GEO2_S3m^2.mat', 'CL_mat')
 save('data_Xcp_GEO2_S3m^2.mat', 'Xcp_mat')
 
 figure
+hold on
 plot(Mach_v, CL, '.-', Color='b', LineWidth=2)
+plot(Mach_v, CD, '.-', Color='k', LineWidth=2)
 title('CL vs mach')
+
 
 
 
