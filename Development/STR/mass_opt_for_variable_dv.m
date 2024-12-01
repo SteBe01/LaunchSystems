@@ -18,9 +18,9 @@ loads.nx = 7; %longitudinal acceleration load factor [-]
 loads.nz = 1.0;%transversal acceleration load factor [-]
 loads.K = 1.50; %loads resistance safety factor [-]
 
-n = 10;
-m = 10;
-dv_it = linspace(9, 10.5, n);
+n = 1;
+m = 100;
+dv_it = linspace(10, 10, n);
 diam1_it = linspace(1, 1.6, m);
 
 % M_it = zeros(n*m,1);
