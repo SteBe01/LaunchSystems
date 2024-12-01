@@ -22,7 +22,7 @@ phi = 0;       % IN CASE of ELLIPSE --> orientation wrt the normal velocity
 data = xlsread('Dataset Cdn.xlsx', 'Default Dataset');
 nose_type = 'C';    % C --> conical, TO --> tangent ogive
 % INPUT Area dell'ala:
-S_wing = 1;        % m^2
+S_wing = 3;        % m^2
 
 GEO_funzione2 = struct('x', x, 'a', a, 'phi', phi, 'nose_type', nose_type, 'nose_data', data, 'S_wing', S_wing);
 % x --> vettore delle posizioni longitudinali
@@ -144,9 +144,9 @@ for p=1:length(h_v)
 end
 toc
 
-save('data_CD_GEO2_S1m^2.mat', 'CD_mat')
-save('data_CL_GEO2_S1m^2.mat', 'CL_mat')
-save('data_Xcp_GEO2_S1m^2.mat', 'Xcp_mat')
+save('data_CD_GEO2_S3m^2.mat', 'CD_mat')
+save('data_CL_GEO2_S3m^2.mat', 'CL_mat')
+save('data_Xcp_GEO2_S3m^2.mat', 'Xcp_mat')
 
 figure
 plot(Mach_v, CL, '.-', Color='b', LineWidth=2)
