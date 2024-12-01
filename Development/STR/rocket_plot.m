@@ -1,6 +1,6 @@
 
 %% run this with the relative .mat file
-
+clc;
 
 r = 28; %row of the data selected
 
@@ -56,10 +56,31 @@ y2 = y1;
 x2 = @(k) h9 - ( h2 + h_it(r).stg1.cyl_lox + cap1(k) );
 plot(x2(y2), y2, '-k');
 AR_1 = ( r1 + h_it(r).stg1.C2 ) / ( h_it(r).stg1.dome_lox + h_it(r).stg1.C2);
-cap3 = @(k) sqrt( ( r1 + h_it(r).stg1.C2 )^2 - k.^2)/AR_1;
-y3 = y1;
-x3 = @(k) h9 - ( h2 + h_it(r).stg1.cyl_lox + cap3(k) );
+cap1_AR_1 = @(k) sqrt( ( r1 + h_it(r).stg1.C2 )^2 - k.^2)/AR_1;
+y3 = y1;%linspace(-r1 - h_it(r).stg1.C2, r1 + h_it(r).stg1.C2, 1e4); 
+x3 = @(k) h9 - ( h2 + h_it(r).stg1.cyl_lox + cap1_AR_1(k) );
 plot(x3(y3), y3, '-k');
+y4 = y1;
+x4 = @(k) h9 - ( h3 + cap1(k) );
+plot(x4(y4), y4, '-k');
+cap2 = @(k) sqrt(r2^2 - k.^2)/AR;
+y5 = y1;
+x5 = @(k) h9 - ( h5 - cap2(k) );
+plot(x5(y5), y5, '-k');
+y6 = y1;
+x6 = @(k) h9 - ( h5 + h_it(r).stg2.cyl_lox + cap2(k) );
+plot(x6(y6), y6, '-k');
+AR_2 = ( r2 + h_it(r).stg2.C2 ) / ( h_it(r).stg2.dome_lox + h_it(r).stg2.C2);
+cap2_AR_2 = @(k) sqrt( ( r2 + h_it(r).stg2.C2 )^2 - k.^2)/AR_2;
+y7 = y1;%linspace(-r2 - h_it(r).stg2.C2, r2 + h_it(r).stg2.C2, 1e4); 
+x7 = @(k) h9 - ( h5 + h_it(r).stg2.cyl_lox + cap2_AR_2(k) );
+plot(x7(y7), y7, '-k');
+y8 = y1;
+x8 = @(k) h9 - ( h6 + cap2(k) );
+plot(x8(y8), y8, '-k');
 
-
+%fairing plot:
+x9 = h9 - h8 * ones(2,1);
+y9 = [-r2; r2];
+plot(x9, y9, '--k');
 
