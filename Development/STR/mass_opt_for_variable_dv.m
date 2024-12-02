@@ -18,10 +18,12 @@ loads.nx = 7; %longitudinal acceleration load factor [-]
 loads.nz = 1.0;%transversal acceleration load factor [-]
 loads.K = 1.50; %loads resistance safety factor [-]
 
+a = 0.71; %balancing factor for iterative method
 n = 1;
 m = 100;
 dv_it = linspace(10, 10, n);
 diam1_it = linspace(1, 1.6, m);
+Nmax = 200; %maximum number of iterations for the while loop
 
 % M_it = zeros(n*m,1);
 % h_it = zeros(n*m,1);
@@ -57,7 +59,7 @@ for j = 1:n
     M1.stg = 1; %[#] stage ID
     h1.motor = 0.75; %[m] height of the motor
     h1.h0 = 0; %[m] starting height
-    mat1 = 8; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7, 8 for Al 6061 T6 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+    mat1 = 8; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7, 8 for Al 6061 T6, 9 for 300M Steel alloy %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
     press1 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
     
     %stage 2
@@ -91,7 +93,6 @@ for j = 1:n
     
     %while loop parameters:
     i = 2;
-    Nmax = 5000;
     err = 1;
     tol = 1e-8;
     eps_real = zeros(2, Nmax-1);
@@ -192,7 +193,6 @@ for j = 1:n
         [M1, h1, th1] = inert_mass_common_dome(M1, h1, diam1, AR, loads1, mat1, press1);
     
         %recover eps_real:
-        a = 0.4;
         eps_real(:,i) = (1-a) * eps_real(:,i-1) + (a) * [M1.eps; M2.eps];
     
         %recover real dimensions of M1, M2, of the fairing and of the adapter:
@@ -253,6 +253,7 @@ for j = 1:n
     M.diam2 = diam2;
     M.th1 = th1;
     M.th2 = th2;
+    M.i = i;
 
     %height
     h.fairing = fairing.L; %[m] height of the fairing
@@ -1531,6 +1532,13 @@ switch mat_id
         sy = 276 * 1e6; %[Pa] tensile yield stress
         su = 310 * 1e6; %[Pa] tensile ultimate stress
         nu = 0.33; %[-] Poisson's ratio
+    case 9 % 300M Steel alloy
+        rho = 7830; %[kg/m^3]
+        t_min = 0.25 * 1e-3; %[m] minimum thickness for manufacturability
+        E = 207 * 1e9; %[Pa] young modulus
+        sy = 1586 * 1e6; %[Pa] tensile yield stress
+        su = 1931 * 1e6; %[Pa] tensile ultimate stress
+        nu = 0.3; %[-] Poisson's ratio
 end
 
 %recover material properties:

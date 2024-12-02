@@ -2,7 +2,7 @@
 %% run this with the relative .mat file
 clc;
 
-r = 100; %row of the data selected
+r = 28; %row of the data selected
 
 %fundamental parameters recovery
 AR = h_it(r).stg1.R_lox / h_it(r).stg1.dome_lox; %[-] aspect ratio of the tanks
@@ -111,9 +111,9 @@ xstg2 = h9 - h_it(r).stg1.tot * ones(2,1);
 plot(xstg2, ystg2, '-k');
  
 %adapter:
-h_ad = r1 / 2;
-r1_ad = r1 / 1.6;
-r2_ad = r1 / 1.2;
+h_ad = r2 / 2;
+r1_ad = r2 / 1.6;
+r2_ad = r2 / 1.2;
 X_a = (h9 - h7) - [0, 0, h_ad, h_ad, 0, 0];
 Y_a = [0, r2_ad, r1_ad, -r1_ad, -r2_ad, 0];
 plot(X_a, Y_a, '--r'); %adapter
