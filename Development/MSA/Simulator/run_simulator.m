@@ -49,6 +49,18 @@ function [T, Y, idxStage, parout] = run_simulator(stages, params, init)
         parout.dv_s2 = dv_drag_s2(end) + dv_grav_s2(end) + dv_thrust_s2;
 
         parout.coeffs = [parout_stg1.coeffs; parout_stg2.coeffs];
+
+        for ii = 1:idxStage
+            parout.dcm(:,:,ii) = parout_stg1.dcm(:,:,ii);
+        end
+        for ii = 1:length(T2)
+            parout.dcm(:,:,idxStage+ii) = parout_stg2.dcm(:,:,ii);
+        end
+        parout.F_in = [parout_stg1.F_in; parout_stg2.F_in];
+
+        parout.F_L_in = [parout_stg1.F_L_in; parout_stg1.F_L_in];
+        parout.F_D_in = [parout_stg1.F_D_in; parout_stg1.F_D_in];
     end
 
 end
+

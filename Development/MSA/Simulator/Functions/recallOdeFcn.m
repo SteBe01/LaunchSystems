@@ -11,6 +11,11 @@ m = zeros(length(T), 1);
 dv_grav_vec = zeros(length(T), 1);
 delta = zeros(length(T),1);
 coeffs = zeros(length(T), 3);
+dcm = zeros(2,2,length(T));
+
+F_in = zeros(length(T), 2);
+F_L_in = zeros(length(T), 2);
+F_D_in = zeros(length(T), 2);
 
 clear dyn
 for ii = 1:length(T)
@@ -26,6 +31,11 @@ for ii = 1:length(T)
     dv_grav_vec(ii) = parout.dv_grav;
     delta(ii) = parout.delta;
     coeffs(ii, :) = parout.coeffs;
+    dcm(:,:,ii) = parout.dcm;
+
+    F_in(ii, :) = parout.F_in;
+    F_L_in(ii,:) = parout.F_L_in;
+    F_D_in(ii,:) = parout.F_D_in;
 end
 
 ode_out.qdyn = qdyn;
@@ -39,6 +49,11 @@ ode_out.m = m;
 ode_out.dv_grav_vec = dv_grav_vec;
 ode_out.delta = delta;
 ode_out.coeffs = coeffs;
+ode_out.dcm = dcm;
+
+ode_out.F_in = F_in;
+ode_out.F_L_in = F_L_in;
+ode_out.F_D_in = F_D_in;
 
 end
 

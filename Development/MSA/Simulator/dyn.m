@@ -48,7 +48,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     end
 
     velsNorm = norm([xDot zDot]);
-    rot_angle = theta - pi/2;
+    rot_angle = theta;
     dcm = [cos(rot_angle) -sin(rot_angle); sin(rot_angle) cos(rot_angle)];
     gamma = atan2(zDot, xDot);
     alpha = theta-gamma;
@@ -86,7 +86,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
 
     % Aerodynamic coefficients
     if current_stage == 1
-        interpValues = params.coeffs({1:4, M, alpha, z});
+        interpValues = params.coeffs({1:4, M, rad2deg(alpha), z});
         Cd = interpValues(1)*params.CD_mult;
         Cl = interpValues(2)*params.CL_mult;
         xcp = interpValues(3);
@@ -104,6 +104,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     angle = getPitch(params.pitch, z);
     err = theta - angle;
     delta = -stage.k1*err - stage.k2*thetaDot - stage.k3*alpha;
+    delta = -delta;
     if abs(delta) > stage.deltaMax 
         delta = stage.deltaMax*sign(delta);
     end
@@ -133,11 +134,18 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     end
 
     % Forces on the rocket in inertial frame
-    F_z = -g*m -D*cos(pi/2-gamma) +L*sin(pi/2-gamma) +T*cos(delta)*sin(theta);
-    F_x = -D*sin(pi/2-gamma) -L*cos(pi/2-gamma) +T*cos(delta)*cos(theta);
+    F_x = L*sin(alpha)*sign(alpha) - D*cos(alpha) + T*cos(delta) - m*g*sin(theta);
+    F_z = L*cos(alpha)*sign(alpha) + D*sin(alpha) + T*sin(alpha) - m*g*cos(theta);
+    F_body = [F_x F_z]';
+    F_in = dcm*F_body;
+    F_x = F_in(1);
+    F_z = F_in(2);
+
+    F_L_in = dcm*[L*sin(alpha)*sign(alpha) L*cos(alpha)*sign(alpha)]';
+    F_D_in = dcm*[-D*cos(alpha) D*sin(alpha)]';
 
     % Moment on the rocket
-    M_t = T*sin(delta)*(stage.length - xcg) +D*sin(alpha)*(xcp - xcg) + L*cos(alpha)*(xcp - xcg);
+    M_t = - L*cos(alpha)*(xcp - xcg) - D*sin(alpha)*(xcp - xcg) - T*sin(delta)*(stage.length - xcg);
 
     % Derivative vector
     dY = zeros(7, 1);
@@ -167,6 +175,11 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
         parout.dv_drag = -0.5*S*Cd/stage.m0*rho*velsNorm^2*stage.m0/m;
         parout.delta = delta;
         parout.coeffs = [Cd Cl xcp];
+
+        parout.dcm = dcm;
+        parout.F_in = F_in';
+        parout.F_L_in = F_L_in;
+        parout.F_D_in = F_D_in;
     end
 end
 

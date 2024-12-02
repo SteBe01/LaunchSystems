@@ -20,21 +20,21 @@ stages.stg1.Pe = PRP_mat.p_e;
 stages.stg2.Pe = PRP_mat.p_e;
 
 wingSurf = 1;
-AER_mat_path = strcat("../../AER/MSA/RISULTATI v1/", "matrici funzione2 S", num2str(wingSurf),"m2/");
-CD_mat = load(strcat(AER_mat_path, "data_CD_GEO1_S1m^2.mat")).CD_mat;
-CL_mat = load(strcat(AER_mat_path, "data_CL_GEO1_S1m^2.mat")).CL_mat;
-Xcp_mat = load(strcat(AER_mat_path, "data_Xcp_GEO1_S1m^2.mat")).Xcp_mat;
+AER_mat_path = strcat("../../AER/MSA/RISULTATI v2/", "S", num2str(wingSurf),"m^2/");
+CD_mat = load(strcat(AER_mat_path, "data_CD_GEO2_S",num2str(wingSurf),"m^2.mat")).CD_mat;
+CL_mat = load(strcat(AER_mat_path, "data_CL_GEO2_S",num2str(wingSurf),"m^2.mat")).CL_mat;
+Xcp_mat = load(strcat(AER_mat_path, "data_Xcp_GEO2_S",num2str(wingSurf),"m^2.mat")).Xcp_mat;
 
 AER_mat = cat(4, CD_mat, CL_mat, Xcp_mat);
 AER_mat = permute(AER_mat, [4 1 2 3]);
 params.coeffs = griddedInterpolant({(1:3)', (0.3:0.1:8)', (0:5:50)', (11000:500:84000)'}, AER_mat, "linear", "nearest");
-params.CD_mult = 1;     % Multiplier for CD
-params.CL_mult = 1;     % Multiplier for CL
+params.CD_mult = 0.2;     % Multiplier for CD
+params.CL_mult = 0.01;     % Multiplier for CL
 
 %% General parameters
-stages.stg1.MR = 6.45;
-stages.stg2.MR = 2.51;
-stages.stg1.Isp = 328;
+stages.stg1.MR = 3.4983;
+stages.stg2.MR = 6.0115;
+stages.stg1.Isp = 324.5;
 stages.stg2.Isp = 343;
 stages.stg1.A_eng = 0.0953;
 stages.stg2.A_eng = 0.0953;
@@ -47,19 +47,13 @@ stages.stg2.m0 = stages.stg1.m0 - stages.stg1.m_prop - 1400;
 stages.stg2.m_prop = stages.stg2.m0 * (1 - 1/stages.stg2.MR);
 stages.stg2.t_burn_tot = stages.stg2.m_prop/(stages.stg2.m_dot(end)*stages.stg2.N_mot);
 
-stages.stg1.m_prop_final = 0.05*stages.stg1.m_prop;
+stages.stg1.m_prop_final = 0.0*stages.stg1.m_prop;
 stages.stg2.m_prop_final = 0.05*stages.stg2.m_prop;
 
-stages.stg1.d = 1.2;
-stages.stg2.d = 1.2;
-% stages.stg1.Cd = 0.8;
-% stages.stg2.Cd = 0.5;
-% stages.stg1.Cl = 2;
-% stages.stg2.Cl = 0.0;
-% stages.stg1.xcp = 16;
-% stages.stg2.xcp = 4;
-stages.stg1.length = 21.25;
-stages.stg2.length = 4.6;
+stages.stg1.d = 1.1636;
+stages.stg2.d = 1.1636;
+stages.stg1.length = 21.71;
+stages.stg2.length = 8.16;
 
 % Initial conditions
 init.x0 = 0;                                    % [m]
@@ -107,10 +101,10 @@ stages.stg2.deltaMax = deg2rad(5);
 
 %% pitch program
 
-params.pitch.first_angle = deg2rad(30);
-params.pitch.order = 2;
+params.pitch.first_angle = deg2rad(40);
+params.pitch.order = 1;
 params.pitch.initial_altitude = 11e3;
-params.pitch.final_altitude = 400e3;
+params.pitch.final_altitude = 500e3;
 
 end
 
