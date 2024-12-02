@@ -18,10 +18,11 @@ addpath(genpath("Functions_events"))
 
 clc
 
-len = length(parout.acc);
+len = length(parout.dcm);
 
 F_L_in = parout.F_L_in;
 norma_old = 1;
+max_L = 1;
 for ii = 1:length(F_L_in)
     F_L_in_temp = F_L_in(ii,:);
     norma = norm(F_L_in_temp);
@@ -58,14 +59,15 @@ for ii = 1:len
     plt1 = plot([dcm(1,1) 0],[dcm(2,1) 0], Color="black");  % body axis
     plt2 = plot([dcm(1,2) 0],[dcm(2,2) 0], Color="black");  % body axis
 
-    plt3 = plot([Y(ii,3) 0],[Y(ii,4) 0], Color="blue");  % wind
+    wind_norm = norm(Y(ii,3:4));
+    plt3 = plot([Y(ii,3)./wind_norm 0],[Y(ii,4)./wind_norm 0], Color="blue");  % wind
 
     plt4 = plot([F_L_in(1) 0],[F_L_in(2) 0], Color="red");
     plt5 = plot([F_D_in(1) 0],[F_D_in(2) 0], Color="red");
 
     drawnow
     fprintf("Theta: %3.1f deg\n", rad2deg(Y(ii, 5)))
-    fprintf("%d, Position: vz = %1.3f km/s, h = %3.1f km\n", ii, Y(ii, 4)./1e3, Y(ii, 2)./1e3)
+    fprintf("%d, Position: vz = %1.3f km/s, vx = %1.3f km/s, h = %3.1f km\n", T(ii), Y(ii, 4)./1e3, Y(ii, 3)./1e3, Y(ii, 2)./1e3)
 
     % pause(0.01)
     
@@ -75,4 +77,6 @@ for ii = 1:len
     delete(plt4)
     delete(plt5)
 end
+
+close all
 

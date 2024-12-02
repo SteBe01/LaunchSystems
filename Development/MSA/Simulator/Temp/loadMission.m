@@ -10,10 +10,10 @@ stages.stg1.STR_mat = STR_mat(:,:,1);
 stages.stg2.STR_mat = STR_mat(:,:,2);
 
 PRP_mat = load("..\MAT_Files\PRP_mat.mat").throttle;
-% stages.stg1.Thrust = PRP_mat.TT;
-% stages.stg2.Thrust = PRP_mat.TT.*1.05;
-stages.stg1.Thrust = 0;
-stages.stg2.Thrust = 0;
+stages.stg1.Thrust = PRP_mat.TT;
+stages.stg2.Thrust = PRP_mat.TT.*1.05;
+% stages.stg1.Thrust = 22.4*1e3*9;
+% stages.stg2.Thrust = 0;
 stages.stg1.m_dot = PRP_mat.m_dot;
 stages.stg2.m_dot = PRP_mat.m_dot;
 stages.stg1.throttling = PRP_mat.manetta./100;
@@ -21,7 +21,7 @@ stages.stg2.throttling = PRP_mat.manetta./100;
 stages.stg1.Pe = PRP_mat.p_e;
 stages.stg2.Pe = PRP_mat.p_e;
 
-wingSurf = 3;
+wingSurf = 1;
 AER_mat_path = strcat("../../AER/MSA/RISULTATI v2/", "S", num2str(wingSurf),"m^2/");
 CD_mat = load(strcat(AER_mat_path, "data_CD_GEO2_S",num2str(wingSurf),"m^2.mat")).CD_mat;
 CL_mat = load(strcat(AER_mat_path, "data_CL_GEO2_S",num2str(wingSurf),"m^2.mat")).CL_mat;
@@ -30,8 +30,8 @@ Xcp_mat = load(strcat(AER_mat_path, "data_Xcp_GEO2_S",num2str(wingSurf),"m^2.mat
 AER_mat = cat(4, CD_mat, CL_mat, Xcp_mat);
 AER_mat = permute(AER_mat, [4 1 2 3]);
 params.coeffs = griddedInterpolant({(1:3)', (0.3:0.1:8)', (0:5:50)', (11000:500:84000)'}, AER_mat, "linear", "nearest");
-params.CD_mult = 1;     % Multiplier for CD
-params.CL_mult = 1;     % Multiplier for CL
+params.CD_mult = 0.01;     % Multiplier for CD
+params.CL_mult = 0.01;     % Multiplier for CL
 
 %% General parameters
 stages.stg1.MR = 3.58;
@@ -66,8 +66,8 @@ stages.stg2.length = 4.6;
 % Initial conditions
 init.x0 = 0;                                    % [m]
 init.z0 = 11e3;                                 % [m]
-init.vx0 = 400;                                 % [m/s]
-init.vz0 = 200;                                   % [m/s]
+init.vx0 = 200;                                 % [m/s]
+init.vz0 = 0;                                   % [m/s]
 init.theta0 = atan2(init.vz0,init.vx0);         % [rad]
 init.thetaDot0 = deg2rad(0);                    % [rad/s]
 init.m_prop = stages.stg1.m_prop;               % [kg]

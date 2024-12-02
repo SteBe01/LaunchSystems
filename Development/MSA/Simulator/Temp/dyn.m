@@ -27,7 +27,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     Re = params.Re;
 
     % Environment data
-    [~, a, ~, rho] = computeAtmosphericData(z);
+    [~, a, P, rho] = computeAtmosphericData(z);
     g = params.g0/((1+z/Re)^2);                     % [m/s^2]   - Gravity acceleration taking into account altitude
     % rho = getDensity(z);                            % [kg/m^3]  - Density at current altitude
     qdyn = 0.5*rho*velsNorm^2;                      % [Pa]      - Dynamic pressure
@@ -42,11 +42,24 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     I_mat = interp1(stage.STR_mat(:,1), stage.STR_mat(:, 3:5), m_prop_left, "linear", "extrap");
     I = I_mat(2);
 
-    % Engine parameters 
-    m_dot = 0;
+    % Engine parameters
+    throttling = 1;
+    Thrust = interp1(stage.throttling, stage.Thrust, throttling, 'linear', 'extrap');
+    m_dot = interp1(stage.throttling, stage.m_dot, throttling, 'linear', 'extrap');
+    Pe = interp1(stage.throttling, stage.Pe, throttling, 'linear', 'extrap');
+
+    % Thrust & mass estimation
+    t_wait = 0;
+    if t > t_wait && m_prop_left > stage.m_prop_final
+        T = (Thrust + stage.A_eng*(Pe-P))*stage.N_mot;
+    else
+        T = 0;
+        m_dot = 0;
+    end
+    m = stage.m0 - stage.m_prop + m_prop_left;
 
     % Aerodynamic coefficients
-    interpValues = params.coeffs({1:4, M, alpha, z});
+    interpValues = params.coeffs({1:4, M, rad2deg(alpha), z});
     Cd = interpValues(1)*params.CD_mult;
     Cl = interpValues(2)*params.CL_mult;
     xcp = interpValues(3);
@@ -60,16 +73,15 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     L = qdyn*S*Cl;                            % [N]       - Lift force acting on the rocket
     
     % PID controller
+    % angle = deg2rad(45);
     angle = getPitch(params.pitch, z);
     err = theta - angle;
     delta = -stage.k1*err - stage.k2*thetaDot - stage.k3*alpha;
+    delta = -delta;
     if abs(delta) > stage.deltaMax 
         delta = stage.deltaMax*sign(delta);
     end
-
-    % Thrust & mass estimation
-    T = 0;
-    m = stage.m0;
+    % delta = deg2rad(-1);
 
     % Forces on the rocket in inertial frame
     F_x = L*sin(alpha)*sign(alpha) - D*cos(alpha) + T*cos(delta) - m*g*sin(theta);
