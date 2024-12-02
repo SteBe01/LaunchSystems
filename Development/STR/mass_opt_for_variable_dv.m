@@ -7,7 +7,7 @@ clear;
 close all;
 
 %data from other departments:
-Is = [323; 343]; %[s] stages Is
+Is = [324; 343]; %[s] stages Is
 M.pay = 250; %[kg] nominal payload mass
 M.pay_max = 400; %[kg] maximum payload mass
 M.adapter = 0.0755 * M.pay + 50; %[kg] estimated mass from Edberg-Costa
@@ -55,7 +55,7 @@ for j = 1:n
     M1.avionics = 75 * 0.2; %[kg] from Edberg-Costa
     M1.other = 250; %[kg] 
     M1.stg = 1; %[#] stage ID
-    h1.motor = 0.89; %[m] height of the motor
+    h1.motor = 0.75; %[m] height of the motor
     h1.h0 = 0; %[m] starting height
     mat1 = 8; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7, 8 for Al 6061 T6 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
     press1 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
@@ -109,9 +109,9 @@ for j = 1:n
         end
 
         %compute stage parameters:
-        M1.motor = ceil(TW1 * M.M0 * 9.81 / T1) * 35; %[kg] total motor mass of first stage
+        M1.motor = ceil(TW1 * M.M0 * 9.81 / T1) * 40; %[kg] total motor mass of first stage
         M2.motor = ceil(TW2 * M.M1 * 9.81 / T2) * 45; %[kg] total motor mass of second stage
-        M1.n_mot = M1.motor / 35; %[-] number of motors of first stage
+        M1.n_mot = M1.motor / 40; %[-] number of motors of first stage
         M2.n_mot = M2.motor / 45; %[-] number of motors of second stage
         M1.Thrust = M1.n_mot * T1; %[N] total thrust of first stage
         M2.Thrust = M2.n_mot * T2; %[N] total thrust of second stage
@@ -251,6 +251,8 @@ for j = 1:n
     M.n_mot2 = M2.n_mot;
     M.diam1 = diam1;
     M.diam2 = diam2;
+    M.th1 = th1;
+    M.th2 = th2;
 
     %height
     h.fairing = fairing.L; %[m] height of the fairing
