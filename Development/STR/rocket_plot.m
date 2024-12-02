@@ -2,7 +2,7 @@
 %% run this with the relative .mat file
 clc;
 
-r = 28; %row of the data selected
+r = 90; %row of the data selected
 
 %fundamental parameters recovery
 AR = h_it(r).stg1.R_lox / h_it(r).stg1.dome_lox; %[-] aspect ratio of the tanks
@@ -40,7 +40,7 @@ xCG = h9 - hCG; %[m] total rocket CoM position (in "x" coordinates)
 yCG = 0; %[m]
 
 %silhouette plot:
-figure(4)
+figure(5)
 plot(x, y, '-k'); grid on; axis equal; hold on;
 % plot([diam1/2, -diam1/2], [h1.til_tank-h1.dome_rp1,h1.til_tank-h1.dome_rp1], '--k');
 % plot([diam2/2, -diam2/2], [h1.attach,h1.attach], '--k');
@@ -64,18 +64,18 @@ y4 = y1;
 x4 = @(k) h9 - ( h3 + cap1(k) );
 plot(x4(y4), y4, '-k');
 cap2 = @(k) sqrt(r2^2 - k.^2)/AR;
-y5 = y1;
+y5 = linspace(-r2, r2, 1e4);
 x5 = @(k) h9 - ( h5 - cap2(k) );
 plot(x5(y5), y5, '-k');
-y6 = y1;
+y6 = y5;
 x6 = @(k) h9 - ( h5 + h_it(r).stg2.cyl_lox + cap2(k) );
 plot(x6(y6), y6, '-k');
 AR_2 = ( r2 + h_it(r).stg2.C2 ) / ( h_it(r).stg2.dome_lox + h_it(r).stg2.C2);
 cap2_AR_2 = @(k) sqrt( ( r2 + h_it(r).stg2.C2 )^2 - k.^2)/AR_2;
-y7 = y1;%linspace(-r2 - h_it(r).stg2.C2, r2 + h_it(r).stg2.C2, 1e4); 
+y7 = y5;%linspace(-r2 - h_it(r).stg2.C2, r2 + h_it(r).stg2.C2, 1e4); 
 x7 = @(k) h9 - ( h5 + h_it(r).stg2.cyl_lox + cap2_AR_2(k) );
 plot(x7(y7), y7, '-k');
-y8 = y1;
+y8 = y5;
 x8 = @(k) h9 - ( h6 + cap2(k) );
 plot(x8(y8), y8, '-k');
 
@@ -83,4 +83,13 @@ plot(x8(y8), y8, '-k');
 x9 = h9 - h8 * ones(2,1);
 y9 = [-r2; r2];
 plot(x9, y9, '--k');
+x10 = h9 - h7 * ones(2,1);
+y10 = y9;
+plot(x10, y10, '--k');
+
+%motor #i:
+xm = h9 - [0, 0.5, 0.6, 0.89, 0.89, 0.6, 0.5, 0];
+ym = [0.15, 0.05, 0.13, 0.13, -0.13, -0.13, -0.05, -0.15];
+plot(xm, ym, '-k')
+
 
