@@ -53,7 +53,7 @@ function obj = objFun(x, stages, params, init)
     stages.stg2.m_prop_final = x(2);
     params.pitch.first_angle = x(3);
 
-    [~, Y, idxStage] = run_simulator(stages, params, init);
+    [~, Y, idxStage] = run_simulator(stages, params, init, 1);
 
     obj = norm([Y(idxStage,2) Y(idxStage, 3)]);
 end
@@ -63,7 +63,7 @@ function [c, ceq] = nonlinconstr(x, stages, params, init)
     stages.stg2.m_prop_final = x(2);
     params.pitch.first_angle = x(3);
 
-    [~, Y] = run_simulator(stages, params, init);
+    [~, Y] = run_simulator(stages, params, init, 1);
 
     v_orbit = sqrt(398600/(400+params.Re*1e-3));
 
