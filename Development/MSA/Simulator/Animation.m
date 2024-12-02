@@ -11,7 +11,7 @@ addpath(genpath("Functions_events"))
 
 [stages, params, init] = loadMission();
 
-[T, Y, idxStage, parout] = run_simulator(stages, params, init);
+[T, Y, idxStage, parout] = run_simulator(stages, params, init, 1);
 
 
 %% Animation
