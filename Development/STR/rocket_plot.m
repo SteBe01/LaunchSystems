@@ -25,7 +25,8 @@ h6 = h5 + h_it(r).stg2.cyl_lox +...
     h_it(r).stg2.C2 + h_it(r).stg2.cyl_rp1; %[m] height at which the cylindrical part of the rp1 tank ends (second stage)
 h7 = h6 + h_it(r).stg2.C1; %[m] height of the second stage end
 %fairing:
-h8 = h7 + h_it(r).fairing - 2 * diam2; %[m] height at which the fairing cone starts
+% h8 = h7 + h_it(r).fairing - 2 * diam2; %[m] height at which the fairing cone starts
+h8 = h7; %[m] height at which the fairing cone starts
 h9 = h7 + h_it(r).fairing; %[m] total height of the rocket
 %CoM:
 hCG = h_it(r).CG; %[m] total rocket CoM position (in "h" coordinates)
@@ -119,10 +120,10 @@ Y_a = [0, r2_ad, r1_ad, -r1_ad, -r2_ad, 0];
 plot(X_a, Y_a, '--r'); %adapter
 
 %payload
-r_pl = 0.95 * r1_ad;
+r_pl = 0.90 * r1_ad;
 theta = linspace(0, 2*pi, 3e1 + 1);
 ypl = r_pl * sin(theta);
-xpl = (h9 - h7 - h_ad * 0.8 - r_pl ) + r_pl * cos(theta);
+xpl = (h9 - h7 - h_ad * 0.3 - r_pl ) + r_pl * cos(theta);
 plot( xpl, ypl, '--b');
 
 

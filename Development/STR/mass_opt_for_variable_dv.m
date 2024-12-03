@@ -1614,7 +1614,8 @@ r1_ad = d0 / 3;
 r2_ad = d0 / 2;
 
 %find height of the cylindrical part of the fairing
-L1 = L_min + b + h_ad; %[m] 
+% L1 = L_min + b + h_ad; %[m] 
+L1 = 0; %[m] as per EDBERG-COSTA
 
 %surface of the fairing
 S_cyl = L1 * pi * d0; %[m^2] cylinder surface
