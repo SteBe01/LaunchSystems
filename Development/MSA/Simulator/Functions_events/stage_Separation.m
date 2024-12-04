@@ -8,6 +8,7 @@ function [value, isterminal, direction] = stage_Separation(t, y, stage)
         t_stop = t;
     end
 
+    % value = y(2);
     value = t - (t_stop+3);
     % value = t - (stage.t_burn_tot + stage.t_wait + 1);
     % value = y(2);

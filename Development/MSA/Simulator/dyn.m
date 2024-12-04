@@ -9,13 +9,21 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     % Y(7) = mass_prop_left
 
     % Retrieve data from ode
-    % x = y(1);
+    x = y(1);
     z = y(2);
     xDot = y(3);
     zDot = y(4);
     theta = y(5);
     thetaDot = y(6);
     m_prop_left = y(7);
+
+    h = norm([x z]);
+
+    % Retrieve data used multiple times 
+    Re = params.Re;
+
+    % Angle of radius vector
+    beta = atan2(z, x);
 
     m_prop_left = m_prop_left*(m_prop_left >= 0);
 
@@ -36,13 +44,13 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
 
     if current_stage == 2 && ~SEPARATION && nargout == 1
         if params.dispStat
-            fprintf("[%3.1f km] - Stage separation\n", z*1e-3)
+            fprintf("[%3.1f km] - Stage separation\n", (z - Re)*1e-3)
         end
         SEPARATION = true;
     end
     if current_stage == 2 && y(4) < 0 && ~APOGEE && nargout == 1
         if params.dispStat
-            fprintf("[%3.1f km, vx = %4.3f km/s] - Apogee\n", z*1e-3, y(3)*1e-3)
+            fprintf("[%3.1f km, vx = %4.3f km/s] - Apogee\n", (h - Re)*1e-3, y(3)*1e-3)
         end
         APOGEE = true;
     end
@@ -59,16 +67,15 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
         t_wait = stage.t_ign;
     end
 
-    % Retrieve data used multiple times 
-    Re = params.Re;
-
     % Environment data
-    [~, a, P, rho] = computeAtmosphericData(z);
-    g = params.g0/((1+z/Re)^2);                     % [m/s^2]   - Gravity acceleration taking into account altitude
-    % rho = getDensity(z);                            % [kg/m^3]  - Density at current altitude
+    [~, a, P, rho] = computeAtmosphericData(h - Re);
+    g = 398600*1e9/h^2;
+    if abs(g) > 1e2
+        warning("Module of gravity has gone out of safe values. g: " + num2str(g));
+    end
+
     qdyn = 0.5*rho*velsNorm^2;                      % [Pa]      - Dynamic pressure
     S = pi*(stage.d^2/4);                           % [m^2]     - Rocket surface area
-    % P = getPressure(z);
     M = velsNorm/a;
 
     % Compute all necessary interpolations
@@ -86,7 +93,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
 
     % Aerodynamic coefficients
     if current_stage == 1
-        interpValues = params.coeffs({1:4, M, rad2deg(alpha), z});
+        interpValues = params.coeffs({1:4, M, rad2deg(alpha), (h - Re)});
         Cd = interpValues(1)*params.CD_mult;
         Cl = interpValues(2)*params.CL_mult;
         xcp = interpValues(3);
@@ -99,15 +106,6 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     % Aerodynamic forces
     D = qdyn*S*Cd;                            % [N]       - Drag force acting on the rocket
     L = qdyn*S*Cl;                            % [N]       - Lift force acting on the rocket
-    
-    % PID controller
-    angle = getPitch(params.pitch, z);
-    err = theta - angle;
-    delta = -stage.k1*err - stage.k2*thetaDot - stage.k3*alpha;
-    delta = -delta;
-    if abs(delta) > stage.deltaMax 
-        delta = stage.deltaMax*sign(delta);
-    end
 
     % Thrust & mass estimation
     if t > t_wait && m_prop_left > stage.m_prop_final
@@ -122,24 +120,37 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage)
     if m_prop_left <= stage.m_prop_final
         if current_stage == 1 && ~MECO && nargout == 1
             if params.dispStat
-                fprintf("[%3.1f km] - MECO\n", z*1e-3)
+                fprintf("[%3.1f km] - MECO\n", (z - Re)*1e-3)
             end
             MECO = true;
         elseif current_stage == 2 && ~SECO && nargout == 1
             if params.dispStat
-                fprintf("[%3.1f km] - SECO\n", z*1e-3)
+                fprintf("[%3.1f km] - SECO\n", (z - Re)*1e-3)
             end
             SECO = true;
         end
     end
+    
+    % PID controller
+    if T ~= 0
+        angle = getPitch(params.pitch, (h - Re));
+        err = theta - angle;
+        delta = -stage.k1*err - stage.k2*thetaDot - stage.k3*alpha;
+        delta = -delta;
+        if abs(delta) > stage.deltaMax
+            delta = stage.deltaMax*sign(delta);
+        end
+    else
+        delta = 0;
+    end
 
     % Forces on the rocket in inertial frame
-    F_x = L*sin(alpha)*sign(alpha) - D*cos(alpha) + T*cos(delta) - m*g*sin(theta);
-    F_z = L*cos(alpha)*sign(alpha) + D*sin(alpha) + T*sin(alpha) - m*g*cos(theta);
+    F_x = L*sin(alpha)*sign(alpha) - D*cos(alpha) + T*cos(delta);
+    F_z = L*cos(alpha)*sign(alpha) + D*sin(alpha) + T*sin(alpha);
     F_body = [F_x F_z]';
     F_in = dcm*F_body;
-    F_x = F_in(1);
-    F_z = F_in(2);
+    F_x = F_in(1) - m*g*cos(beta);
+    F_z = F_in(2) - m*g*sin(beta);
 
     F_L_in = dcm*[L*sin(alpha)*sign(alpha) L*cos(alpha)*sign(alpha)]';
     F_D_in = dcm*[-D*cos(alpha) D*sin(alpha)]';

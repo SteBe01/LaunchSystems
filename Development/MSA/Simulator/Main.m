@@ -4,6 +4,7 @@ clear, clc
 close all
 clear dyn
 clear stage_Separation
+clear orbit_revolution
 
 full_flight = 1;
 

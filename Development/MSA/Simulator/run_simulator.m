@@ -1,7 +1,8 @@
 function [T, Y, idxStage, parout] = run_simulator(stages, params, init, full_flight)
 
-    clear dyn stage_Separation
+    clear dyn stage_Separation orbit_revolution
 
+    T = 2*pi*sqrt(6778^3/398600);
     t_max = 1e4;
     
     %% First stage simulation
@@ -10,10 +11,10 @@ function [T, Y, idxStage, parout] = run_simulator(stages, params, init, full_fli
     if full_flight
         options_stg1 = odeset('RelTol',1e-8, 'MaxStep', 0.1, 'Events', @(t, y) stage_Separation(t, y, stages.stg1));
     else
-        options_stg1 = odeset('RelTol',1e-8, 'MaxStep', 0.1, 'Events', @(t, y) touchdown(t, y));
+        options_stg1 = odeset('RelTol',1e-8, 'MaxStep', 0.1, 'Events', @(t, y) touchdown(t, y, params));
         warning("Mass not updated (considering whole rocket, no stage separation)")
     end
-    [T1, Y1] = ode113(@(t,y) dyn(t, y, stages.stg1, params, 1), [0 t_max], y0_stg1, options_stg1);
+    [T1, Y1] = ode45(@(t,y) dyn(t, y, stages.stg1, params, 1), [0 t_max], y0_stg1, options_stg1);
     clear dyn
 
     T = T1;
@@ -21,8 +22,8 @@ function [T, Y, idxStage, parout] = run_simulator(stages, params, init, full_fli
 
     %% Second stage simulation
     if full_flight
-        options_stg2 = odeset('RelTol', 1e-8, 'MaxStep', 0.1, 'Events', @(t, y) orbit_insertion(t, y));
-        [T2, Y2] = ode113(@(t,y) dyn(t, y, stages.stg2, params, 2), [0 t_max], [Y1(end,1:end-1) stages.stg2.m_prop], options_stg2);
+        options_stg2 = odeset('RelTol', 1e-8, 'MaxStep', 0.1, 'Events', @(t, y) orbit_insertion(t, y)); %@(t,y) orbit_revolution(t, y, params));
+        [T2, Y2] = ode45(@(t,y) dyn(t, y, stages.stg2, params, 2), [0 t_max], [Y1(end,1:end-1) stages.stg2.m_prop], options_stg2);
         clear dyn
 
         T = [T; T2+T1(end)];
@@ -86,6 +87,7 @@ function [T, Y, idxStage, parout] = run_simulator(stages, params, init, full_fli
             parout.F_L_in = [parout.F_L_in; parout_stg1.F_L_in];
             parout.F_D_in = [parout.F_D_in; parout_stg1.F_D_in];
         end
+        parout.idxStg1 = length(parout_stg1.qdyn);
     end
 
 end

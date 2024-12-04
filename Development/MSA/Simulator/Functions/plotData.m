@@ -23,9 +23,9 @@ function plotData(T, Y, params, parout, idxStage)
     plot(T, Y(1:end-boundary,4)/1e3)
     xline(T1(end), '--k', 'Staging')
 
-    figure, hold on, grid on, title("Dynamic pressure wrt altitude"), xlabel("Altitude [km]"), ylabel("Qdyn [kPa]")
-    plot(Y(1:end, 2)/1e3 - params.Re/1e3, parout.qdyn/1e3);
-    xline(Y1(end, 2)/1e3 - params.Re/1e3, '--k', 'Staging')
+    figure, hold on, grid on, title("Dynamic pressure wrt altitude for first stage"), xlabel("Altitude [km]"), ylabel("Qdyn [kPa]")
+    plot(Y1(1:end, 2)/1e3 - params.Re/1e3, parout.qdyn(1:parout.idxStg1)/1e3);
+    % xline(Y1(end, 2)/1e3 - params.Re/1e3, '--k', 'Staging')
 
     % figure, hold on, grid on, title("Altitude wrt Downrange"), xlabel("Downrange [km]"), ylabel("Altitude [km]")
     % plot(downrange/1e3, Y(1:end, 2)/1e3-params.Re/1e3)

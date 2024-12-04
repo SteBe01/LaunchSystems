@@ -55,18 +55,20 @@ stages.stg2.d = 1.1636;
 stages.stg1.length = 21.71;
 stages.stg2.length = 8.16;
 
+% Environment data
+params.g0 = 9.81;
+params.Re = 6378000;
+
 % Initial conditions
 init.x0 = 0;                                    % [m]
-init.z0 = 11e3;                                 % [m]
+% init.z0 = 400e3+params.Re;                       % [m]
+init.z0 = 11e3+params.Re;                       % [m]
 init.vx0 = 200;                                 % [m/s]
+% init.vx0 = sqrt(398600e9/(400e3+params.Re));                                 % [m/s]
 init.vz0 = 0;                                   % [m/s]
 init.theta0 = atan2(init.vz0,init.vx0);         % [rad]
 init.thetaDot0 = deg2rad(0);                    % [rad/s]
 init.m_prop = stages.stg1.m_prop;               % [kg]
-
-% Environment data
-params.g0 = 9.81;
-params.Re = 6378000;
 
 % Stage 1 PID data
 stages.stg1.k1 = deg2rad(3*3);
