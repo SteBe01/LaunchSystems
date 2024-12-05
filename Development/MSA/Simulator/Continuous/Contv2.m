@@ -28,10 +28,10 @@ while ~stop
     [T, Y, ie] = simulate(stages, params, t0, Y0, 1);
     
     r = norm(Y(end,1:2))-params.Re;
-    if r < 399.5e3 && ie ~= 2
-        Dangle = deg2rad(abs(r-399.5e3)/(25e3/4.5));
-    elseif r > 400.5e3
-        Dangle = -deg2rad(abs(r-400.5e3)/(25e3/4.5));
+    if r < 399.1e3 && ie ~= 2
+        Dangle = deg2rad(abs(r-399.1e3)/(100e3/4.5));
+    elseif r > 400.1e3
+        Dangle = -deg2rad(abs(r-400.1e3)/(100e3/4.5));
     elseif ie==2
         Dangle = deg2rad(5* rand());
     else
