@@ -88,7 +88,11 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     I = I_mat(2);
 
     % Engine parameters 
-    throttling = 1;
+    if current_stage == 1
+        throttling = 1;
+    else
+        throttling = 0.8;
+    end
     Thrust = interp1(stage.throttling, stage.Thrust, throttling, 'linear', 'extrap');
     m_dot = interp1(stage.throttling, stage.m_dot, throttling, 'linear', 'extrap');
     Pe = interp1(stage.throttling, stage.Pe, throttling, 'linear', 'extrap');
@@ -99,6 +103,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         Cd = interpValues(1)*params.CD_mult;
         Cl = interpValues(2)*params.CL_mult;
         xcp = interpValues(3);
+        % xcp = xcg+1;
     else
         Cd = 0;
         Cl = 0;

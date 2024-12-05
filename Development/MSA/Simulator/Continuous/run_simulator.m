@@ -2,7 +2,7 @@ function [T, Y, idxStage, parout] = run_simulator(stages, params, init, full_fli
 
     clear dyn stage_Separation orbit_revolution
 
-    T = 2*pi*sqrt(6778^3/398600);
+    T_orb = 2*pi*sqrt(6778^3/398600);
     t_max = 1e3;
     
     %% First stage simulation
@@ -14,7 +14,7 @@ function [T, Y, idxStage, parout] = run_simulator(stages, params, init, full_fli
         options_stg1 = odeset('RelTol',1e-8, 'MaxStep', 0.1, 'Events', @(t, y) touchdown(t, y, params));
         warning("Mass not updated (considering whole rocket, no stage separation)")
     end
-    [T1, Y1, ~, ~, ie] = ode45(@(t,y) dyn(t, y, stages.stg1, params, 1), [0 T], y0_stg1, options_stg1);
+    [T1, Y1, ~, ~, ie] = ode45(@(t,y) dyn(t, y, stages.stg1, params, 1), [0 t_max], y0_stg1, options_stg1);
     clear dyn
 
     T = T1;

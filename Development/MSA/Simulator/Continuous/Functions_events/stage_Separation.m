@@ -15,6 +15,12 @@ function [value, isterminal, direction] = stage_Separation(t, y, stage, params, 
         exitFlag = 1;
     end
 
+    if (y(2) - params.Re)/1e3 < 10.5 && t > 45
+        exitFlag = 0;
+    else
+        exitFlag = 1*exitFlag;
+    end
+
     if y(7) <= stage.m_prop_final && t_stop == Inf
         t_stop = t;
     end
