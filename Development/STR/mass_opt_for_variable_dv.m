@@ -80,16 +80,16 @@ for j = 1:n
     fairing.mat_id = 4; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber, 5 for Al 7XXX %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
     
     %first guesses:
-    eps0 = [0.05; 0.27]; %[0.06; 0.2]; %[-] stages structural mass indexes
+    eps0 = [0.10; 0.1]; %[0.06; 0.2]; %[-] stages structural mass indexes
     fairing.base_diam = diam2; %[m] first guess for fairing base diameter
     M.M0 = 17000; %[kg]
     M.M1 = 1800; %[kg]
-    h.tot = 16.85; %[m]
-    h.CG = 6.89; %[m]
-    h1.tot = 11.8; %[m]
-    h2.tot = 3.9; %[m]
-    h1.attach = 12; %[m]
-    h2.attach = 15.8; %[m]
+    h.tot = 20; %[m]
+    h.CG = 9; %[m]
+    h1.tot = 14; %[m]
+    h2.tot = 5; %[m]
+    h1.attach = 15; %[m]
+    h2.attach = 19; %[m]
     
     %while loop parameters:
     i = 2;
@@ -142,6 +142,7 @@ for j = 1:n
     
         %fairing
         Sf = pi * diam2^2 / 4; %fairing cross section [m^2]
+        fairing.base_diam = diam2;
         loads_f = loads;
         loads.F_drag(3) = maxQ * Caf * Sf; %compose aerodynamic forces vector [N]
         loads_f.F_drag = loads.F_drag(3); %aerodynamic force acting on fairing [N]
@@ -180,6 +181,7 @@ for j = 1:n
         %stage 1:
         M1.R_next = M2.R_end; %[m]
         M1.fairing = fairing.m; %0; %[kg] WE ASSUME THE FAIRING DETATCH FROM THE LAUNCHER TOGETHER WITH THE FIRST STAGE
+        h1.motor_next = h2.motor; %[m]
         loads1 = loads; %recover loads
         loads1.m = M1.avionics + M1.wiring + M2.tot + M.pay_effective + M1.fairing;%sustained mass [kg] M2.tot comprises the adapter
         % loads1.h_m = 
@@ -971,9 +973,15 @@ t_p_rp1 = diam*p_rp1/( 2*sy ); %[m] rp1 tank thickness
 %     shape1.r = R_rp1; %[m] radius of the cylindrical connector
 %     shape1.h = shape1.r * 5 / 2;
 % else %that is, if  next stage radius is less than this one's
-    shape1.r = [R_next, R_rp1]; %for simplicity we take the same dimensions of the "both-spherical" case
-    shape1.h = shape1.r(2) * 5 / 2;
+    % shape1.r = [R_next, R_rp1]; %for simplicity we take the same dimensions of the "both-spherical" case
+    % shape1.h = shape1.r(2) * 5 / 2;
 % end 
+shape1.r = [R_next, R_rp1]; %for simplicity we take the same dimensions of the "both-spherical" case
+if M.stg == 1
+    shape1.h = h_dome_rp1 + h.motor_next + 0.1;
+else
+    shape1.h = (2/3)*R_rp1 + h_dome_rp1;
+end
 load1 = loads;
 load1.p = 0; %internal pressure [Pa]
 if nargin < 8
@@ -1053,8 +1061,14 @@ M.tank_lox = rho * S_lox * t_lox + M.lox_insulation; %mass of the empty lox tank
 M.tot_lox = M.tank_lox + mlox; %[kg] mass of full lox tank
 
 %last connector (aft skirt) (between second tank and motors)
+% shape3.r = R_lox;
+% shape3.h = (2/3) * R_lox + h_dome_lox; 
 shape3.r = R_lox;
-shape3.h = (2/3) * R_lox + h_dome_lox; 
+if M.stg == 1
+    shape3.h = 2*R_lox;
+else
+    shape3.h = (2/3)*R_lox + h_dome_lox;
+end
 load3 = loads;
 load3.m = m_sust + C1.m + M.tot_rp1 + C2.m + M.tot_lox; %accounts for sustained masses : upper stages, first and second connector, fairing, rp1 tank and lox tank structural mass (approximated as 11% of lox mass)
 % load3.F_drag = loads.F_drag; %aerodynamic force [N]
@@ -1102,9 +1116,9 @@ h.C2 = shape2.h; %[m] second connector / intertank
 h.cyl_lox = h_cyl_lox; %[m] lox tank cylindrical part
 h.C3 = shape3.h; %[m] thirk connector / aft skirt
 h.til_tank = h_motor + h.C3 + h_cyl_lox + h.C2 + h_cyl_rp1 + h_dome_rp1; %[m] height of stage until last tank
-h.tot =      h_motor + h.C3 + h_cyl_lox + h.C2 + h_cyl_rp1 + (5/2)*R_rp1; %[m] total height of stage
+h.tot =      h_motor + h.C3 + h_cyl_lox + h.C2 + h_cyl_rp1 + h.C3; %[m] total height of stage
 h.CG.avionics = h0_C1 + R_rp1; %[m]
-h.CG.T_struct = h_motor + 0.5 * R_lox; %[m]
+h.CG.T_struct = h_motor + 0.5*(h.C3-h_dome_lox); %[m]
 h.CG.tot = (h.CG.lox * M.tot_lox + h.CG.rp1 * M.tot_rp1 +...
         + h.CG.C1 * C1.m + h.CG.C2 * C2.m + h.CG.C3 * C3.m +...
         + h.CG.avionics * M.avionics + 0.5 * h_motor * M.motor +...
