@@ -29,6 +29,9 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
 
     m_prop_left = m_prop_left*(m_prop_left >= 0);
 
+    ang = pi/2-beta;
+    vec_rotated = [cos(ang) -sin(ang); sin(ang) cos(ang)]*[xDot; zDot];
+
     % Persistent states
     persistent MECO SEPARATION SECO APOGEE
     if isempty(MECO)
@@ -50,9 +53,9 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         end
         SEPARATION = true;
     end
-    if current_stage == 2 && y(4) < 0 && ~APOGEE && nargout == 1
+    if current_stage == 2 && vec_rotated(2) < 0 && ~APOGEE && nargout == 1
         if params.dispStat
-            fprintf("[%3.1f km, vx = %4.3f km/s] - Apogee\n", (h - Re)*1e-3, y(3)*1e-3)
+            fprintf("[%3.1f km, vx = %4.3f km/s] - Apogee\n", (h - Re)*1e-3, vec_rotated(1)*1e-3)
         end
         APOGEE = true;
     end
@@ -111,7 +114,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     L = qdyn*S*Cl;                            % [N]       - Lift force acting on the rocket
 
     % Thrust & mass estimation
-    if t > t_wait && m_prop_left > stage.m_prop_final
+    if t > t_wait && m_prop_left > stage.m_prop_final && not(current_stage == 2 && h-Re > params.h_shutoff)
         T = (Thrust + stage.A_eng*(Pe-P))*stage.N_mot;
     else
         T = 0;

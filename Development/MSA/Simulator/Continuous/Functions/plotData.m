@@ -70,5 +70,10 @@ function plotData(T, Y, params, parout, idxStage)
     figure, hold on, grid on, title("Propellant mass over time"), xlabel("Time [s]"), ylabel("Fuel mass [kg]")
     plot(T, Y(:,end))
     xline(T1(end), '--k', 'Staging')
+
+    figure, hold on, grid on, title("Radius over time"), xlabel("Time [s]"), ylabel("Radius [km]")
+    plot(T, (vecnorm(Y(:,1:2),2,2) - params.Re)/1e3);
+    xline(T1(end), '--k', 'Staging')    
+
 end
 

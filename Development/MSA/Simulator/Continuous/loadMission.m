@@ -39,7 +39,7 @@ stages.stg2.Isp = 343;
 stages.stg1.A_eng = 0.0953;
 stages.stg2.A_eng = 0.0953;
 stages.stg1.N_mot = 8;
-stages.stg2.N_mot = 1;
+stages.stg2.N_mot = 2;
 stages.stg1.m0 = 16.7e3;
 stages.stg1.m_prop = stages.stg1.m0 * (1 - 1/stages.stg1.MR);
 stages.stg1.t_burn_tot = stages.stg1.m_prop/(stages.stg1.m_dot(end)*stages.stg1.N_mot);
@@ -50,15 +50,17 @@ stages.stg2.t_burn_tot = stages.stg2.m_prop/(stages.stg2.m_dot(end)*stages.stg2.
 % stages.stg1.m0 = stages.stg1.m0;
 
 stages.stg1.m_prop_final = 0.0*stages.stg1.m_prop;
-stages.stg2.m_prop_final = 0.1*stages.stg2.m_prop;
+stages.stg2.m_prop_final = 0.15*stages.stg2.m_prop;
 
 stages.stg1.prcg_throt = 1;
-stages.stg2.prcg_throt = 1;%0.8;
+stages.stg2.prcg_throt = 0.6;
 
 stages.stg1.d = 1.1636;
 stages.stg2.d = 1.1636;
 stages.stg1.length = 21.71;
 stages.stg2.length = 8.16;
+
+params.h_shutoff = 350e3;
 
 % Environment data
 params.g0 = 9.81;
@@ -108,11 +110,12 @@ stages.stg2.deltaMax = deg2rad(7);
 
 %% pitch program
 
-params.pitch.first_angle = deg2rad(43.6767403903567);
+% params.pitch.first_angle = deg2rad(43.6767403903567);
+params.pitch.first_angle = deg2rad(43);
 % params.pitch.first_angle = deg2rad(39);
 params.pitch.order = 1;
 params.pitch.initial_altitude = 11e3;
-params.pitch.final_altitude = 450e3;
+params.pitch.final_altitude = 301.45e3;
 
 params.h1 = 100e3;
 params.h2 = 200e3;
