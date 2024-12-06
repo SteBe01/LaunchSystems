@@ -5,11 +5,11 @@ params.dispStat = true;
 
 %% Load MAT files
 
-STR_mat = load("..\..\MAT_Files\STR_mat.mat").outMat;
+STR_mat = load("..\MAT_Files\STR_mat.mat").outMat;
 stages.stg1.STR_mat = STR_mat(:,:,1);
 stages.stg2.STR_mat = STR_mat(:,:,2);
 
-PRP_mat = load("..\..\MAT_Files\PRP_mat.mat").throttle;
+PRP_mat = load("..\MAT_Files\PRP_mat.mat").throttle;
 stages.stg1.Thrust = PRP_mat.TT;
 stages.stg2.Thrust = PRP_mat.TT.*1.05;
 stages.stg1.m_dot = PRP_mat.m_dot;
@@ -20,7 +20,7 @@ stages.stg1.Pe = PRP_mat.p_e;
 stages.stg2.Pe = PRP_mat.p_e;
 
 wingSurf = 1;
-AER_mat_path = strcat("../../../AER/MSA/RISULTATI v2/", "S", num2str(wingSurf),"m^2/");
+AER_mat_path = strcat("../../AER/MSA/RISULTATI v2/", "S", num2str(wingSurf),"m^2/");
 CD_mat = load(strcat(AER_mat_path, "data_CD_GEO2_S",num2str(wingSurf),"m^2.mat")).CD_mat;
 CL_mat = load(strcat(AER_mat_path, "data_CL_GEO2_S",num2str(wingSurf),"m^2.mat")).CL_mat;
 Xcp_mat = load(strcat(AER_mat_path, "data_Xcp_GEO2_S",num2str(wingSurf),"m^2.mat")).Xcp_mat;
