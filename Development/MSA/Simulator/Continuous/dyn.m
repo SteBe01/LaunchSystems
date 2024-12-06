@@ -49,7 +49,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
 
     if current_stage == 2 && ~SEPARATION && nargout == 1
         if params.dispStat
-            fprintf("[%3.1f km] - Stage separation\n", (z - Re)*1e-3)
+            fprintf("[%3.1f km] - Stage separation\n", (h - Re)*1e-3)
         end
         SEPARATION = true;
     end
@@ -123,12 +123,12 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     if m_prop_left <= stage.m_prop_final
         if current_stage == 1 && ~MECO && nargout == 1
             if params.dispStat
-                fprintf("[%3.1f km] - MECO\n", (z - Re)*1e-3)
+                fprintf("[%3.1f km] - MECO\n", (h - Re)*1e-3)
             end
             MECO = true;
         elseif current_stage == 2 && ~SECO && nargout == 1
             if params.dispStat
-                fprintf("[%3.1f km] - SECO\n", (z - Re)*1e-3)
+                fprintf("[%3.1f km] - SECO\n", (h - Re)*1e-3)
             end
             SECO = true;
         end

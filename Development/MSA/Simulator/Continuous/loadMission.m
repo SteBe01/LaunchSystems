@@ -53,7 +53,7 @@ stages.stg1.m_prop_final = 0.0*stages.stg1.m_prop;
 stages.stg2.m_prop_final = 0.15*stages.stg2.m_prop;
 
 stages.stg1.prcg_throt = 1;
-stages.stg2.prcg_throt = 0.6;
+stages.stg2.prcg_throt = 0.75;
 
 stages.stg1.d = 1.1636;
 stages.stg2.d = 1.1636;
@@ -111,11 +111,11 @@ stages.stg2.deltaMax = deg2rad(7);
 %% pitch program
 
 % params.pitch.first_angle = deg2rad(43.6767403903567);
-params.pitch.first_angle = deg2rad(43);
+params.pitch.first_angle = deg2rad(34);
 % params.pitch.first_angle = deg2rad(39);
 params.pitch.order = 1;
 params.pitch.initial_altitude = 11e3;
-params.pitch.final_altitude = 301.45e3;
+params.pitch.final_altitude = 222.95e3;
 
 params.h1 = 100e3;
 params.h2 = 200e3;
