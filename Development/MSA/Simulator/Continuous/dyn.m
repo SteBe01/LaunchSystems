@@ -75,9 +75,6 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     % Environment data
     [~, a, P, rho] = computeAtmosphericData(h - Re);
     g = 398600*1e9/h^2;
-    % if abs(g) > 1e2
-    %     warning("Module of gravity has gone out of safe values. g: " + num2str(g));
-    % end
 
     qdyn = 0.5*rho*velsNorm^2;                      % [Pa]      - Dynamic pressure
     S = pi*(stage.d^2/4);                           % [m^2]     - Rocket surface area
@@ -97,12 +94,12 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     Pe = interp1(stage.throttling, stage.Pe, throttling, 'linear', 'extrap');
 
     % Aerodynamic coefficients
-    if current_stage == 1
+    if current_stage == 1 && t > t_wait
         interpValues = params.coeffs({1:4, M, rad2deg(alpha), (h - Re)});
         Cd = interpValues(1)*params.CD_mult;
         Cl = interpValues(2)*params.CL_mult;
-        xcp = interpValues(3);
-        % xcp = xcg+1;
+        % xcp = interpValues(3);
+        xcp = 6;
     else
         Cd = 0;
         Cl = 0;
@@ -145,9 +142,6 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         else
             angle = getPitch(params.pitch, (h - Re));
         end
-        % if h > 300e3+Re
-        %     angle = 0;
-        % end
         err = xi - angle;
         delta = -stage.k1*err - stage.k2*thetaDot - stage.k3*alpha;
         delta = -delta;
@@ -160,7 +154,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
 
     % Forces on the rocket in inertial frame
     F_x = L*sin(alpha)*sign(alpha) - D*cos(alpha) + T*cos(delta);
-    F_z = L*cos(alpha)*sign(alpha) + D*sin(alpha) + T*sin(alpha);
+    F_z = L*cos(alpha)*sign(alpha) + D*sin(alpha) + T*sin(delta);
     F_body = [F_x F_z]';
     F_in = dcm*F_body;
     F_x = F_in(1) - m*g*cos(beta);

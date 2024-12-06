@@ -3,23 +3,24 @@ function [value, isterminal, direction] = stage_Separation(t, y, stage, params, 
     if isempty(t_stop)
         t_stop = Inf;
     end
+    exitFlag = 1;
 
     if ~isempty(varargin)
         [~,parout] = dyn(t, y, stage, params, 1, varargin{1});
     else
         [~,parout] = dyn(t, y, stage, params, 1);
     end
-    if parout.F_in(2)/parout.m < 0 && parout.Thrust ~= 0
-        exitFlag = 0;
-    else
-        exitFlag = 1;
-    end
+    % if parout.F_in(2)/parout.m < 0 && parout.Thrust ~= 0
+    %     exitFlag = 0;
+    % else
+    %     exitFlag = 1;
+    % end
 
-    if (y(2) - params.Re)/1e3 < 10.5 && t > 45
-        exitFlag = 0;
-    else
-        exitFlag = 1*exitFlag;
-    end
+    % if (y(2) - params.Re)/1e3 < 10.5 && t > 45
+    %     exitFlag = 0;
+    % else
+    %     exitFlag = 1*exitFlag;
+    % end
 
     if y(7) <= stage.m_prop_final && t_stop == Inf
         t_stop = t;

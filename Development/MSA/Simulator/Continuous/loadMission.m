@@ -28,8 +28,8 @@ Xcp_mat = load(strcat(AER_mat_path, "data_Xcp_GEO2_S",num2str(wingSurf),"m^2.mat
 AER_mat = cat(4, CD_mat, CL_mat, Xcp_mat);
 AER_mat = permute(AER_mat, [4 1 2 3]);
 params.coeffs = griddedInterpolant({(1:3)', (0.3:0.1:8)', (0:5:50)', (11000:500:84000)'}, AER_mat, "linear", "nearest");
-params.CD_mult = 0.2;     % Multiplier for CD
-params.CL_mult = 0.01;     % Multiplier for CL
+params.CD_mult = 1;     % Multiplier for CD
+params.CL_mult = 1;     % Multiplier for CL
 
 %% General parameters
 stages.stg1.MR = 3.4983;
@@ -93,7 +93,7 @@ stages.stg1.u_freq = 100;
 stages.stg2.u_freq = 100;
 
 % Pitch maneuver
-params.t_turn = 1;                      % [s]       - Initial maneuver time
+params.t_turn = 3;                      % [s]       - Initial maneuver time
 params.theta_turn = deg2rad(45);        % [rad]     - Initial flight path angle
 
 % MECO to stage separation wait time
