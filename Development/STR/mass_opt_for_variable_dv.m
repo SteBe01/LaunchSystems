@@ -295,6 +295,12 @@ plot([diam2/2, -diam2/2], [h1.attach,h1.attach], '--k');
 plot([diam2/2, -diam2/2], [h.tot-2*diam2,h.tot-2*diam2], '--k');
 plot(xCG, yCG, '+r'); 
 
+%% FOR PLOTS:
+save('M_it.mat','M_it');
+save('M1.mat','M1');
+save('M2.mat','M2');
+save('h_it.mat','h_it');
+
 %% Functions
 
 function [m_stag, m_tot, m_prop] = tandem_opt_staging(Is, e, dv, m_pay, fzeroOut)
