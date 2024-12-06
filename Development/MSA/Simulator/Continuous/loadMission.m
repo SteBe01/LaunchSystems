@@ -119,7 +119,7 @@ params.pitch.final_altitude = 222.95e3;
 
 %% Second stage re-burn
 
-params.h_reign = 395e3;
+params.h_reign = 398e3;
 params.h_final = 400e3;
 params.xi_err = deg2rad(1);
 

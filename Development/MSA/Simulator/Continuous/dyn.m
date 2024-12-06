@@ -36,8 +36,8 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     vec_rotated = [cos(ang) -sin(ang); sin(ang) cos(ang)]*[xDot; zDot];
 
     % Persistent states
-    persistent MECO SEPARATION SECO APOGEE
-    if isempty(MECO)
+    persistent MECO SEPARATION SECO APOGEE FRANCO END_BURN
+    if isempty(MECO) 
         MECO = false;
     end
     if isempty(SEPARATION)
@@ -48,6 +48,14 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     end
     if isempty(APOGEE)
         APOGEE = false;
+    end
+
+    if isempty(FRANCO)
+        FRANCO = false;
+    end
+
+    if isempty(END_BURN)
+        END_BURN = false;
     end
 
     if current_stage == 2 && ~SEPARATION && nargout == 1
@@ -125,9 +133,28 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         m_dot = 0;
     end
 
-    if h-Re > params.h_reign && h-Re < params.h_final
+    v_orb = sqrt(398600/6778)*1e3;
+    v_thr = 10;
+    if nargout > 1
+        v_thr = 13;
+    end
+    if h-Re > params.h_reign && abs(vec_rotated(1) - v_orb) > v_thr && ~END_BURN
+        FRANCO = true;
         T = (Thrust + stage.A_eng*(Pe-P))*stage.N_mot;
         m_dot = m_dot_interp;
+    else
+        if FRANCO == true && h-Re > params.h_reign && ~END_BURN
+            END_BURN = true;
+        end
+    end
+
+    if current_stage == 2 && (m_prop_left <= 0.05*stage.m_prop)
+        T = 0;
+        m_dot = 0;
+    end
+    if END_BURN
+        T = 0;
+        m_dot = 0;
     end
 
     m = stage.m0 - stage.m_prop + m_prop_left;
