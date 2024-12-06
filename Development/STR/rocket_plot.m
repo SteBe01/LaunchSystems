@@ -2,7 +2,7 @@
 %% run this with the relative .mat file
 clc;
 
-r = 27; %row of the data selected
+r = 34; %row of the data selected
 
 %fundamental parameters recovery
 AR = h_it(r).stg1.R_lox / h_it(r).stg1.dome_lox; %[-] aspect ratio of the tanks
@@ -18,7 +18,8 @@ h1 = h_it(r).stg1.motor; %[m] height of the first stage motor
 h2 = h_it(r).stg1.C3 + h1; %[m] height at which the cylindrical part of the lox tank starts (first stage)
 h3 = h2 + h_it(r).stg1.cyl_lox +...
     h_it(r).stg1.C2 + h_it(r).stg1.cyl_rp1; %[m] height at which the cylindrical part of the rp1 tank ends (first stage)
-h4 = h_it(r).stg1.tot; %[m] height of the first stage end
+%h4 = h_it(r).stg1.tot; %[m] height of the first stage end
+h4 = h3 + h_it(r).stg1.C1; %[m] height of the first stage end
 %second stage:
 h5 = h4 + h_it(r).stg2.C3; %[m] height at which the cylindrical part of the lox tank starts (second stage)
 h6 = h5 + h_it(r).stg2.cyl_lox +...
