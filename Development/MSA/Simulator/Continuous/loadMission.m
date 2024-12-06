@@ -117,13 +117,11 @@ params.pitch.order = 1;
 params.pitch.initial_altitude = 11e3;
 params.pitch.final_altitude = 222.95e3;
 
-params.h1 = 100e3;
-params.h2 = 200e3;
-params.h3 = 300e3;
-params.angle1 = deg2rad(45);
-params.angle2 = deg2rad(30);
-params.angle3 = deg2rad(20);
-params.angle4 = deg2rad(0);
+%% Second stage re-burn
+
+params.h_reign = 395e3;
+params.h_final = 400e3;
+params.xi_err = deg2rad(1);
 
 end
 

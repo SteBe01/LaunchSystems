@@ -8,6 +8,13 @@ function plotData(T, Y, params, parout, idxStage)
     g_vec = 398600*1e9./vecnorm(Y(:,1:2),2,2).^2;
     downrange = params.Re./(params.Re+Y(:,1)) .* Y(:,1);
 
+    beta = atan2(Y(:,2), Y(:,1));
+    ang = pi/2-beta;
+    vec_rotated = zeros(length(T),2);
+    for ii = 1:length(T)
+        dcm = [cos(ang(ii)) -sin(ang(ii)); sin(ang(ii)) cos(ang(ii))];
+        vec_rotated(ii, :) = dcm*Y(ii, 3:4)';
+    end
 
     boundary = 0;
     subplot(2,2,1), hold on, grid on, title("Downrange over time"), xlabel("Time [s]"), ylabel("Downrange [km]")
@@ -16,11 +23,11 @@ function plotData(T, Y, params, parout, idxStage)
     subplot(2,2,2), hold on, grid on, title("Vertical position over time"), xlabel("Time [s]"), ylabel("Altitude [km]")
     plot(T, Y(1:end-boundary,2)/1e3-params.Re/1e3)
     xline(T1(end), '--k', 'Staging')
-    subplot(2,2,3), hold on, grid on, title("Horizontal velocity over time"), xlabel("Time [s]"), ylabel("Velocity [km/s]")
-    plot(T, Y(1:end-boundary,3)/1e3)
+    subplot(2,2,3), hold on, grid on, title("TRotated horizontal velocity over time"), xlabel("Time [s]"), ylabel("Velocity [km/s]")
+    plot(T, vec_rotated(1:end-boundary,1)/1e3)
     xline(T1(end), '--k', 'Staging')
-    subplot(2,2,4), hold on, grid on, title("Vertical velocity over time"), xlabel("Time [s]"), ylabel("Velocity [km/s]")
-    plot(T, Y(1:end-boundary,4)/1e3)
+    subplot(2,2,4), hold on, grid on, title("Rotated velocity over time"), xlabel("Time [s]"), ylabel("Velocity [km/s]")
+    plot(T, vec_rotated(1:end-boundary,2)/1e3)
     xline(T1(end), '--k', 'Staging')
 
     figure, hold on, grid on, title("Dynamic pressure wrt altitude for first stage"), xlabel("Altitude [km]"), ylabel("Qdyn [kPa]")

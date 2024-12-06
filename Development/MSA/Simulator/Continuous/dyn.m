@@ -27,6 +27,9 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     % Angle of radius vector
     beta = atan2(z, x);
 
+    % The other useful angle
+    xi = theta + pi/2 - beta;
+
     m_prop_left = m_prop_left*(m_prop_left >= 0);
 
     ang = pi/2-beta;
@@ -89,8 +92,11 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
 
     % Engine parameters 
     throttling = stage.prcg_throt;
+    if h-Re > params.h_reign && abs(xi) > params.xi_err 
+        throttling = 0.1;
+    end
     Thrust = interp1(stage.throttling, stage.Thrust, throttling, 'linear', 'extrap');
-    m_dot = interp1(stage.throttling, stage.m_dot, throttling, 'linear', 'extrap');
+    m_dot_interp = interp1(stage.throttling, stage.m_dot, throttling, 'linear', 'extrap');
     Pe = interp1(stage.throttling, stage.Pe, throttling, 'linear', 'extrap');
 
     % Aerodynamic coefficients
@@ -113,10 +119,17 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     % Thrust & mass estimation
     if t > t_wait && m_prop_left > stage.m_prop_final && not(current_stage == 2 && h-Re > params.h_shutoff)
         T = (Thrust + stage.A_eng*(Pe-P))*stage.N_mot;
+        m_dot = m_dot_interp;
     else
         T = 0;
         m_dot = 0;
     end
+
+    if h-Re > params.h_reign && h-Re < params.h_final
+        T = (Thrust + stage.A_eng*(Pe-P))*stage.N_mot;
+        m_dot = m_dot_interp;
+    end
+
     m = stage.m0 - stage.m_prop + m_prop_left;
 
     % Callouts
@@ -135,12 +148,14 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     end
     
     % PID controller
-    xi = theta + pi/2 - beta;
     if T ~= 0
         if ~isempty(varargin)
             angle = varargin{1};
         else
             angle = getPitch(params.pitch, (h - Re));
+        end
+        if h-Re > params.h_reign
+            angle = 0;
         end
         err = xi - angle;
         delta = -stage.k1*err - stage.k2*thetaDot - stage.k3*alpha;

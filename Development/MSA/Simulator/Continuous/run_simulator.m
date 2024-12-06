@@ -3,7 +3,7 @@ function [T, Y, idxStage, parout] = run_simulator(stages, params, init, full_fli
     clear dyn stage_Separation orbit_revolution
 
     T_orb = 2*pi*sqrt(6778^3/398600);
-    t_max = 1e4;
+    t_max = 1e3;
     
     %% First stage simulation
     y0_stg1 = [init.x0 init.z0 init.vx0 init.vz0 init.theta0 init.thetaDot0 init.m_prop];
