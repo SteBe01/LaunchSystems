@@ -17,8 +17,8 @@ GEOMETRY.b8 = h_it.stg1.tank_lox;% height of oxygen tank1
 GEOMETRY.b9 = h_it.stg1.C3; % aft skirt length 1
 GEOMETRY.b10 = h_it.stg1.motor; % h engine
 
-GEOMETRY.Diam_1 = M_it.diam_1;
-GEOMETRY.Diam_2 = M_it.diam_2;
+GEOMETRY.Diam_1 = M_it.diam1;
+GEOMETRY.Diam_2 = M_it.diam2;
 
 GEOMETRY.M01 = M_it.M0;
 
