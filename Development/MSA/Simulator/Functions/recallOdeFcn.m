@@ -12,6 +12,7 @@ dv_grav_vec = zeros(length(T), 1);
 delta = zeros(length(T),1);
 coeffs = zeros(length(T), 3);
 dcm = zeros(2,2,length(T));
+Thrust = zeros(length(T),1);
 
 F_in = zeros(length(T), 2);
 F_L_in = zeros(length(T), 2);
@@ -36,6 +37,7 @@ for ii = 1:length(T)
     F_in(ii, :) = parout.F_in;
     F_L_in(ii,:) = parout.F_L_in;
     F_D_in(ii,:) = parout.F_D_in;
+    Thrust(ii,:) = parout.Thrust;
 end
 
 ode_out.qdyn = qdyn;
@@ -54,6 +56,7 @@ ode_out.dcm = dcm;
 ode_out.F_in = F_in;
 ode_out.F_L_in = F_L_in;
 ode_out.F_D_in = F_D_in;
+ode_out.Thrust = Thrust;
 
 end
 

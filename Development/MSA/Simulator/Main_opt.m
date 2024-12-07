@@ -3,6 +3,7 @@ close all
 clear dyn stage_Separation orbit_insertion
 
 addpath(genpath("Functions"))
+addpath(genpath("Functions_internal"))
 addpath(genpath("Functions_events"))
 
 [stages, params, init] = loadMission();

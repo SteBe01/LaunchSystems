@@ -1,19 +1,3 @@
-%% Sim
-
-clear, clc
-close all
-
-clear dyn
-clear stage_Separation
-
-addpath(genpath("Functions"))
-addpath(genpath("Functions_events"))
-
-[stages, params, init] = loadMission();
-
-[T, Y, idxStage, parout] = run_simulator(stages, params, init, 1);
-
-
 %% Animation
 
 clc
@@ -41,8 +25,6 @@ for ii = 1:length(F_D_in)
         norma_old = max_D;
     end
 end
-
-
 
 
 figure, hold on, grid on, axis equal, xlim([-1 1]), ylim([-1 1])

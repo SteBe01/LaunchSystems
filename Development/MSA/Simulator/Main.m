@@ -6,10 +6,11 @@ clear dyn
 clear stage_Separation
 clear orbit_revolution
 
-full_flight = 1;
-
 addpath(genpath("Functions"))
+addpath(genpath("Functions_internal"))
 addpath(genpath("Functions_events"))
+
+full_flight = 1;
 
 [stages, params, init] = loadMission();
 
