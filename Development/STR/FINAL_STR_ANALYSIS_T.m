@@ -55,7 +55,6 @@ switch CASE % 1: 1 piece; 2: 10 pieces; 3: 4 pieces
     case 1
 STRUCT=1;
 
-delta = OUT.delta;
 
 %T = FORCES.T;
 
