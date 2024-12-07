@@ -93,7 +93,7 @@ stages.stg1.u_freq = 100;
 stages.stg2.u_freq = 100;
 
 % Pitch maneuver
-params.t_turn = 3;                      % [s]       - Initial maneuver time
+params.t_turn = 5;                      % [s]       - Initial maneuver time
 params.theta_turn = deg2rad(45);        % [rad]     - Initial flight path angle
 
 % MECO to stage separation wait time
@@ -111,14 +111,17 @@ stages.stg2.deltaMax = deg2rad(7);
 %% pitch program
 
 % params.pitch.first_angle = deg2rad(43.6767403903567);
-params.pitch.first_angle = deg2rad(34);
+% params.pitch.first_angle = deg2rad(34);
+params.pitch.first_angle = deg2rad(43);
 % params.pitch.first_angle = deg2rad(39);
 params.pitch.order = 1;
 params.pitch.initial_altitude = 11e3;
-params.pitch.final_altitude = 222.95e3;
+% params.pitch.final_altitude = 222.95e3;
+params.pitch.final_altitude = 250e3;
 
 %% Second stage re-burn
 
+params.lastBurn = false;
 params.h_reign = 398e3;
 params.h_final = 400e3;
 params.xi_err = deg2rad(1);

@@ -141,7 +141,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     % m_dot_interp: Mass flow rate [kg/s]
     % Pe: Nozzle exit pressure [Pa]
     throttling = stage.prcg_throt;
-    if h-Re > params.h_reign && abs(xi) > params.xi_err 
+    if params.lastBurn && h-Re > params.h_reign && abs(xi) > params.xi_err 
         throttling = 0.1;
     end
     Thrust = interp1(stage.throttling, stage.Thrust, throttling, 'linear', 'extrap');
@@ -152,12 +152,15 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     % Cd: Drag coefficient [-]
     % Cl: Lift coefficient [-]
     % xcp: Position of center of pressure (starting from nosecone) [m]
-    if current_stage == 1 && t > t_wait
+    if current_stage == 1 % && t > t_wait
         interpValues = params.coeffs({1:4, M, rad2deg(alpha), (h - Re)});
         Cd = interpValues(1)*params.CD_mult;
         Cl = interpValues(2)*params.CL_mult;
-        % xcp = interpValues(3);
-        xcp = 6;
+        if t <= t_wait
+            xcp = interpValues(3);
+        else
+            xcp = 7;
+        end
     else
         Cd = 0;
         Cl = 0;
@@ -177,18 +180,20 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         m_dot = 0;
     end
 
-    v_orb = sqrt(398600/(Re*1e-3+400))*1e3;
-    v_thr = 1;
-    if nargout > 1
-        v_thr = 3;
-    end
-    if h-Re > params.h_reign && abs(vec_rotated(1) - v_orb) > v_thr && ~END_BURN
-        FRANCO = true;
-        T = (Thrust + stage.A_eng*(Pe-P))*stage.N_mot;
-        m_dot = m_dot_interp;
-    else
-        if FRANCO == true && h-Re > params.h_reign && ~END_BURN
-            END_BURN = true;
+    if params.lastBurn
+        v_orb = sqrt(398600/(Re*1e-3+400))*1e3;
+        v_thr = 1;
+        if nargout > 1
+            v_thr = 3;
+        end
+        if h-Re > params.h_reign && abs(vec_rotated(1) - v_orb) > v_thr && ~END_BURN
+            FRANCO = true;
+            T = (Thrust + stage.A_eng*(Pe-P))*stage.N_mot;
+            m_dot = m_dot_interp;
+        else
+            if FRANCO == true && h-Re > params.h_reign && ~END_BURN
+                END_BURN = true;
+            end
         end
     end
 
