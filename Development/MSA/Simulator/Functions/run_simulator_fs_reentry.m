@@ -19,6 +19,7 @@ function [T, Y, idxStage, parout] = run_simulator_fs_reentry(stages, params, ini
     t_max = 1e3;
         
     y0_stg1 = Y1(end,:);
+    y0_stg1 = [y0_stg1 300];
 
     options_stg1 = odeset('RelTol',1e-8, 'MaxStep', 0.1, 'Events', @(t, y) touchdown(t, y, params));
 

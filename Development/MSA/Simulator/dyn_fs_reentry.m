@@ -9,7 +9,7 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     % Y(5) = theta (pitch angle, positive counterclockwise)                 [rad]
     % Y(6) = thetaDot (pitch angular velocity, positive counterclockwise)   [rad]
     % Y(7) = mass_prop_left (propellant mass left in the tanks)             [kg]
-
+    % Y(8) = temperature                                                    [k]
     stage = stages.stg1;
 
     % Retrieve data from ode
@@ -20,11 +20,12 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     theta = y(5);
     thetaDot = y(6);
     m_prop_left = y(7);
+    Temp = y(8);
     % If propellant mass is negative, set it to zero
     m_prop_left = m_prop_left*(m_prop_left >= 0); 
 
     % Pre-define derivative vector
-    dY = zeros(7,1);
+    dY = zeros(8,1);
 
     % Radius [m]
     h = norm([x z]);
@@ -58,7 +59,7 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     alpha = theta-gamma;
 
     % Environment data
-    [~, a, P, rho] = computeAtmosphericData(h - Re);
+    [Tatm, a, P, rho] = computeAtmosphericData(h - Re);
     % Mach number [-]
     M = velsNorm/a;
 
@@ -97,13 +98,13 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     D = qdyn*S*Cd;                            % [N]       - Drag force acting on the rocket
     L = qdyn*S*Cl;                            % [N]       - Lift force acting on the rocket
     
-    h1 = 40e3 + Re;
+    h1 = 60e3 + Re;
     h2 = 9e3 + Re;
     h3 = 1e3 + Re;
     Cd1 = 0.6;
     Cd2 = 0.8;
     Cd3 = 0.8;
-    S1 = 10;
+    S1 = 20;
     S2 = 44.8;
     S3 = 498.8;
 
@@ -147,6 +148,17 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     % Moment on the rocket
     M_t = - L*cos(alpha)*margin - D*sin(alpha)*margin + D_par*sin(alpha)*(stage.length - xcg) - T*sin(delta)*(stage.length - xcg);
 
+    % Heat flux
+    Length = stages.stg1.length - stages.stg2.length;
+    sigma = 5.670400* 10^-8;                       % Stefan-Boltzmann
+    eps = 0.9; % Emissivity of the surface
+    cp =  900;  % Specific heat capacity (J/kg/K)
+    Qdot_aer = 0.5*rho*velsNorm^3*S;
+    Qdot_space = eps*sigma*(Temp^4-Tatm^4)*(2*S + pi*stage.d*Length);
+    Qdot_tot = Qdot_aer-Qdot_space;
+    b = 5.5164* 10^-5; 
+    q_dot_stagn = b * sqrt(rho)/sqrt(stage.d)*velsNorm^3.15;
+
     % Derivative vector
 
     dY(1) = xDot;
@@ -156,7 +168,7 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     dY(5) = thetaDot;
     dY(6) = M_t/I;
     dY(7) = -m_dot*stage.N_mot;
-
+    dY(8) = Qdot_tot/(m*cp);
     % Post processing:
     % Forces in body frame
     Fxz_body = dcm'*[F_x F_z]';
