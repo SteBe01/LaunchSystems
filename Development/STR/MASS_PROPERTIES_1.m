@@ -29,14 +29,14 @@ x_b10 =GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+GEOMETRY.b4+GEOMETRY.b5+
 m_fuel_1t =  M_prop_t * GEOMETRY.OF1 / (1+GEOMETRY.OF1);%[kg] mass of lox;
 m_lox_1t =  M_prop_t * 1  / (1+GEOMETRY.OF1);%[kg] mass of rp1;
 
-if m_fuel_1t>=GEOMETRY.m_fuel_1
+if m_fuel_1t<=0
 
     x_b_fuel1=0;
     m_fuel_1t=0;
 
 end
 
-if m_lox_1t>=GEOMETRY.m_lox_1
+if m_lox_1t<=0
 
     x_b_lox1=0;
     m_lox_1t=0;

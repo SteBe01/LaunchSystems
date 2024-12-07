@@ -18,19 +18,17 @@ x_b4 =  GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+(GEOMETRY.b4/2); % tank
 x_b_lox_2 = x_lox_2;
 x_b5 = GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+GEOMETRY.b4+(GEOMETRY.b5/2); %aft skirt 2
 
-
-
 m_fuel_2t =  M_prop_t * GEOMETRY.OF2 / (1+GEOMETRY.OF2);%[kg] mass of lox;
 m_lox_2t =  M_prop_t * 1  / (1+GEOMETRY.OF2);%[kg] mass of rp1;
 
-if m_fuel_2t>=GEOMETRY.m_fuel_2
+if m_fuel_2t<=0
 
     x_b_fuel_2=0;
     m_fuel_2t=0;
 
 end
 
-if m_lox_2t>=GEOMETRY.m_lox_2
+if m_lox_2t<=0
 
     x_b_lox_2=0;
     m_lox_2t=0;
