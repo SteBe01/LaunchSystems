@@ -1,0 +1,160 @@
+function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
+% VALID ONLY FOR THE FIRST STAGE!
+
+    % Frame of reference: inertial with origin in Earth center
+    % Y(1) = x (horizontal position, inertial)                              [m]
+    % Y(2) = z (vertical position, inertial)                                [m]
+    % Y(3) = xDot (horizontal velocity, inertial)                           [m/s]
+    % Y(4) = zDot (vertical velocity, inertial)                             [m/s]
+    % Y(5) = theta (pitch angle, positive counterclockwise)                 [rad]
+    % Y(6) = thetaDot (pitch angular velocity, positive counterclockwise)   [rad]
+    % Y(7) = mass_prop_left (propellant mass left in the tanks)             [kg]
+
+    stage = stages.stg1;
+
+    % Retrieve data from ode
+    x = y(1);
+    z = y(2);
+    xDot = y(3);
+    zDot = y(4);
+    theta = y(5);
+    thetaDot = y(6);
+    m_prop_left = y(7);
+    % If propellant mass is negative, set it to zero
+    m_prop_left = m_prop_left*(m_prop_left >= 0); 
+
+    % Pre-define derivative vector
+    dY = zeros(7,1);
+
+    % Radius [m]
+    h = norm([x z]);
+
+    % Earth radius [m] 
+    Re = params.Re;
+
+    % Angle of radius vector [rad]
+    beta = atan2(z, x);
+
+    % Angle used for PID computation [rad]
+    xi = theta + pi/2 - beta;
+
+    % Velocities in the rotating frame
+    ang = pi/2-beta;
+    vec_rotated = [cos(ang) -sin(ang); sin(ang) cos(ang)]*[xDot; zDot];
+
+    % Gravitational attraction [m/s^2]
+    g = 398600*1e9/h^2;
+
+    % Velocities norm [m/s]
+    velsNorm = norm([xDot zDot]);
+
+    % dcm from inertial to body
+    rot_angle = theta;
+    dcm = [cos(rot_angle) -sin(rot_angle); sin(rot_angle) cos(rot_angle)];
+    
+    % Flight path angle [rad]
+    gamma = atan2(zDot, xDot);
+    % Angle wrt relative velocity [rad]
+    alpha = theta-gamma;
+
+    % Environment data
+    [~, a, P, rho] = computeAtmosphericData(h - Re);
+    % Mach number [-]
+    M = velsNorm/a;
+
+    % Dynamic pressure [Pa]
+    qdyn = 0.5*rho*velsNorm^2;
+    % Rocket surface area [m^2]
+    S = pi*(stage.d^2/4);
+
+    % Compute all necessary interpolations
+    
+    % Geometric parameters wrt propellant mass left:
+    xcg = 6;
+    I = 1e3;
+
+    % Engine parameters wrt throttling percentage
+    throttling = stage.prcg_throt;
+    Thrust = interp1(stage.throttling, stage.Thrust, throttling, 'linear', 'extrap');
+    m_dot_interp = interp1(stage.throttling, stage.m_dot, throttling, 'linear', 'extrap');
+    Pe = interp1(stage.throttling, stage.Pe, throttling, 'linear', 'extrap');
+
+    % Aerodynamic coefficients
+    interpValues = params.coeffs({1:4, M, rad2deg(alpha), (h - Re)});
+    Cd = interpValues(1)*params.CD_mult;
+    Cl = interpValues(2)*params.CL_mult;
+    Cd = 1;
+    Cl = 0;
+    % xcp = interpValues(3);
+    xcp = 4;
+
+    margin = xcp - xcg;
+    if abs(alpha) < deg2rad(90)
+        margin = -margin;
+    end
+
+    % Aerodynamic forces
+    D = qdyn*S*Cd;                            % [N]       - Drag force acting on the rocket
+    L = qdyn*S*Cl;                            % [N]       - Lift force acting on the rocket
+
+    % Thrust & mass estimation
+    T = 0;
+    m_dot = 0;
+
+    % m = stage.m0 - stage.m_prop + m_prop_left;
+    m = (stage.m0-stages.stg2.m0) - stage.m_prop + m_prop_left;
+    
+    % PID controller
+    delta = 0;
+
+    % Forces on the rocket in inertial frame
+    F_x = L*sin(alpha)*sign(alpha) - D*cos(alpha) + T*cos(delta);
+    F_z = L*cos(alpha)*sign(alpha) + D*sin(alpha) + T*sin(delta);
+    F_body = [F_x F_z]';
+    F_in = dcm*F_body;
+    F_x = F_in(1) - m*g*cos(beta);
+    F_z = F_in(2) - m*g*sin(beta);
+
+    F_L_in = dcm*[L*sin(alpha)*sign(alpha) L*cos(alpha)*sign(alpha)]';
+    F_D_in = dcm*[-D*cos(alpha) D*sin(alpha)]';
+
+    % Moment on the rocket
+    M_t = - L*cos(alpha)*margin - D*sin(alpha)*margin - T*sin(delta)*(stage.length - xcg);
+
+    % Derivative vector
+
+    dY(1) = xDot;
+    dY(2) = zDot;
+    dY(3) = F_x/m;
+    dY(4) = F_z/m;
+    dY(5) = thetaDot;
+    dY(6) = M_t/I;
+    dY(7) = -m_dot*stage.N_mot;
+
+    % Post processing:
+    % Forces in body frame
+    Fxz_body = dcm'*[F_x F_z]';
+
+    % Prepare output struct for ode recall
+    if nargout > 1
+        parout.qdyn = qdyn;
+        parout.acc = reshape(Fxz_body, [1 2])/m;
+        parout.alpha = alpha;
+        parout.moment = M_t;
+        parout.rho = rho;
+        parout.velssqq = velsNorm^2;
+        parout.m = m;
+        parout.dv_grav = -g*abs(sin(theta));
+        parout.dv_drag = -0.5*S*Cd/stage.m0*rho*velsNorm^2*stage.m0/m;
+        parout.delta = delta;
+        parout.coeffs = [Cd Cl xcp];
+
+        dcm_xi = [cos(xi) -sin(xi); sin(xi) cos(xi)];
+        parout.dcm = dcm_xi;
+        parout.F_in = F_in';
+        parout.F_L_in = F_L_in;
+        parout.F_D_in = F_D_in;
+        parout.Thrust = T;
+    end
+end
+

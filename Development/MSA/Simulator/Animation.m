@@ -1,13 +1,17 @@
 %% Animation
 
+factor = 2;
+
 clc
 
 len = length(parout.dcm);
 
+ii_new = 1:factor:len;
+
 F_L_in = parout.F_L_in;
 norma_old = 1;
 max_L = 1;
-for ii = 1:length(F_L_in)
+for ii = ii_new
     F_L_in_temp = F_L_in(ii,:);
     norma = norm(F_L_in_temp);
     if norma > norma_old
@@ -17,7 +21,7 @@ for ii = 1:length(F_L_in)
 end
 F_D_in = parout.F_D_in;
 norma_old = 1;
-for ii = 1:length(F_D_in)
+for ii = ii_new
     F_D_in_temp = F_D_in(ii,:);
     norma = norm(F_D_in_temp);
     if norma > norma_old
@@ -28,7 +32,7 @@ end
 
 
 figure, hold on, grid on, axis equal, xlim([-1 1]), ylim([-1 1])
-for ii = 1:len
+for ii = ii_new
     dcm = parout.dcm;
     dcm = dcm(:,:,ii);
     F_L_in = parout.F_L_in;
