@@ -143,6 +143,16 @@ end
 
 M_moments(end)=0;
 
+x_inter = [b1*2/3;x_com];
+y_inter = [0;M_moments(2)];
+M_inter_eq = polyfit(x_inter,y_inter,1);
+M_inter_line = @(x) M_inter_eq(1)*x + M_inter_eq(2);
+
+x_M_2 = [0,0,sum(b1+b2+b3+b4+b5+b34),sum(b1+b2+b3+b4+b5+b34),0];
+y_M_2 = [0,M_inter_line(sum(b1+b2+b3+b4+b5+b34)),M_inter_line(sum(b1+b2+b3+b4+b5+b34)),0,0];
+x_M_1 = [sum(b1+b2+b3+b4+b5+b34),sum(b1+b2+b3+b4+b5+b34),l_tot,l_tot,sum(b1+b2+b3+b4+b5)];
+y_M_1 = [0,min(M_moments),min(M_moments),0,0];
+
 % Plot the bending moment diagram
 figure;
 hold on;
@@ -150,8 +160,13 @@ for i = 1:length(x_segments)
     plot([x(i+1), x(i+1)], [0, M_moments(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
 end
 plot(x,[0, M_moments], 'LineWidth', 2, 'Color', 'b'); % Step-style plot
+hold on;
+plot(x_M_2,y_M_2,'Color','r','LineStyle','--','LineWidth', 1);
+hold on;
+plot(x_M_1,y_M_1,'Color','r','LineStyle','--','LineWidth', 1);
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
+legend('Bending Moment','Sizing Bending Moment');
 title('Bending Moment Diagram for Pitch-Up Maneuver');
 xlim([0, l_tot]);
 grid on;
@@ -237,7 +252,7 @@ M_cg = -L_cone*(x_com-mra) + (L_fin+T*sin(delta))*(l_tot-x_com);
 % Segment lengths
 % x_b_com_v = [b1, b2, b3,b34 ,b4,b5,b6,b7];
 % x_b_com = x_com-sum(x_b_com_v);
-x_segments = [b1, b2, b3 ,b4,b5,b6,b7,b8,b9,b10];
+x_segments = [b1*2/3, b1/3+b2, b3 ,b4+b34,b5,b6,b7,b8+b78,b9,b10];
 x = [0, cumsum(x_segments)]; % Cumulative lengths for plotting
 
 % Axial Forces (P) at segment ends
@@ -273,7 +288,7 @@ xlim([0, sum(x_segments)]);
 grid on;
 
 P_forces = [R1,R2,R3,R4,R5,R6,R7,R8,R9,R11];
-x_segments = [b1, b2, b3 ,b4,b5,b6,b7,b8,b9,b10];
+x_segments = [b1*2/3, b2+b1/3, b3 ,b4+b34,b5,b6,b7,b8+b78,b9,b10];
 x = [0, cumsum(x_segments)]; % Cumulative lengths for plotting
     % Calculate the bending moment
 M_moments = zeros(size(P_forces));
@@ -284,7 +299,10 @@ for i = 2:length(P_forces)
 end
 
 M_moments(end)=0;
-
+x_M_2 = [0,0,sum(b1+b2+b3+b4+b5+b34),sum(b1+b2+b3+b4+b5+b34),0];
+y_M_2 = [0,M_moments(5),M_moments(5),0,0];
+x_M_1 = [sum(b1+b2+b3+b4+b5+b34),sum(b1+b2+b3+b4+b5+b34),l_tot,l_tot,sum(b1+b2+b3+b4+b5)];
+y_M_1 = [0,min(M_moments),min(M_moments),0,0];
 % Plot the bending moment diagram
 figure;
 hold on;
@@ -292,6 +310,10 @@ for i = 1:length(x_segments)
     plot([x(i+1), x(i+1)], [0, M_moments(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
 end
 plot(x,[0, M_moments], 'LineWidth', 2, 'Color', 'b'); % Step-style plot
+hold on;
+plot(x_M_2,y_M_2,'Color','r','LineStyle','--','LineWidth', 1);
+hold on;
+plot(x_M_1,y_M_1,'Color','r','LineStyle','--','LineWidth', 1);
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
 title('Bending Moment Diagram for Pitch-Up Maneuver');
