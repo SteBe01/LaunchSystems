@@ -1,6 +1,31 @@
 function [GEOMETRY] = GEO(h_it,M_it,M1,M2)
 
 
+%% ALL QUANTITIES ARE COMPUTED WRT NOSE:
+%
+% Respectively, the centre of mass of 1st stage and 2nd stage wrt nose
+% GEOMETRY.x_com
+% GEOMETRY.X_COM2
+% 
+% 1st and 2 nd stage values of inertia moments in [kg*m^2]
+% GEOMETRY.Jyaw1 
+% GEOMETRY.Jyaw2 
+% GEOMETRY.Jpitch1 
+% GEOMETRY.Jpitch2 
+% GEOMETRY.Jroll2 
+% GEOMETRY.Jroll1 
+%
+%
+% 1 st and 2 nd EMPTY stage values of inertia moments in [kg*m^2]
+% GEOMETRY.Jyaw_empty1 = J_yaw_empty1;
+% GEOMETRY.Jyaw_empty2= J_yaw_empty2;
+% GEOMETRY.Jpitch_empty_1=J_pitch_empty1;
+% GEOMETRY.Jpitch_empty_2=J_pitch_empty2;
+% GEOMETRY.Jroll_empty1 = J_roll_empty1;
+% GEOMETRY.Jroll_empty2 = J_roll_empty2;
+
+
+
 GEOMETRY.M_pay = M_it.pay;
 
 % GEOMETRY.l_tot= h_it.tot;
