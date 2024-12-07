@@ -154,22 +154,41 @@ x_M_1 = [sum(b1+b2+b3+b4+b5+b34),sum(b1+b2+b3+b4+b5+b34),l_tot,l_tot,sum(b1+b2+b
 y_M_1 = [0,min(M_moments),min(M_moments),0,0];
 
 % Plot the bending moment diagram
+% figure;
+% hold on;
+% for i = 1:length(x_segments)
+%     plot([x(i+1), x(i+1)], [0, M_moments(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
+% end
+% plot(x,[0, M_moments], 'LineWidth', 2, 'Color', 'b'); % Step-style plot
+% hold on;
+% plot(x_M_2,y_M_2,'Color','r','LineStyle','--','LineWidth', 1);
+% hold on;
+% plot(x_M_1,y_M_1,'Color','r','LineStyle','--','LineWidth', 1);
+% xlabel('x [m]');
+% ylabel('Bending Moment [Nm]');
+% title('Bending Moment Diagram for Pitch-Up Maneuver');
+% xlim([0, l_tot]);
+% grid on;
 figure;
 hold on;
 for i = 1:length(x_segments)
-    plot([x(i+1), x(i+1)], [0, M_moments(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
+    plot([x(i+1), x(i+1)], [0, M_moments(i)], '--', 'LineWidth', 1, 'Color', 'b'); % Dashed vertical lines
 end
-plot(x,[0, M_moments], 'LineWidth', 2, 'Color', 'b'); % Step-style plot
+plot(x, [0, M_moments], 'LineWidth', 2, 'Color', 'b'); % Step-style plot
 hold on;
-plot(x_M_2,y_M_2,'Color','r','LineStyle','--','LineWidth', 1);
+plot(x_M_2, y_M_2, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 1);
 hold on;
-plot(x_M_1,y_M_1,'Color','r','LineStyle','--','LineWidth', 1);
+plot(x_M_1, y_M_1, 'Color', 'r', 'LineStyle', '--', 'LineWidth', 1);
+
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
-legend('Bending Moment','Sizing Bending Moment');
 title('Bending Moment Diagram for Pitch-Up Maneuver');
 xlim([0, l_tot]);
 grid on;
+
+% Add legend
+legend('', '', '', 'Bending Moment','Sizing Bending Moment','Location', 'eastoutside');
+
 
     case 2 
 STRUCT=2;
@@ -319,6 +338,8 @@ ylabel('Bending Moment [Nm]');
 title('Bending Moment Diagram for Pitch-Up Maneuver');
 xlim([0, sum(x_segments)]);
 grid on;
+
+legend('', '', '','','', '', '','', '','','Bending Moment','Sizing Bending Moment','Location', 'eastoutside');
 
     case 3
 

@@ -55,7 +55,6 @@ switch CASE % 1: 1 piece; 2: 10 pieces; 3: 4 pieces
     case 1
 STRUCT=1;
 
-
 %T = FORCES.T;
 
 %nx =((T*cos(delta) - D)/(m*g0));
@@ -176,6 +175,7 @@ ylabel('Bending Moment [Nm]');
 title('Bending Moment Diagram for Pitch-Up Maneuver');
 xlim([0, l_tot]);
 grid on;
+legend('', '', '', 'Bending Moment','Sizing Bending Moment','Location', 'eastoutside');
 
     case 2 
 STRUCT=2;
@@ -322,6 +322,7 @@ ylabel('Bending Moment [Nm]');
 title('Bending Moment Diagram for Pitch-Up Maneuver');
 xlim([0, sum(x_segments)]);
 grid on;
+legend('', '', '','','', '', '','', '','','Bending Moment','Sizing Bending Moment','Location', 'eastoutside');
     case 3
 
 STRUCT=3;
