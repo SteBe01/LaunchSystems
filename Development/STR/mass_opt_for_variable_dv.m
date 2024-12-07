@@ -1571,7 +1571,7 @@ switch mat_id
         nu = 0.33; %[-] Poisson's ratio
     case 11 % Carbon fiber  (MatWeb)
         rho = 1420; %[kg/m^3]
-        t_min = 0.90 * 1e-3; %[m] minimum thickness for manufacturability
+        t_min = 3 * 1e-3; %[m] minimum thickness for manufacturability
         E = 101 * 1e9; %[Pa] young modulus
         sy = 1260 * 1e6; %[Pa] tensile yield stress
         su = sy; %[Pa] tensile ultimate stress
