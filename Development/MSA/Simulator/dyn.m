@@ -159,7 +159,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         if t <= t_wait
             xcp = interpValues(3);
         else
-            xcp = 7;
+            xcp = 7.5;
         end
     else
         Cd = 0;
