@@ -4,7 +4,6 @@ function plotData(T, Y, params, parout, idxStage)
     T1 = T(1:idxStage);
     Y1 = Y(1:idxStage, :);
 
-    g_vec = params.g0./((vecnorm(Y1(:,1:2),2,2)/params.Re).^2);
     g_vec = 398600*1e9./vecnorm(Y(:,1:2),2,2).^2;
     downrange = params.Re./(params.Re+Y(:,1)) .* Y(:,1);
 
@@ -17,46 +16,35 @@ function plotData(T, Y, params, parout, idxStage)
     end
 
     boundary = 0;
-    subplot(2,2,1), hold on, grid on, title("Downrange over time"), xlabel("Time [s]"), ylabel("Downrange [km]")
+
+    subplot(2,2,1), hold on, grid on, title("Radius over time"), xlabel("Time [s]"), ylabel("Radius [km]")
+    plot(T, (vecnorm(Y(:,1:2),2,2) - params.Re)/1e3)
+    xline(T1(end), '--k', 'Staging')
+    subplot(2,2,2), hold on, grid on, title("Downrange over time"), xlabel("Time [s]"), ylabel("Downrange [km]")
     plot(T, downrange/1e3)
     xline(T1(end), '--k', 'Staging')
-    subplot(2,2,2), hold on, grid on, title("Vertical position over time"), xlabel("Time [s]"), ylabel("Altitude [km]")
-    plot(T, Y(1:end-boundary,2)/1e3-params.Re/1e3)
-    xline(T1(end), '--k', 'Staging')
-    subplot(2,2,3), hold on, grid on, title("TRotated horizontal velocity over time"), xlabel("Time [s]"), ylabel("Velocity [km/s]")
+    subplot(2,2,3), hold on, grid on, title("Horizontal (rotated) velocity over time"), xlabel("Time [s]"), ylabel("Velocity [km/s]")
     plot(T, vec_rotated(1:end-boundary,1)/1e3)
     xline(T1(end), '--k', 'Staging')
-    subplot(2,2,4), hold on, grid on, title("Rotated velocity over time"), xlabel("Time [s]"), ylabel("Velocity [km/s]")
+    subplot(2,2,4), hold on, grid on, title("Vertical (rotated) velocity over time"), xlabel("Time [s]"), ylabel("Velocity [km/s]")
     plot(T, vec_rotated(1:end-boundary,2)/1e3)
     xline(T1(end), '--k', 'Staging')
 
     figure, hold on, grid on, title("Dynamic pressure wrt altitude for first stage"), xlabel("Altitude [km]"), ylabel("Qdyn [kPa]")
     plot(Y1(1:end, 2)/1e3 - params.Re/1e3, parout.qdyn(1:parout.idxStg1)/1e3);
-    % xline(Y1(end, 2)/1e3 - params.Re/1e3, '--k', 'Staging')
-
-    % figure, hold on, grid on, title("Altitude wrt Downrange"), xlabel("Downrange [km]"), ylabel("Altitude [km]")
-    % plot(downrange/1e3, Y(1:end, 2)/1e3-params.Re/1e3)
-    % xline(downrange(length(T1))/1e3, '--k', 'Staging')
-    figure, hold on, grid on, title("Z wrt X"), xlabel("X [km]"), ylabel("Z [km]")
-    plot(Y(:,1)/1e3, Y(:, 2)/1e3)
-    axis equal
-    % xline(downrange(length(T1))/1e3, '--k', 'Staging')
 
     figure
-    subplot(5,1,1), hold on, grid on, title("Theta over time"), xlabel("Time [s]"), ylabel("Theta [deg]")
-    plot(T, rad2deg(Y(:, 5)))
+    subplot(4,1,1), hold on, grid on, title("$\xi$ evolution", 'Interpreter', 'latex'), xlabel("Time [s]"), ylabel("Xi [deg]")
+    plot(T, unwrap(rad2deg(Y(:,5)) + 90 - rad2deg(atan2(Y(:,2),Y(:,1)))))
     xline(T1(end), '--k', 'Staging')
-    subplot(5,1,2), hold on, grid on, title("Theta dot over time"), xlabel("Time [s]"), ylabel("Theta dot [deg/s]")
+    subplot(4,1,2), hold on, grid on, title("$\dot\theta$ over time", 'Interpreter', 'latex'), xlabel("Time [s]"), ylabel("Theta dot [deg/s]")
     plot(T, rad2deg(Y(:, 6)))
     xline(T1(end), '--k', 'Staging')
-    subplot(5,1,3), hold on, grid on, title("$\alpha$ evolution", 'Interpreter', 'latex'), xlabel("Time [s]"), ylabel("Alpha [deg]")
+    subplot(4,1,3), hold on, grid on, title("$\alpha$ evolution", 'Interpreter', 'latex'), xlabel("Time [s]"), ylabel("Alpha [deg]")
     plot(T, unwrap(rad2deg(parout.alpha)))
     xline(T1(end), '--k', 'Staging')
-    subplot(5,1,4), hold on, grid on, title("$\delta$ evolution", 'Interpreter', 'latex'), xlabel("Time [s]"), ylabel("Delta [deg]")
+    subplot(4,1,4), hold on, grid on, title("$\delta$ evolution", 'Interpreter', 'latex'), xlabel("Time [s]"), ylabel("Delta [deg]")
     plot(T, rad2deg(parout.delta_vec))
-    xline(T1(end), '--k', 'Staging')
-    subplot(5,1,5), hold on, grid on, title("$\xi$ evolution", 'Interpreter', 'latex'), xlabel("Time [s]"), ylabel("Xi [deg]")
-    plot(T, unwrap(rad2deg(Y(:,5)) + 90 - rad2deg(atan2(Y(:,2),Y(:,1)))))
     xline(T1(end), '--k', 'Staging')
 
     figure
@@ -77,10 +65,6 @@ function plotData(T, Y, params, parout, idxStage)
     figure, hold on, grid on, title("Propellant mass over time"), xlabel("Time [s]"), ylabel("Fuel mass [kg]")
     plot(T, Y(:,end))
     xline(T1(end), '--k', 'Staging')
-
-    figure, hold on, grid on, title("Radius over time"), xlabel("Time [s]"), ylabel("Radius [km]")
-    plot(T, (vecnorm(Y(:,1:2),2,2) - params.Re)/1e3);
-    xline(T1(end), '--k', 'Staging')    
 
 end
 
