@@ -41,7 +41,7 @@ GEOMETRY = GEO(h_it_case,M_it_case);
 M_abs = abs(GEOMETRY.M01-GEOMETRY.m1-GEOMETRY.m2-GEOMETRY.m3-GEOMETRY.m4-GEOMETRY.m5-GEOMETRY.m6-GEOMETRY.m7-GEOMETRY.m8-GEOMETRY.m9-GEOMETRY.m10);
 
 M_prop_vec_1 = linspace(GEOMETRY.m_prop_1,0,1000);
-M_prop_vec_2 = linspace(GEOMETRY.m_prop_2,0,1000);
+M_prop_vec_2 = linspace(GEOMETRY.m_prop_2+5000,0,1000);
 
 x_com1=zeros(length(M_prop_vec_1),1);
 x_com2=zeros(length(M_prop_vec_1),1);

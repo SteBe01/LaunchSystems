@@ -18,8 +18,21 @@ x_b4 =  GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+(GEOMETRY.b4/2); % tank
 x_b_lox_2 = x_lox_2;
 x_b5 = GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+GEOMETRY.b4+(GEOMETRY.b5/2); %aft skirt 2
 
+m_fuel_baseline =  GEOMETRY.m_prop_2 * 1  / (1+GEOMETRY.OF2);%[kg] mass of rp1
+m_lox_baseline =  GEOMETRY.m_prop_2 * GEOMETRY.OF2 / (1+GEOMETRY.OF2);%[kg] mass of lox
+
 m_fuel_2t =  M_prop_t * GEOMETRY.OF2 / (1+GEOMETRY.OF2);%[kg] mass of lox;
 m_lox_2t =  M_prop_t * 1  / (1+GEOMETRY.OF2);%[kg] mass of rp1;
+
+if M_prop_t>GEOMETRY.m_prop_2
+
+    x_b_fuel_2=x_fuel_20;
+    m_fuel_2t=m_fuel_baseline;
+    x_b_lox_2=x_lox_20;
+    m_lox_2t=m_lox_baseline;
+ fprintf('Error, too much propellant2\n');
+end
+
 
 if m_fuel_2t<=0
 

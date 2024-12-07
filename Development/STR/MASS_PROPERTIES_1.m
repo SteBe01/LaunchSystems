@@ -25,9 +25,21 @@ x_b_lox1 =x_lox_1; % lox 1
 x_b9 = GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+GEOMETRY.b4+GEOMETRY.b5+GEOMETRY.b6+GEOMETRY.b7+GEOMETRY.b8+GEOMETRY.b78+(GEOMETRY.b9/2); % aft skirt 
 x_b10 =GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+GEOMETRY.b4+GEOMETRY.b5+GEOMETRY.b6+GEOMETRY.b7+GEOMETRY.b8+GEOMETRY.b78+GEOMETRY.b9+(GEOMETRY.b10/2); % engine 1
 
+m_fuel_baseline =  GEOMETRY.m_prop_1 * 1  / (1+GEOMETRY.OF1);%[kg] mass of rp1
+m_lox_baseline =  GEOMETRY.m_prop_1 * GEOMETRY.OF1 / (1+GEOMETRY.OF1);%[kg] mass of lox
 
 m_fuel_1t =  M_prop_t * GEOMETRY.OF1 / (1+GEOMETRY.OF1);%[kg] mass of lox;
 m_lox_1t =  M_prop_t * 1  / (1+GEOMETRY.OF1);%[kg] mass of rp1;
+
+if M_prop_t>GEOMETRY.m_prop_1
+
+    x_b_fuel1=x_fuel_10;
+    m_fuel_1t=m_fuel_baseline;
+       x_b_lox1=x_lox_10;
+    m_lox_1t=m_lox_baseline;
+ fprintf('Error, too much propellant1\n');
+end
+
 
 if m_fuel_1t<=0
 
@@ -42,6 +54,8 @@ if m_lox_1t<=0
     m_lox_1t=0;
 
 end
+
+
 
 x_vec = [x_b1;x_b2;x_b3;x_b4;x_b5;x_b6;x_b7;x_b_fuel1;x_b8;x_b_lox1;x_b9;x_b10];
 
