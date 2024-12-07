@@ -96,6 +96,32 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     % Aerodynamic forces
     D = qdyn*S*Cd;                            % [N]       - Drag force acting on the rocket
     L = qdyn*S*Cl;                            % [N]       - Lift force acting on the rocket
+    
+    h1 = 40e3 + Re;
+    h2 = 9e3 + Re;
+    h3 = 1e3 + Re;
+    Cd1 = 0.6;
+    Cd2 = 0.8;
+    Cd3 = 0.8;
+    S1 = 10;
+    S2 = 44.8;
+    S3 = 498.8;
+
+    if h < h3
+        Cd_par = Cd3;
+        S_par = S3;
+    elseif h < h2
+        Cd_par = Cd2;
+        S_par = S2;
+    elseif h < h1
+        Cd_par = Cd1;
+        S_par = S1;
+    else
+        Cd_par = 0;
+        S_par = 0;
+    end
+
+    D_par = qdyn*S_par*Cd_par;
 
     % Thrust & mass estimation
     T = 0;
@@ -108,8 +134,8 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     delta = 0;
 
     % Forces on the rocket in inertial frame
-    F_x = L*sin(alpha)*sign(alpha) - D*cos(alpha) + T*cos(delta);
-    F_z = L*cos(alpha)*sign(alpha) + D*sin(alpha) + T*sin(delta);
+    F_x = L*sin(alpha)*sign(alpha) - D*cos(alpha) - D_par*cos(alpha) + T*cos(delta);
+    F_z = L*cos(alpha)*sign(alpha) + D*sin(alpha) + D_par*sin(alpha) + T*sin(delta);
     F_body = [F_x F_z]';
     F_in = dcm*F_body;
     F_x = F_in(1) - m*g*cos(beta);
@@ -119,7 +145,7 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     F_D_in = dcm*[-D*cos(alpha) D*sin(alpha)]';
 
     % Moment on the rocket
-    M_t = - L*cos(alpha)*margin - D*sin(alpha)*margin - T*sin(delta)*(stage.length - xcg);
+    M_t = - L*cos(alpha)*margin - D*sin(alpha)*margin + D_par*sin(alpha)*(stage.length - xcg) - T*sin(delta)*(stage.length - xcg);
 
     % Derivative vector
 
