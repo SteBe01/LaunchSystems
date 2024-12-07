@@ -2,7 +2,7 @@
 %% run this with the relative .mat file
 clc;
 
-r = 34; %row of the data selected
+r = 75; %row of the data selected
 
 %fundamental parameters recovery
 AR = h_it(r).stg1.R_lox / h_it(r).stg1.dome_lox; %[-] aspect ratio of the tanks
@@ -43,7 +43,7 @@ yCG = 0; %[m]
 
 %silhouette plot:
 figure(5)
-plot(x, y, '-k'); grid on; axis equal; hold on;
+plot(x, y, '-k', LineWidth=1); grid on; axis equal; hold on;
 % plot([diam1/2, -diam1/2], [h1.til_tank-h1.dome_rp1,h1.til_tank-h1.dome_rp1], '--k');
 % plot([diam2/2, -diam2/2], [h1.attach,h1.attach], '--k');
 % plot([diam2/2, -diam2/2], [h3.tot-2*diam2,h3.tot-2*diam2], '--k');
@@ -101,13 +101,13 @@ alpha = linspace(0, 2*pi, M_it(r).n_mot1 + 1);
 for i = 1 : M_it(r).n_mot1
     xm1 = h9 - xm;
     ym1 = (r1 - 0.15)*cos(alpha(i)) - ym;
-    plot(xm1, ym1, '-','Color', grayColor);
+    plot(xm1, ym1, '-','Color', grayColor, LineWidth=1);
 end
 
 %second stage:
 xm2 = h9 - ( h4 + xm_2 - h1_2 );
 ym2 = ym;
-plot(xm2, ym2, '-','Color', grayColor);
+plot(xm2, ym2, '-','Color', grayColor, LineWidth=1);
 ystg2 = y9;
 xstg2 = h9 - h_it(r).stg1.tot * ones(2,1);
 plot(xstg2, ystg2, '-k');

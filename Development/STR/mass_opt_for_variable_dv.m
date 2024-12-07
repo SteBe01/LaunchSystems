@@ -7,7 +7,7 @@ clear;
 close all;
 
 %data from other departments:
-Is = [324; 343]; %[s] stages Is
+Is = [324.5; 343]; %[s] stages Is
 M.pay = 250; %[kg] nominal payload mass
 M.pay_max = 400; %[kg] maximum payload mass
 M.adapter = 0.0755 * M.pay + 50; %[kg] estimated mass from Edberg-Costa
@@ -294,12 +294,6 @@ plot([diam1/2, -diam1/2], [h1.til_tank-h1.dome_rp1,h1.til_tank-h1.dome_rp1], '--
 plot([diam2/2, -diam2/2], [h1.attach,h1.attach], '--k');
 plot([diam2/2, -diam2/2], [h.tot-2*diam2,h.tot-2*diam2], '--k');
 plot(xCG, yCG, '+r'); 
-
-%% FOR PLOTS:
-save('M_it.mat','M_it');
-save('M1.mat','M1');
-save('M2.mat','M2');
-save('h_it.mat','h_it');
 
 %% Functions
 
