@@ -20,10 +20,10 @@ loads.K = 1.50; %loads resistance safety factor [-]
 FoS1 = 1.50; %FoS of first stage [-]
 FoS2 = 1.50; %FoS of first stage [-]
 
-a = 0.71; %balancing factor for iterative method
+a = 0.5; %0.71; %balancing factor for iterative method
 n = 1;
 m = 100;
-dv_it = linspace(10, 10, n);
+dv_it = linspace(9.725, 9.725, n);
 diam1_it = linspace(1, 1.6, m);
 Nmax = 200; %maximum number of iterations for the while loop
 
@@ -1090,7 +1090,7 @@ else
     [C3.m, C3.th, C3.XY] = buckling_bending(shape3, load3, mat, 1);
     plot(C3.XY(1,:), C3.XY(2,:), '--k', DisplayName='true');
 end
-C3.m = 0;
+%C3.m = 0;
 h.CG.C3 = h0_C3 + shape3.h / 2;%[m]
 th.C3 = C3.th; %[m] thickness of third connector (aft skirt)
 
