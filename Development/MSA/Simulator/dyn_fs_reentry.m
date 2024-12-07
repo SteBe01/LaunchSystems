@@ -193,6 +193,7 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
         parout.F_L_in = F_L_in;
         parout.F_D_in = F_D_in;
         parout.Thrust = T;
+        parout.Q = Qdot_aer/S + Qdot_space/(2*S + pi*stage.d*Length);
     end
 end
 

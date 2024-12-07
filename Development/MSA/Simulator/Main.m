@@ -33,3 +33,9 @@ addpath(genpath("Functions_events"))
 [T, Y, idxStage, parout] = run_simulator_fs_reentry(stages, params, init);
 plotData(T, Y, params, parout, idxStage);
 
+figure
+subplot(2,1,1), hold on, grid on, title("$\dot Q$ over time", Interpreter="latex"), xlabel("Time [s]"), ylabel("$\dot Q$", Interpreter="latex")
+plot(T, parout.Q)
+subplot(2,1,2), hold on, grid on, title("Temperature over time"), xlabel("Time [s]"), ylabel("Temperature [K]")
+plot(T, Y(:,8))
+

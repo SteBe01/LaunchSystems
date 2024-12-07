@@ -37,7 +37,7 @@ function [T, Y, idxStage, parout] = run_simulator_fs_reentry(stages, params, ini
 
     if nargout > 3
 
-        parout_stg1 = recallOdeFcn(T1, Y1, stages.stg1, params, 1);
+        parout_stg1 = recallOdeFcn_fs_reentry(T1, Y1, stages, params, 1);
 
         parout.qdyn = parout_stg1.qdyn;
         parout.acc = parout_stg1.acc;
@@ -63,6 +63,8 @@ function [T, Y, idxStage, parout] = run_simulator_fs_reentry(stages, params, ini
         parout.F_L_in = parout_stg1.F_L_in;
         parout.F_D_in = parout_stg1.F_D_in;
         parout.Thrust = parout_stg1.Thrust;
+
+        parout.Q = parout_stg1.Q;
 
         parout.idxStg1 = length(parout_stg1.qdyn);
     end
