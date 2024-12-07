@@ -38,8 +38,8 @@ alpha = FORCES.alpha;
 
 AER=Aer_force(q,alpha);
 
-Cl_nose = FORCES.Cl_nose;
-Cl_fin = FORCES.Cl_fin;
+Cl_nose = FORCES.Cl;
+Cl_fin = FORCES.Cl;
 Cd = FORCES.Cd;
 
 delta = FORCES.delta;
