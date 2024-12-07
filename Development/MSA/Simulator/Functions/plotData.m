@@ -63,7 +63,7 @@ function plotData(T, Y, params, parout, idxStage)
     xline(T1(end), '--k', 'Staging')
 
     figure, hold on, grid on, title("Propellant mass over time"), xlabel("Time [s]"), ylabel("Fuel mass [kg]")
-    plot(T, Y(:,end))
+    plot(T, Y(:,7))
     xline(T1(end), '--k', 'Staging')
 
     figure, hold on, grid on, axis equal, title("X and Z position"), xlabel("X [km]"), ylabel("Z [km]")
