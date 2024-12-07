@@ -53,7 +53,6 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     if isempty(FRANCO)
         FRANCO = false;
     end
-
     if isempty(END_BURN)
         END_BURN = false;
     end
@@ -71,6 +70,21 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         APOGEE = true;
     end
 
+    g = 398600*1e9/h^2;
+
+    % Fast intertial orbit propagation
+    if nargout == 1 && END_BURN
+        dY(1) = xDot;
+        dY(2) = zDot;
+        dY(3) = -g*cos(beta);
+        dY(4) = -g*sin(beta);
+        dY(5) = thetaDot;
+        dY(6) = 0;
+        dY(7) = 0;
+
+        return
+    end
+
     velsNorm = norm([xDot zDot]);
     rot_angle = theta;
     dcm = [cos(rot_angle) -sin(rot_angle); sin(rot_angle) cos(rot_angle)];
@@ -85,7 +99,6 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
 
     % Environment data
     [~, a, P, rho] = computeAtmosphericData(h - Re);
-    g = 398600*1e9/h^2;
 
     qdyn = 0.5*rho*velsNorm^2;                      % [Pa]      - Dynamic pressure
     S = pi*(stage.d^2/4);                           % [m^2]     - Rocket surface area
@@ -133,10 +146,10 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         m_dot = 0;
     end
 
-    v_orb = sqrt(398600/6778)*1e3;
-    v_thr = 10;
+    v_orb = sqrt(398600/(Re*1e-3+400))*1e3;
+    v_thr = 1;
     if nargout > 1
-        v_thr = 13;
+        v_thr = 3;
     end
     if h-Re > params.h_reign && abs(vec_rotated(1) - v_orb) > v_thr && ~END_BURN
         FRANCO = true;

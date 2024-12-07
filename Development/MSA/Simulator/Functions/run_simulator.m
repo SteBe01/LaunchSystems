@@ -14,7 +14,7 @@ function [T, Y, idxStage, parout] = run_simulator(stages, params, init, full_fli
         options_stg1 = odeset('RelTol',1e-8, 'MaxStep', 0.1, 'Events', @(t, y) touchdown(t, y, params));
         warning("Mass not updated (considering whole rocket, no stage separation)")
     end
-    [T1, Y1, ~, ~, ie] = ode45(@(t,y) dyn(t, y, stages.stg1, params, 1), [0 t_max], y0_stg1, options_stg1);
+    [T1, Y1, ~, ~, ie] = ode113(@(t,y) dyn(t, y, stages.stg1, params, 1), [0 t_max], y0_stg1, options_stg1);
     clear dyn
 
     T = T1;
@@ -23,7 +23,7 @@ function [T, Y, idxStage, parout] = run_simulator(stages, params, init, full_fli
     %% Second stage simulation
     if full_flight && ie~=2
         options_stg2 = odeset('RelTol', 1e-8, 'MaxStep', 0.1, 'Events', @(t, y) orbit_insertion(t, y)); %@(t,y) orbit_revolution(t, y, params));
-        [T2, Y2] = ode45(@(t,y) dyn(t, y, stages.stg2, params, 2), [0 t_max], [Y1(end,1:end-1) stages.stg2.m_prop], options_stg2);
+        [T2, Y2] = ode113(@(t,y) dyn(t, y, stages.stg2, params, 2), [0 t_max], [Y1(end,1:end-1) stages.stg2.m_prop], options_stg2);
         clear dyn
 
         T = [T; T2+T1(end)];

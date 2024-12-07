@@ -34,13 +34,13 @@ function plotData(T, Y, params, parout, idxStage)
     plot(Y1(1:end, 2)/1e3 - params.Re/1e3, parout.qdyn(1:parout.idxStg1)/1e3);
 
     figure
-    subplot(4,1,1), hold on, grid on, title("$\xi$ evolution", 'Interpreter', 'latex'), xlabel("Time [s]"), ylabel("Xi [deg]")
+    subplot(4,1,1), hold on, grid on, title("$\xi$ evolution", 'Interpreter', 'latex'), ylabel("Xi [deg]")
     plot(T, unwrap(rad2deg(Y(:,5)) + 90 - rad2deg(atan2(Y(:,2),Y(:,1)))))
     xline(T1(end), '--k', 'Staging')
-    subplot(4,1,2), hold on, grid on, title("$\dot\theta$ over time", 'Interpreter', 'latex'), xlabel("Time [s]"), ylabel("Theta dot [deg/s]")
+    subplot(4,1,2), hold on, grid on, title("$\dot\theta$ over time", 'Interpreter', 'latex'), ylabel("Theta dot [deg/s]")
     plot(T, rad2deg(Y(:, 6)))
     xline(T1(end), '--k', 'Staging')
-    subplot(4,1,3), hold on, grid on, title("$\alpha$ evolution", 'Interpreter', 'latex'), xlabel("Time [s]"), ylabel("Alpha [deg]")
+    subplot(4,1,3), hold on, grid on, title("$\alpha$ evolution", 'Interpreter', 'latex'), ylabel("Alpha [deg]")
     plot(T, unwrap(rad2deg(parout.alpha)))
     xline(T1(end), '--k', 'Staging')
     subplot(4,1,4), hold on, grid on, title("$\delta$ evolution", 'Interpreter', 'latex'), xlabel("Time [s]"), ylabel("Delta [deg]")
@@ -65,6 +65,9 @@ function plotData(T, Y, params, parout, idxStage)
     figure, hold on, grid on, title("Propellant mass over time"), xlabel("Time [s]"), ylabel("Fuel mass [kg]")
     plot(T, Y(:,end))
     xline(T1(end), '--k', 'Staging')
+
+    figure, hold on, grid on, axis equal, title("X and Z position"), xlabel("X [km]"), ylabel("Z [km]")
+    plot(Y(:,1), Y(:,2))
 
 end
 
