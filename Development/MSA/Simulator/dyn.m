@@ -1,12 +1,13 @@
 function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
 
-    % Y(1) = x (horizontal position, inertial)
-    % Y(2) = z (vertical position, inertial)
-    % Y(3) = xDot (horizontal velocity, inertial)
-    % Y(4) = zDot (vertical velocity, inertial)
-    % Y(5) = theta (pitch angle, positive counterclockwise)
-    % Y(6) = thetaDot (pitch angular velocity, positive counterclockwise)
-    % Y(7) = mass_prop_left
+    % Frame of reference: inertial with origin in Earth center
+    % Y(1) = x (horizontal position, inertial)                              [m]
+    % Y(2) = z (vertical position, inertial)                                [m]
+    % Y(3) = xDot (horizontal velocity, inertial)                           [m/s]
+    % Y(4) = zDot (vertical velocity, inertial)                             [m/s]
+    % Y(5) = theta (pitch angle, positive counterclockwise)                 [rad]
+    % Y(6) = thetaDot (pitch angular velocity, positive counterclockwise)   [rad]
+    % Y(7) = mass_prop_left (propellant mass left in the tanks)             [kg]
 
     % Retrieve data from ode
     x = y(1);
@@ -16,22 +17,25 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     theta = y(5);
     thetaDot = y(6);
     m_prop_left = y(7);
+    % If propellant mass is negative, set it to zero
+    m_prop_left = m_prop_left*(m_prop_left >= 0); 
 
+    % Pre-define derivative vector
     dY = zeros(7,1);
 
+    % Radius [m]
     h = norm([x z]);
 
-    % Retrieve data used multiple times 
+    % Earth radius [m] 
     Re = params.Re;
 
-    % Angle of radius vector
+    % Angle of radius vector [rad]
     beta = atan2(z, x);
 
-    % The other useful angle
+    % Angle used for PID computation [rad]
     xi = theta + pi/2 - beta;
 
-    m_prop_left = m_prop_left*(m_prop_left >= 0);
-
+    % Velocities in the rotating frame
     ang = pi/2-beta;
     vec_rotated = [cos(ang) -sin(ang); sin(ang) cos(ang)]*[xDot; zDot];
 
@@ -57,6 +61,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         END_BURN = false;
     end
 
+    % Callouts
     if current_stage == 2 && ~SEPARATION && nargout == 1
         if params.dispStat
             fprintf("[%3.1f km] - Stage separation\n", (h - Re)*1e-3)
@@ -70,9 +75,12 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         APOGEE = true;
     end
 
+    % Gravitational attraction [m/s^2]
     g = 398600*1e9/h^2;
 
     % Fast intertial orbit propagation
+    % The last part of inertial flight can be computed without requiring
+    % all the other computations, in order to save computational time
     if nargout == 1 && END_BURN
         dY(1) = xDot;
         dY(2) = zDot;
@@ -85,12 +93,21 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         return
     end
 
+    % Velocities norm [m/s]
     velsNorm = norm([xDot zDot]);
+
+    % dcm from inertial to body
     rot_angle = theta;
     dcm = [cos(rot_angle) -sin(rot_angle); sin(rot_angle) cos(rot_angle)];
+    
+    % Flight path angle [rad]
     gamma = atan2(zDot, xDot);
+    % Angle wrt relative velocity [rad]
     alpha = theta-gamma;
 
+    % Wait time before ignition:
+    % - For the first stage it's the time between detach from airplane and ignition
+    % - For the second stage it's the time between stage separation and ignition
     if current_stage == 1
         t_wait = params.t_turn;
     else 
@@ -98,20 +115,31 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     end
 
     % Environment data
+    % a: Speed of sound [m/s]
+    % P: Pressure [Pa]
+    % rho: Density [kg/m^3]
     [~, a, P, rho] = computeAtmosphericData(h - Re);
-
-    qdyn = 0.5*rho*velsNorm^2;                      % [Pa]      - Dynamic pressure
-    S = pi*(stage.d^2/4);                           % [m^2]     - Rocket surface area
+    % Mach number [-]
     M = velsNorm/a;
+
+    % Dynamic pressure [Pa]
+    qdyn = 0.5*rho*velsNorm^2;
+    % Rocket surface area [m^2]
+    S = pi*(stage.d^2/4);
 
     % Compute all necessary interpolations
     
-    % Geometric parameters
+    % Geometric parameters wrt propellant mass left:
+    % xcg: position of center of mass (starting from the nosecose) [m]
+    % I_mat: Matrix of inertia moments [kg*m^2]
     xcg = interp1(stage.STR_mat(:,1), stage.STR_mat(:,2), m_prop_left, "linear", "extrap");
     I_mat = interp1(stage.STR_mat(:,1), stage.STR_mat(:, 3:5), m_prop_left, "linear", "extrap");
     I = I_mat(2);
 
-    % Engine parameters 
+    % Engine parameters wrt throttling percentage
+    % Thrust: Thrust without considering expansion [N]
+    % m_dot_interp: Mass flow rate [kg/s]
+    % Pe: Nozzle exit pressure [Pa]
     throttling = stage.prcg_throt;
     if h-Re > params.h_reign && abs(xi) > params.xi_err 
         throttling = 0.1;
@@ -121,6 +149,9 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     Pe = interp1(stage.throttling, stage.Pe, throttling, 'linear', 'extrap');
 
     % Aerodynamic coefficients
+    % Cd: Drag coefficient [-]
+    % Cl: Lift coefficient [-]
+    % xcp: Position of center of pressure (starting from nosecone) [m]
     if current_stage == 1 && t > t_wait
         interpValues = params.coeffs({1:4, M, rad2deg(alpha), (h - Re)});
         Cd = interpValues(1)*params.CD_mult;
