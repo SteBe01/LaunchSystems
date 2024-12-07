@@ -260,6 +260,8 @@ for j = 1:n
         M.th1 = th1;
         M.th2 = th2;
         M.i = i;
+        M.stg1 = M1;
+        M.stg2 = M2;
         
         %height
         h.fairing = fairing.L; %[m] height of the fairing
@@ -296,8 +298,6 @@ plot([diam2/2, -diam2/2], [h.tot-2*diam2,h.tot-2*diam2], '--k');
 plot(xCG, yCG, '+r'); 
 
 save('M_it.mat','M_it');
-save('M1.mat','M1');
-save('M2.mat','M2');
 save('h_it.mat','h_it');
 
 %% Functions
