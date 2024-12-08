@@ -17,6 +17,7 @@ function plotData(T, Y, params, parout, idxStage)
 
     boundary = 0;
 
+    figure;
     subplot(2,2,1), hold on, grid on, title("Radius over time"), xlabel("Time [s]"), ylabel("Radius [km]")
     plot(T, (vecnorm(Y(:,1:2),2,2) - params.Re)/1e3)
     xline(T1(end), '--k', 'Staging')

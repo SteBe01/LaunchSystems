@@ -1,4 +1,4 @@
-function ode_out = recallOdeFcn(T, Y, stage, params, curr_stage)
+function ode_out = recallOdeFcn(T, Y, stage, params, curr_stage, varargin)
 
 qdyn = zeros(length(T), 1);
 acc = zeros(length(T), 2);
@@ -20,7 +20,7 @@ F_D_in = zeros(length(T), 2);
 
 clear dyn
 for ii = 1:length(T)
-    [~, parout] = dyn(T(ii), Y(ii, :), stage, params, curr_stage);
+    [~, parout] = dyn(T(ii), Y(ii, :), stage, params, curr_stage, varargin);
     qdyn(ii) = parout.qdyn;
     acc(ii,:) = parout.acc;
     alpha(ii) = parout.alpha;

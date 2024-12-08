@@ -22,7 +22,7 @@ function [T, Y, idxStage, parout] = run_simulator(stages, params, init, full_fli
 
     %% Second stage simulation
     if full_flight && ie~=2
-        options_stg2 = odeset('RelTol', 1e-8, 'MaxStep', 0.1, 'Events', @(t, y) orbit_insertion(t, y)); %@(t,y) orbit_revolution(t, y, params));
+        options_stg2 = odeset('RelTol', 1e-8, 'MaxStep', 0.1);%, 'Events', @(t, y) orbit_insertion(t, y)); %@(t,y) orbit_revolution(t, y, params));
         [T2, Y2] = ode113(@(t,y) dyn(t, y, stages.stg2, params, 2), [0 t_max], [Y1(end,1:end-1) stages.stg2.m_prop], options_stg2);
         clear dyn
 
@@ -64,7 +64,7 @@ function [T, Y, idxStage, parout] = run_simulator(stages, params, init, full_fli
         parout.Thrust = parout_stg1.Thrust;
 
         if full_flight && ie~=2
-            parout_stg2 = recallOdeFcn(T2, Y2, stages.stg2, params, 2);
+            parout_stg2 = recallOdeFcn(T2, Y2, stages.stg2, params, 2, Y2(end, 7));
     
             parout.qdyn = [parout.qdyn; parout_stg2.qdyn];
             parout.acc = [parout.acc; parout_stg2.acc];

@@ -8,6 +8,7 @@ params.dispStat = true;
 STR_mat = load("..\MAT_Files\STR_mat.mat").outMat;
 stages.stg1.STR_mat = STR_mat(:,:,1);
 stages.stg2.STR_mat = STR_mat(:,:,2);
+stages.stg2.STR_mat_no_fairing = STR_mat(:,:,3);
 
 PRP_mat = load("..\MAT_Files\PRP_mat.mat").throttle;
 stages.stg1.Thrust = PRP_mat.TT;
@@ -20,10 +21,10 @@ stages.stg1.Pe = PRP_mat.p_e;
 stages.stg2.Pe = PRP_mat.p_e;
 
 wingSurf = 1;
-AER_mat_path = strcat("../../AER/MSA/RISULTATI v2/", "S", num2str(wingSurf),"m^2/");
-CD_mat = load(strcat(AER_mat_path, "data_CD_GEO2_S",num2str(wingSurf),"m^2.mat")).CD_mat;
-CL_mat = load(strcat(AER_mat_path, "data_CL_GEO2_S",num2str(wingSurf),"m^2.mat")).CL_mat;
-Xcp_mat = load(strcat(AER_mat_path, "data_Xcp_GEO2_S",num2str(wingSurf),"m^2.mat")).Xcp_mat;
+AER_mat_path = strcat("../../AER/MSA/RISULTATI v4/");
+CD_mat = load(strcat(AER_mat_path, "data_CD_GEO4_S",num2str(wingSurf),"m^2.mat")).CD_mat;
+CL_mat = load(strcat(AER_mat_path, "data_CL_GEO4_S",num2str(wingSurf),"m^2.mat")).CL_mat;
+Xcp_mat = load(strcat(AER_mat_path, "data_Xcp_GEO4_S",num2str(wingSurf),"m^2.mat")).Xcp_mat;
 
 AER_mat = cat(4, CD_mat, CL_mat, Xcp_mat);
 AER_mat = permute(AER_mat, [4 1 2 3]);
@@ -49,7 +50,7 @@ stages.stg2.t_burn_tot = stages.stg2.m_prop/(stages.stg2.m_dot(end)*stages.stg2.
 
 % stages.stg1.m0 = stages.stg1.m0;
 
-stages.stg1.m_prop_final = 0.0*stages.stg1.m_prop;
+stages.stg1.m_prop_final = 0.01*stages.stg1.m_prop;
 stages.stg2.m_prop_final = 0.15*stages.stg2.m_prop;
 
 stages.stg1.prcg_throt = 1;
@@ -108,22 +109,31 @@ stages.stg2.useTVC = false;
 stages.stg1.deltaMax = deg2rad(7);
 stages.stg2.deltaMax = deg2rad(7);
 
+% Fairing separation
+params.fairing_sep = 110e3;
+
 %% pitch program
 
 % params.pitch.first_angle = deg2rad(43.6767403903567);
 % params.pitch.first_angle = deg2rad(34);
-params.pitch.first_angle = deg2rad(40);
+params.pitch.first_angle = deg2rad(50);
 % params.pitch.first_angle = deg2rad(39);
 params.pitch.order = 1;
 params.pitch.initial_altitude = 11e3;
 % params.pitch.final_altitude = 222.95e3;
-params.pitch.final_altitude = 321.25e3;
+% params.pitch.final_altitude = 321.25e3;
+% params.pitch.final_altitude = 311.65e3;
+% params.pitch.final_altitude = 316625;
+% params.pitch.final_altitude = 310062.5;
+% params.pitch.final_altitude = 305703.125;
+params.pitch.final_altitude = 303964.84375;
+
 
 %% Second stage re-burn
 
 params.lastBurn = true;
 % params.h_reign = 399e3;
-params.h_reign = 398.748e3;
+params.h_reign = 399.75e3;
 params.h_final = 400e3;
 params.xi_err = deg2rad(1);
 

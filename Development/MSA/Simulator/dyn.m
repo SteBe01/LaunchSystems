@@ -81,17 +81,17 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     % Fast intertial orbit propagation
     % The last part of inertial flight can be computed without requiring
     % all the other computations, in order to save computational time
-    if nargout == 1 && END_BURN
-        dY(1) = xDot;
-        dY(2) = zDot;
-        dY(3) = -g*cos(beta);
-        dY(4) = -g*sin(beta);
-        dY(5) = thetaDot;
-        dY(6) = 0;
-        dY(7) = 0;
-
-        return
-    end
+    % if nargout == 1 && END_BURN
+    %     dY(1) = xDot;
+    %     dY(2) = zDot;
+    %     dY(3) = -g*cos(beta);
+    %     dY(4) = -g*sin(beta);
+    %     dY(5) = thetaDot;
+    %     dY(6) = 0;
+    %     dY(7) = 0;
+    % 
+    %     return
+    % end
 
     % Velocities norm [m/s]
     velsNorm = norm([xDot zDot]);
@@ -132,8 +132,14 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     % Geometric parameters wrt propellant mass left:
     % xcg: position of center of mass (starting from the nosecose) [m]
     % I_mat: Matrix of inertia moments [kg*m^2]
-    xcg = interp1(stage.STR_mat(:,1), stage.STR_mat(:,2), m_prop_left, "linear", "extrap");
-    I_mat = interp1(stage.STR_mat(:,1), stage.STR_mat(:, 3:5), m_prop_left, "linear", "extrap");
+
+    if current_stage == 2 && h-Re > params.fairing_sep
+        STR_mat = stage.STR_mat_no_fairing;
+    else
+       STR_mat = stage.STR_mat; 
+    end
+    xcg = interp1(STR_mat(:,1), STR_mat(:,2), m_prop_left, "linear", "extrap");
+    I_mat = interp1(STR_mat(:,1), STR_mat(:, 3:5), m_prop_left, "linear", "extrap");
     I = I_mat(2);
 
     % Engine parameters wrt throttling percentage
@@ -144,7 +150,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     if params.lastBurn && h-Re > params.h_reign && abs(xi) > params.xi_err 
         throttling = 0.2;
     elseif params.lastBurn && h-Re > params.h_reign && abs(xi) <= params.xi_err
-        throttling = 1*stage.prcg_throt;
+        throttling = 0.75*stage.prcg_throt;
     end
     Thrust = interp1(stage.throttling, stage.Thrust, throttling, 'linear', 'extrap');
     m_dot_interp = interp1(stage.throttling, stage.m_dot, throttling, 'linear', 'extrap');
@@ -161,7 +167,8 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         if t <= t_wait
             xcp = interpValues(3);
         else
-            xcp = 7.5;
+            xcp = 8.125;
+            % xcp = 7.75;
         end
     else
         Cd = 0;
@@ -182,11 +189,11 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         m_dot = 0;
     end
 
-    if params.lastBurn
+    if params.lastBurn && current_stage == 2
         v_orb = sqrt(398600/(Re*1e-3+400))*1e3;
         v_thr = 1;
         if nargout > 1
-            v_thr = 3;
+            v_thr = 1;
         end
         if h-Re > params.h_reign && abs(vec_rotated(1) - v_orb) > v_thr && ~END_BURN
             FRANCO = true;
@@ -202,6 +209,12 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     if current_stage == 2 && (m_prop_left <= 0.05*stage.m_prop)
         T = 0;
         m_dot = 0;
+    end
+    if current_stage == 2 && nargout > 1 && ~isempty(varargin)
+        if m_prop_left <= cell2mat(varargin{1})
+            T = 0;
+            m_dot = 0;
+        end
     end
     if END_BURN
         T = 0;
@@ -227,11 +240,11 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     
     % PID controller
     if T ~= 0
-        if ~isempty(varargin)
-            angle = varargin{1};
-        else
-            angle = getPitch(params.pitch, (h - Re));
-        end
+        % if ~isempty(varargin)
+        %     angle = varargin{1};
+        % else
+        angle = getPitch(params.pitch, (h - Re));
+        % end
         if h-Re > params.h_reign
             angle = 0;
         end
@@ -282,7 +295,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         parout.rho = rho;
         parout.velssqq = velsNorm^2;
         parout.m = m;
-        parout.dv_grav = -g*abs(sin(beta));
+        parout.dv_grav = -g*abs(sin(xi));
         parout.dv_drag = -0.5*S*Cd/stage.m0*rho*velsNorm^2*stage.m0/m;
         parout.delta = delta;
         parout.coeffs = [Cd Cl xcp];
