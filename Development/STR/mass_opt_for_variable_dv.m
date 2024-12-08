@@ -61,7 +61,7 @@ for j = 1:n
         M1.stg = 1; %[#] stage ID
         h1.motor = 0.75; %[m] height of the motor
         h1.h0 = 0; %[m] starting height
-        mat1 = 10; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7, 8 for Al 6061 T6, 9 for 300M Steel alloy, 10 for Al 2219 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+        mat1 = 10; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7, 8 for Al 6061 T6, 9 for 300M Steel alloy, 10 for Al 2219, 11 for Carbon/Epoxy (MatWeb) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
         press1 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
         
         %stage 2
@@ -75,7 +75,7 @@ for j = 1:n
         M2.stg = 2; %[#] stage ID
         h2.motor = 0.89; %[m] height of the motor
         h2.h0 = 12; %[m] starting height
-        mat2 = 11; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+        mat2 = 11; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7, 8 for Al 6061 T6, 9 for 300M Steel alloy, 10 for Al 2219, 11 for Carbon/Epoxy (MatWeb)  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
         press2 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
         
         %fairing:
