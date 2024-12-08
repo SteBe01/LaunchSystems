@@ -9,8 +9,8 @@ b5 = GEOMETRY.b5; %  aft skirt length 2
 b6 = GEOMETRY.b6; % interstage length
 b7 = GEOMETRY.b7; % height of fuel tank1
 b78 = GEOMETRY.b78; % 16 cm between tanks
-b8 = GEOMETRY.b8-3; % height of oxygen tank1
-b9 = GEOMETRY.b9+3; % aft skirt length 1
+b8 = GEOMETRY.b8; % height of oxygen tank1
+b9 = GEOMETRY.b9; % aft skirt length 1
 b10 = GEOMETRY.b10; % h engine
 
 x_segments = [b1, b2, b3,b34 ,b4,b5,b6,b7,b78,b8,b9,b10];
@@ -27,8 +27,8 @@ m8 = GEOMETRY.m8;
 m9 = GEOMETRY.m9;
 m10 = GEOMETRY.m10; 
 
-x_com = GEOMETRY.x_com;
-
+[x_com] = MASS_PROPERTIES_1(GEOMETRY.m_prop_1,GEOMETRY);
+[x_com2] = MASS_PROPERTIES_2(GEOMETRY.m_prop_2,GEOMETRY);
 m=m1+m2+m3+m4+m5+m6+m7+m8+m9+m10;
 
 g0 = 9.80665; %m/s^2
@@ -67,8 +67,8 @@ T = (D + nx*m*g0)/(cos(delta));
 nz=FORCES.nz;
 
 L = -T*sin(delta) + m*g0 + nz*g0*m;
-L_cone = (1/3)*L;
-L_fin = (2/3)*L;
+L_cone = (0.45)*L;
+L_fin = (0.55)*L;
 arm = (nz*g0*m*(l_tot-x_com))/L_cone;
 %arm = ((nz+1)*g0*m*(l_tot-x_com))/L_cone;
 
@@ -187,8 +187,8 @@ T = (D+nx*m*g0)/cos(delta);
 nz=FORCES.nz;
 
 L = -T*sin(delta) + m*g0 + nz*g0*m;
-L_cone = (1/3)*L;
-L_fin = (2/3)*L;
+L_cone = (0.45)*L;
+L_fin = (0.55)*L;
 arm = (nz*g0*m*(l_tot-x_com))/L_cone;
 %arm = ((nz+1)*g0*m*(l_tot-x_com))/L_cone;
 
@@ -277,7 +277,6 @@ grid on;
 
 % Axial Forces (P) at segment ends
 P_forces = -[R1,R2,R3,R4,R5,R6,R7,R8,R10,R10];
-THICKNESS.R_forces=[0,R1,R2,R3,R3,R4,R5,R6,R7,R7,R8,R9,R10];
 figure;
 hold on;
 for i = 1:length(x_segments)
@@ -323,6 +322,8 @@ title('Bending Moment Diagram for Pitch-Up Maneuver');
 xlim([0, sum(x_segments)]);
 grid on;
 legend('', '', '','','', '', '','', '','','Bending Moment','Sizing Bending Moment','Location', 'eastoutside');
+
+
     case 3
 
 STRUCT=3;

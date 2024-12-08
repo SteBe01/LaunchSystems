@@ -83,11 +83,11 @@ FORCES.T=M_it_case.stg1.Thrust;
 % % 
 [STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,1); 
 [STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,2); 
-% 
-% %% ATTACHMENTS:
-% PlotFlag =1;
-% LOAD.Cl=FORCES.Cl;
-% LOAD.Cd=FORCES.Cd;
-% LOAD.nx_c = 2;
-% LOAD.nz_c = 2;
-% [CLAMP] = Attachments_FINAL(GEOMETRY,LOAD,PlotFlag);
+
+ %% ATTACHMENTS:
+PlotFlag =1;
+LOAD.Cl=FORCES.Cl;
+LOAD.Cd=FORCES.Cd;
+LOAD.nx_c = 2;
+LOAD.nz_c = 2;
+[CLAMP] = Attachments_FINAL(GEOMETRY,LOAD,PlotFlag);

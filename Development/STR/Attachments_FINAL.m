@@ -24,7 +24,7 @@ F1_x = m2h*g0*(nx_c);
 F2_x = m1h*g0*(nx_c);
 F3_x = m3h*g0*(nx_c);
 F3_z = m2h*g0*(nz_c+1);
-X_COM2 = GEOMETRY.X_COM2;
+[X_COM2] =MASS_PROPERTIES_2(GEOMETRY.m_prop_2,GEOMETRY);
 
 syms L_cone F1 F2 F3 L_fin R1 R2 a b c d e z L
 
@@ -72,7 +72,8 @@ x = [0, cumsum(x_segments)]; % Cumulative lengths for plotting
 % Axial Forces (P) at segment ends
 P_forces = [F1_x+D,F1_x+D-P1,F1_x+D-P1+F2_x,F1_x+D-P1+F2_x,0,0];
 
-tiledlayout(2,1);
+figure()
+tiledlayout(3,1);
 nexttile;
 hold on;
 for i = 1:length(x_segments)
@@ -98,17 +99,17 @@ x = [0, cumsum(x_segments)]; % Cumulative lengths for plotting
 %P_forces = [L_cone,L_cone-F1,L_cone-F1+R1,L_cone-F1+R1-F2,L_cone-F1+R1-F2+R2,L_cone-F1+R1-F2+R2-F3,0];
 P_forces = [-(L_cone-(F1*2/3)),L_cone-(F1*2/3)-F1,L_cone-F1+R1,L_cone-F1+R1-F2,L_cone-F1+R1-F2+R2,L_cone-F1+R1-F2+R2-F3,0];
 
-% nexttile; % SHEAR
-% hold on;
-% for i = 1:length(x_segments)
-%     plot([x(i+1), x(i+1)], [0, P_forces(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
-% end
-% stairs(x, [0, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
-% xlabel('x [m]');
-% ylabel('Shear Force [N]');
-% title('Shear Force Diagram for Worst Case Carrier Maneuver');
-% xlim([0,L_tot]);
-% grid on;
+nexttile; % SHEAR
+hold on;
+for i = 1:length(x_segments)
+    plot([x(i+1), x(i+1)], [0, P_forces(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
+end
+stairs(x, [0, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
+xlabel('x [m]');
+ylabel('Shear Force [N]');
+title('Shear Force Diagram for Worst Case Carrier Maneuver');
+xlim([0,L_tot]);
+grid on;
 
 
 
