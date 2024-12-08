@@ -67,8 +67,8 @@ T = (D + nx*m*g0)/(cos(delta));
 nz=FORCES.nz;
 
 L = -T*sin(delta) + m*g0 + nz*g0*m;
-L_cone = (2/3)*L;
-L_fin = (1/3)*L;
+L_cone = (1/3)*L;
+L_fin = (2/3)*L;
 arm = (nz*g0*m*(l_tot-x_com))/L_cone;
 %arm = ((nz+1)*g0*m*(l_tot-x_com))/L_cone;
 
@@ -187,8 +187,8 @@ T = (D+nx*m*g0)/cos(delta);
 nz=FORCES.nz;
 
 L = -T*sin(delta) + m*g0 + nz*g0*m;
-L_cone = (2/3)*L;
-L_fin = (1/3)*L;
+L_cone = (1/3)*L;
+L_fin = (2/3)*L;
 arm = (nz*g0*m*(l_tot-x_com))/L_cone;
 %arm = ((nz+1)*g0*m*(l_tot-x_com))/L_cone;
 

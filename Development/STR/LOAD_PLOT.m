@@ -3,8 +3,8 @@ clear;clc;close all;
 
 %% Trajectory:
 
-stages=load('stages.mat');
-stages = stages.stages;
+% stages=load('stages.mat');
+% stages = stages.stages;
 
 % q = load("qdyn");
 %q=max(q);
@@ -19,7 +19,7 @@ FORCES.q = max(q);
 FORCES.Cl=1.3;
 FORCES.Cd = 1.3;
 
-FORCES.T =stages.stg1.Thrust;
+%FORCES.T =stages.stg1.Thrust;
 %FORCES.delta = delta_vec(t_max_Q);
 FORCES.delta =0;
 FORCES.alpha = 0;
@@ -40,31 +40,31 @@ GEOMETRY = GEO(h_it_case,M_it_case);
 
 M_abs = abs(GEOMETRY.M01-GEOMETRY.m1-GEOMETRY.m2-GEOMETRY.m3-GEOMETRY.m4-GEOMETRY.m5-GEOMETRY.m6-GEOMETRY.m7-GEOMETRY.m8-GEOMETRY.m9-GEOMETRY.m10);
 
-M_prop_vec_1 = linspace(GEOMETRY.m_prop_1,0,1000);
-M_prop_vec_2 = linspace(GEOMETRY.m_prop_2+5000,0,1000);
-
-x_com1=zeros(length(M_prop_vec_1),1);
-x_com2=zeros(length(M_prop_vec_1),1);
-for i=1:length(M_prop_vec_1)
-
-[x_com1(i)] = MASS_PROPERTIES_1(M_prop_vec_1(i),GEOMETRY);
-[x_com2(i)] = MASS_PROPERTIES_2(M_prop_vec_2(i),GEOMETRY);
-
-end
-
-[X_COM10] = MASS_PROPERTIES_1(GEOMETRY.m_prop_1,GEOMETRY);
-[X_COM20] = MASS_PROPERTIES_2(GEOMETRY.m_prop_2,GEOMETRY);
-
-plot(M_prop_vec_1,x_com1,'Color','b');
-hold on;
-plot(M_prop_vec_2,x_com2,'Color','r');
-hold on;
-plot(GEOMETRY.m_prop_1,X_COM10,'o');
-hold on;
-plot(GEOMETRY.m_prop_2,X_COM20,'o');
-xlabel('Mass of Propellant [kg]');
-ylabel('X coord of COM wrt to nose [m]');
-legend('COM1','COM2','COM10','COM20','Location','eastoutside');
+% M_prop_vec_1 = linspace(GEOMETRY.m_prop_1,0,1000);
+% M_prop_vec_2 = linspace(GEOMETRY.m_prop_2+5000,0,1000);
+% 
+% x_com1=zeros(length(M_prop_vec_1),1);
+% x_com2=zeros(length(M_prop_vec_1),1);
+% for i=1:length(M_prop_vec_1)
+% 
+% [x_com1(i)] = MASS_PROPERTIES_1(M_prop_vec_1(i),GEOMETRY);
+% [x_com2(i)] = MASS_PROPERTIES_2(M_prop_vec_2(i),GEOMETRY);
+% 
+% end
+% 
+% [X_COM10] = MASS_PROPERTIES_1(GEOMETRY.m_prop_1,GEOMETRY);
+% [X_COM20] = MASS_PROPERTIES_2(GEOMETRY.m_prop_2,GEOMETRY);
+% 
+% plot(M_prop_vec_1,x_com1,'Color','b');
+% hold on;
+% plot(M_prop_vec_2,x_com2,'Color','r');
+% hold on;
+% plot(GEOMETRY.m_prop_1,X_COM10,'o');
+% hold on;
+% plot(GEOMETRY.m_prop_2,X_COM20,'o');
+% xlabel('Mass of Propellant [kg]');
+% ylabel('X coord of COM wrt to nose [m]');
+% legend('COM1','COM2','COM10','COM20','Location','eastoutside');
 
 %M_prop_t1=GEOMETRY.m_prop_1;
 %M_prop_t1=0;
@@ -76,12 +76,13 @@ legend('COM1','COM2','COM10','COM20','Location','eastoutside');
 
 
 % 
-% %% PLOT:
+%% PLOT:
 % 
-% 
-% [STRUCT]=FINAL_STR_ANALYSIS(GEOMETRY,FORCES,2);
+FORCES.T=M_it_case.stg1.Thrust;
+%[STRUCT]=FINAL_STR_ANALYSIS(GEOMETRY,FORCES,2);
 % % 
-% [STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,1); 
+[STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,1); 
+[STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,2); 
 % 
 % %% ATTACHMENTS:
 % PlotFlag =1;
