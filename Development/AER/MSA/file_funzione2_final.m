@@ -167,6 +167,7 @@ S_surface = S_w + S_t;
 % title('Launcher shape', FontSize=40)
 
 
+
 %% Excel file loading:
 function data = excel_load
 

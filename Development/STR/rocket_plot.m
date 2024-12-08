@@ -2,7 +2,7 @@
 %% run this with the relative .mat file
 clc;
 
-r = 75; %row of the data selected
+r = 34; %row of the data selected
 
 %fundamental parameters recovery
 AR = h_it(r).stg1.R_lox / h_it(r).stg1.dome_lox; %[-] aspect ratio of the tanks
