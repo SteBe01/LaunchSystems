@@ -142,7 +142,9 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
     % Pe: Nozzle exit pressure [Pa]
     throttling = stage.prcg_throt;
     if params.lastBurn && h-Re > params.h_reign && abs(xi) > params.xi_err 
-        throttling = 0.1;
+        throttling = 0.2;
+    elseif params.lastBurn && h-Re > params.h_reign && abs(xi) <= params.xi_err
+        throttling = 1*stage.prcg_throt;
     end
     Thrust = interp1(stage.throttling, stage.Thrust, throttling, 'linear', 'extrap');
     m_dot_interp = interp1(stage.throttling, stage.m_dot, throttling, 'linear', 'extrap');
@@ -280,7 +282,7 @@ function [dY, parout] = dyn(t,y, stage, params, current_stage, varargin)
         parout.rho = rho;
         parout.velssqq = velsNorm^2;
         parout.m = m;
-        parout.dv_grav = -g*abs(sin(theta));
+        parout.dv_grav = -g*abs(sin(beta));
         parout.dv_drag = -0.5*S*Cd/stage.m0*rho*velsNorm^2*stage.m0/m;
         parout.delta = delta;
         parout.coeffs = [Cd Cl xcp];

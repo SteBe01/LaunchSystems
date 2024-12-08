@@ -32,18 +32,18 @@ params.CD_mult = 1;     % Multiplier for CD
 params.CL_mult = 1;     % Multiplier for CL
 
 %% General parameters
-stages.stg1.MR = 3.50088418677254;
-stages.stg2.MR = 5.97450045410176;
+stages.stg1.MR = 3.50149021312207;
+stages.stg2.MR = 5.50458320432422;
 stages.stg1.Isp = 324.5;
 stages.stg2.Isp = 343;
 stages.stg1.A_eng = 0.0953;
 stages.stg2.A_eng = 0.0953;
 stages.stg1.N_mot = 8;
-stages.stg2.N_mot = 2;
-stages.stg1.m0 = 15586.4713516553;
+stages.stg2.N_mot = 1;
+stages.stg1.m0 = 16052.0863302949;
 stages.stg1.m_prop = stages.stg1.m0 * (1 - 1/stages.stg1.MR);
 stages.stg1.t_burn_tot = stages.stg1.m_prop/(stages.stg1.m_dot(end)*stages.stg1.N_mot);
-stages.stg2.m0 = 3061.59500802306;
+stages.stg2.m0 = 2980.64027892657;
 stages.stg2.m_prop = stages.stg2.m0 * (1 - 1/stages.stg2.MR);
 stages.stg2.t_burn_tot = stages.stg2.m_prop/(stages.stg2.m_dot(end)*stages.stg2.N_mot);
 
@@ -53,12 +53,12 @@ stages.stg1.m_prop_final = 0.0*stages.stg1.m_prop;
 stages.stg2.m_prop_final = 0.15*stages.stg2.m_prop;
 
 stages.stg1.prcg_throt = 1;
-stages.stg2.prcg_throt = 0.75;
+stages.stg2.prcg_throt = 1;
 
-stages.stg1.d = 1.44848484848485;
-stages.stg2.d = 1.34041774986205;
-stages.stg1.length = 16.2458741011636;
-stages.stg2.length = 4.161852566201477;
+stages.stg1.d = 1.20000000000000;
+stages.stg2.d = 1.20000000000000;
+stages.stg1.length = 19.5502764144814;
+stages.stg2.length = 4.403968833256065;
 
 params.h_shutoff = 350e3;
 
@@ -112,17 +112,18 @@ stages.stg2.deltaMax = deg2rad(7);
 
 % params.pitch.first_angle = deg2rad(43.6767403903567);
 % params.pitch.first_angle = deg2rad(34);
-params.pitch.first_angle = deg2rad(45);
+params.pitch.first_angle = deg2rad(40);
 % params.pitch.first_angle = deg2rad(39);
 params.pitch.order = 1;
 params.pitch.initial_altitude = 11e3;
 % params.pitch.final_altitude = 222.95e3;
-params.pitch.final_altitude = 201.3435e3;
+params.pitch.final_altitude = 321.25e3;
 
 %% Second stage re-burn
 
 params.lastBurn = true;
-params.h_reign = 398e3;
+% params.h_reign = 399e3;
+params.h_reign = 398.748e3;
 params.h_final = 400e3;
 params.xi_err = deg2rad(1);
 
