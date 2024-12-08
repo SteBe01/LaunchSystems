@@ -1,6 +1,7 @@
 function [GEOMETRY] = GEO(h_it,M_it)
 
 GEOMETRY.M_pay = M_it.pay;
+GEOMETRY.m_fair = M_it.fairing;
 GEOMETRY.OF1 = M_it.stg1.OF;
 GEOMETRY.OF2 = M_it.stg1.OF;
 % GEOMETRY.l_tot= h_it.tot;

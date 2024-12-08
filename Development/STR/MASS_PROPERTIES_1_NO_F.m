@@ -1,5 +1,4 @@
-function [X_COM_t,Jyaw_t,Jpitch_t,Jroll_t,GEOMETRY] = MASS_PROPERTIES_1(M_prop_t,GEOMETRY)
-
+function [X_COM_t,Jyaw_t,Jpitch_t,Jroll_t,GEOMETRY] = MASS_PROPERTIES_1_NO_F(M_prop_t,GEOMETRY)
 
 GEOMETRY.m_lox_1t = M_prop_t * GEOMETRY.OF1 / (1+GEOMETRY.OF1);%[kg] mass of lox
 GEOMETRY.m_fuel_1t =  M_prop_t * 1  / (1+GEOMETRY.OF1);%[kg] mass of rp1
@@ -52,7 +51,7 @@ if M_prop_t>GEOMETRY.m_prop_1
     m_fuel_1t=m_fuel_baseline;
        x_b_lox1=x_lox_10;
     m_lox_1t=m_lox_baseline;
- fprintf('Error, too much propellant1\n');
+ fprintf('Error, too much propellant1F\n');
 end
 
 
