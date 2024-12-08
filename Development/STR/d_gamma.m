@@ -81,6 +81,9 @@ d_g = @(param) ( a * param + b )./( c * param + d );
 param = linspace(0.02, 100, 1e6);
 figure(4);
 loglog(param, d_g(param), '.');grid on;axis equal;hold on;
+ylabel('$\Delta\gamma$', 'Interpreter','latex');
+xlabel('$\frac{p}{E}\left (\frac{r_1}{t \cos{\alpha}}\right )^2$','Interpreter','latex');
+
 
 %retake to confirm that our parameters fall in the casistics
 param = @(p, th) p./mat.E * (r/th)^2;%[-]
@@ -98,6 +101,8 @@ for i = 1 : n
         loglog(prm, dgm, '+'); hold on;
     end
 end
+
+%%
 
 figure(5)
 surf(param(p, th), p, th);
@@ -127,7 +132,7 @@ f = @(x) c*(a+x.^2).^b;
 
 loglog(gZ, f(gZ));grid on;
 
-
+%%
 
 
 
