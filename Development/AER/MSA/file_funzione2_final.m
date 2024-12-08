@@ -152,19 +152,30 @@ S_surface = S_w + S_t;
 
 
 %% PLOT GEOMETRIA:
-% figure
-% hold on
-% grid minor
-% plot(x, a/2, 'k', x, -a/2,'k', LineWidth=1.75)
-% plot([x(end), x(end), x(end)-2*AR_w/sqrt(3*AR_w)], [a(end)/2, a(end)/2+sqrt(3*AR_w), a(end)/2], 'b', LineWidth=2)
-% plot([x(end), x(end), x(end)-2*AR_w/sqrt(3*AR_w)], [-a(end)/2, -a(end)/2-sqrt(3*AR_w), -a(end)/2], 'b', LineWidth=2)
-% plot([x(end), x(end)-2*AR_w/sqrt(4*AR_w)], [0, 0], 'b', LineWidth=2)
-% axis equal
-% grid on
-% set(gca, 'FontSize', 30)
-% xlabel('x [m]', FontSize=35)
-% ylabel('y [m]', FontSize=35)
-% title('Launcher shape', FontSize=40)
+x_v_nose = linspace(0, ln);
+fun_nose = -dn/2/ln^2 .* x_v_nose.^2 + 2 * dn/2/ln .* x_v_nose;
+
+chord_root = 0.5;
+chord_tip = 0.25;
+b_mez = S_t/(chord_tip+chord_root);
+
+figure
+hold on
+grid minor
+plot(x(2:end), a(2:end)/2, 'k', x(2:end), -a(2:end)/2,'k', LineWidth=1.75)
+plot(x_v_nose, fun_nose, 'k', LineWidth=1.75)
+plot(x_v_nose, -fun_nose, 'k', LineWidth=1.75)
+plot([x(end), x(end), x(end)-chord_tip, x(end)-chord_root], [a(end)/2, a(end)/2+b_mez, a(end)/2+b_mez, a(end)/2], 'b', LineWidth=2)
+
+% plot([x(end), x(end), x(end)-2*A_w/sqrt(3*A_w)], [a(end)/2, a(end)/2+sqrt(3*A_w), a(end)/2], 'b', LineWidth=2)
+% plot([x(end), x(end), x(end)-2*A_w/sqrt(3*A_w)], [-a(end)/2, -a(end)/2-sqrt(3*A_w), -a(end)/2], 'b', LineWidth=2)
+% plot([x(end), x(end)-2*A_w/sqrt(4*A_w)], [0, 0], 'b', LineWidth=2)
+axis equal
+grid on
+set(gca, 'FontSize', 30)
+xlabel('x [m]', FontSize=35)
+ylabel('y [m]', FontSize=35)
+title('Launcher shape', FontSize=40)
 
 
 

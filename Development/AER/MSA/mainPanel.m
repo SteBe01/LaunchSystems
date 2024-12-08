@@ -1,22 +1,21 @@
-clear all
-clc
-close all
-
+% clear
+% close all
+% clc
 %% MAIN
 
 R_v = [         % vettore con i vari raggi (ogiva, corpo, spalla)
     0           % raggio iniziale = 0m (punta)
-    0.6         % raggio dell'ogiva conica (finale)
+    0.6         % raggio dell'ogiva (finale)
     0.6         % raggio della spalla (finale)
     0.6         % raggio finale flare/boatt
     ];
 
 L_v =[
     2.4           % lunghezza ogiva
-    4.71          % lunghezza corpo
-    4.71           % lunghezza spalla/boatt
-    4.71          % lunghezza corpo
-    4.71           % lunghezza flare/boatt
+    4.2876          % lunghezza corpo
+    4.2876           % lunghezza spalla/boatt
+    4.2876          % lunghezza corpo
+    4.2876           % lunghezza flare/boatt
     ];
 
 
@@ -29,7 +28,7 @@ geometrySegments = struct(...
     @(x) R_v(2) + (R_v(3)-R_v(2))/L_v(3) * (x - sum(L_v(1:2))), ...
     @(x) R_v(3) + 0 * x, ...
     @(x) R_v(3) + (R_v(4)-R_v(3))/L_v(5) * (x - sum(L_v(1:4)))}, ...
-    'funcR', {@(x) R_v(2)/L_v(1) * x, ...                   % CONICAL
+    'funcR', {@(x) -R_v(2)/L_v(1)^2 .* x.^2 + 2 * R_v(2)/L_v(1) .* x, ...
     @(x) R_v(2) + 0 * x, ...
     @(x) R_v(2) + (R_v(3)-R_v(2))/L_v(3) * (x - sum(L_v(1:2))), ...
     @(x) R_v(3) + 0 * x, ...
@@ -40,19 +39,25 @@ geometrySegments = struct(...
     % @(x) R_v(2) + (R_v(3)-R_v(2))/L_v(3) * (x - sum(L_v(1:2))), ...
     % @(x) R_v(3) + 0 * x, ...
     % @(x) R_v(3) + (R_v(4)-R_v(3))/L_v(5) * (x - sum(L_v(1:4)))});
+
+    % 'funcR', {@(x) R_v(2)/L_v(1) * x, ...                   % CONICAL
+    % @(x) R_v(2) + 0 * x, ...
+    % @(x) R_v(2) + (R_v(3)-R_v(2))/L_v(3) * (x - sum(L_v(1:2))), ...
+    % @(x) R_v(3) + 0 * x, ...
+    % @(x) R_v(3) + (R_v(4)-R_v(3))/L_v(5) * (x - sum(L_v(1:4)))});
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 D_ref = 2 * max(R_v);
 S_ref = D_ref^2 * pi/4;     % misure di riferimento per adimensionalizzazione
 
-alpha = 10;
-Mach = 6;
+% alpha = 10;
+% Mach = 6;
 
 
 altitude = 20000;
 numPanels_LONG = 10;        % for each section of the body
-numPanels_RAD = 20;         % each long station ther will be discretised by # points
+numPanels_RAD = 30;         % each long station ther will be discretised by # points
 
 
 % [CL_New, CD_New, CL_ModNew, CD_ModNew] = panelMethodRocket3D(geometrySegments, alpha, Mach, altitude, numPanels_LONG, numPanels_RAD, L_v, S_ref)
@@ -61,7 +66,7 @@ numPanels_RAD = 20;         % each long station ther will be discretised by # po
 
 % CICLO SU ALPHA E MACH:
 
-alpha_v = 10;      % in gradi!!
+alpha_v = 0:5:10;      % in gradi!!
 Mach_v = 3:8;
 
 CL_New = [];
@@ -97,7 +102,10 @@ plot(Mach_v, CD_ModNew)
 title('CD ModNew vs Mach')
 
 
-
+save('CL_NEW.mat', 'CL_New')
+save('CL_MODNEW.mat', 'CL_ModNew')
+save('CD_NEW.mat', 'CD_New')
+save('CD_MODNEW.mat', 'CD_ModNew')
 
 
 
@@ -206,7 +214,7 @@ function [X, Y, Z, panelNormals, panelAreas] = GeometryWithPanels(x, z, r, numPa
     figure;
     surf(X, Y, Z, 'EdgeColor', 'none', 'FaceAlpha', 0.8);
     colormap turbo;
-    shading interp;
+    % shading interp;
     hold on;
     axis equal
 
@@ -215,14 +223,14 @@ function [X, Y, Z, panelNormals, panelAreas] = GeometryWithPanels(x, z, r, numPa
 
     % Visualize panel vertices
     scatter3(X(:), Y(:), Z(:), 'filled', 'MarkerEdgeColor', 'k', ...
-             'MarkerFaceColor', 'r', 'DisplayName', 'Panel Vertices');
+             'MarkerFaceColor', 'b', 'DisplayName', 'Panel Vertices', 'LineWidth', 0.1);
 
     % Visualize panel normals
     quiver3(centerX, centerY, centerZ, ...
-            squeeze(panelNormals(:, :, 1)), ...
-            squeeze(panelNormals(:, :, 2)), ...
-            squeeze(panelNormals(:, :, 3)), ...
-            'k', 'LineWidth', 1.5, 'DisplayName', 'Panel Normals');
+            squeeze(panelNormals(:, :, 1))/2, ...
+            squeeze(panelNormals(:, :, 2))/2, ...
+            squeeze(panelNormals(:, :, 3))/2, ...
+            'k', 'LineWidth', 1, 'DisplayName', 'Panel Normals', 'AutoScale','off');
 
     % Plot settings
     title('3D Geometry with Panel Normals and Vertices');
