@@ -86,7 +86,7 @@ grid on;
 
 % 
 %% PLOT:
-SaveFlag=0;
+SaveFlag=1;
 FORCES.T=M_it_case.stg1.Thrust;
 %[STRUCT]=FINAL_STR_ANALYSIS(GEOMETRY,FORCES,2);
 % % 

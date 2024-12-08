@@ -148,13 +148,17 @@ ylabel('Bending Moment [Nm]');
 title('Bending Moment Diagram for Worst Case Carrier Maneuver');
 xlim([0, sum(x_segments)]);
 grid on;
-yticks = get(gca, 'YTick');                         
+%yticks = get(gca, 'YTick');                         
 % yticklabels = arrayfun(@(v) sprintf('%d \\times 10^5', abs(v) / 1e5), yticks, 'UniformOutput', false);
 % set(gca, 'YTickLabel', yticklabels);
-% yticks = get(gca, 'YTick'); % Get current tick values
-% set(gca, 'YTickLabel', abs(yticks) / 1e5); % Display scaled values (unscaled appearance)
 yticks = get(gca, 'YTick'); % Get current tick values
-set(gca, 'YTickLabel', abs(yticks) / 1e5); % Display scaled values (0, 1, 2, ...)
+
+% Convert tick values to scientific notation strings with "e" notation and absolute values
+yticklabels = arrayfun(@(y) sprintf('%0.2e', abs(y)), yticks, 'UniformOutput', false);
+
+% Set the formatted tick labels to the y-axis
+set(gca, 'YTickLabel', yticklabels);
+
 end
 
 if SaveFlag==1
