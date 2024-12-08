@@ -52,12 +52,19 @@ for i=1:length(M_prop_vec_1)
 
 end
 
+[X_COM10] = MASS_PROPERTIES_1(GEOMETRY.m_prop_1,GEOMETRY);
+[X_COM20] = MASS_PROPERTIES_2(GEOMETRY.m_prop_2,GEOMETRY);
+
 plot(M_prop_vec_1,x_com1,'Color','b');
 hold on;
 plot(M_prop_vec_2,x_com2,'Color','r');
+hold on;
+plot(GEOMETRY.m_prop_1,X_COM10,'o');
+hold on;
+plot(GEOMETRY.m_prop_2,X_COM20,'o');
 xlabel('Mass of Propellant [kg]');
 ylabel('X coord of COM wrt to nose [m]');
-legend('COM1','COM2');
+legend('COM1','COM2','COM10','COM20','Location','eastoutside');
 
 %M_prop_t1=GEOMETRY.m_prop_1;
 %M_prop_t1=0;

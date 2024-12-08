@@ -10,6 +10,20 @@ x_fuel_1 = x_fuel_10 - (((abs(GEOMETRY.m_fuel_1-GEOMETRY.m_fuel_1t))/GEOMETRY.m_
 x_lox_10 = GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+GEOMETRY.b4+GEOMETRY.b5+GEOMETRY.b6+GEOMETRY.b7+(GEOMETRY.b8/2)+GEOMETRY.b78;
 x_lox_1 = x_lox_10 - (((abs(GEOMETRY.m_lox_1-GEOMETRY.m_lox_1t))/GEOMETRY.m_lox_1)*x_lox_10);
 
+R1 = GEOMETRY.Diam_1/2;
+R2 = GEOMETRY.Diam_2/2;
+
+if R1==R2
+
+x_com_frustum = GEOMERTY.b6/2;
+
+elseif R1~=R2
+
+h=GEOMETRY.b6;
+x_com_frustum = (h / 4) * ((R1^2 + 2*R1*R2 + 3*R2^2) / (R1^2 + R1*R2 + R2^2));
+
+end
+
 x_b1 = GEOMETRY.b1*2/3; % fairing+pay+adapt
 x_b2=GEOMETRY.b1+ GEOMETRY.b2/2; % forward skirt 1
 x_b3 = GEOMETRY.b1+GEOMETRY.b2+(GEOMETRY.b3/2); % tank fuel 2
@@ -17,7 +31,7 @@ x_b3 = GEOMETRY.b1+GEOMETRY.b2+(GEOMETRY.b3/2); % tank fuel 2
 x_b4 =  GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+(GEOMETRY.b4/2); % tank lox 2
 %x_b_lox2 = GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+(GEOMETRY.b4/2); % lox 2
 x_b5 = GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+GEOMETRY.b4+(GEOMETRY.b5/2); %aft skirt 2
-x_b6 = GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+GEOMETRY.b4+GEOMETRY.b5+(GEOMETRY.b6/2); % interstage
+x_b6 = GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+GEOMETRY.b4+GEOMETRY.b5+(x_com_frustum); % interstage
 x_b7 = GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+GEOMETRY.b4+GEOMETRY.b5+GEOMETRY.b6+(GEOMETRY.b7/2); % fuel tank1
 x_b_fuel1 = x_fuel_1; % fuel 1
 x_b8 = GEOMETRY.b1+GEOMETRY.b2+GEOMETRY.b3+GEOMETRY.b34+GEOMETRY.b4+GEOMETRY.b5+GEOMETRY.b6+GEOMETRY.b7+(GEOMETRY.b8/2)+GEOMETRY.b78; % lox tank1
@@ -101,9 +115,6 @@ x_quad = x_vec_J.*x_vec_J;
 J = dot(m_vec,x_quad);
 Jyaw_t=J;
 Jpitch_t=J;
-
-R1 = GEOMETRY.Diam_1/2;
-R2 = GEOMETRY.Diam_2/2;
 
 Rb1 = R2;
 Rb2 = R2;
