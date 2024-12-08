@@ -1,6 +1,6 @@
 %% Animation
 
-factor = 2;
+factor = 5;
 
 clc
 
@@ -21,6 +21,7 @@ for ii = ii_new
 end
 F_D_in = parout.F_D_in;
 norma_old = 1;
+max_D = 1;
 for ii = ii_new
     F_D_in_temp = F_D_in(ii,:);
     norma = norm(F_D_in_temp);
