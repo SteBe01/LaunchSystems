@@ -84,10 +84,10 @@ plot(x8(y8), y8, '-k');
 %fairing plot:
 x9 = h9 - h8 * ones(2,1);
 y9 = [-r2; r2];
-plot(x9, y9, '--k');
+plot(x9, y9, '--k',LineWidth=1);
 x10 = h9 - h7 * ones(2,1);
 y10 = y9;
-plot(x10, y10, '--k');
+plot(x10, y10, '--k',LineWidth=1);
 
 %motor #i:
 xm = [0, 0, (h1-0.26)*0.5, h1-0.26, h1-0.19, h1, h1, h1-0.19, h1-0.26, (h1-0.26)*0.5, 0, 0];
@@ -110,7 +110,7 @@ ym2 = ym;
 plot(xm2, ym2, '-','Color', grayColor, LineWidth=1);
 ystg2 = y9;
 xstg2 = h9 - h_it(r).stg1.tot * ones(2,1);
-plot(xstg2, ystg2, '-k');
+plot(xstg2, ystg2, '-k',LineWidth=1);
  
 %adapter:
 h_ad = r2 / 2;
