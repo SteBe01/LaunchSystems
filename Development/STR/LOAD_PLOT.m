@@ -74,7 +74,7 @@ plot(M_prop_vec_2,x_com2_nof,'Color','#D95319');
 xlabel('Mass of Propellant [kg]');
 ylabel('X coord of COM wrt to nose [m]');
 legend('COM1','COM2','COM10','COM20','COM1 NO F','COM2 NO F','Location','eastoutside');
-
+grid on;
 %M_prop_t1=GEOMETRY.m_prop_1;
 %M_prop_t1=0;
 %M_prop_t2=0;
@@ -85,18 +85,18 @@ legend('COM1','COM2','COM10','COM20','COM1 NO F','COM2 NO F','Location','eastout
 
 
 % 
-% %% PLOT:
+%% PLOT:
+SaveFlag=1;
+FORCES.T=M_it_case.stg1.Thrust;
+%[STRUCT]=FINAL_STR_ANALYSIS(GEOMETRY,FORCES,2);
 % % 
-% FORCES.T=M_it_case.stg1.Thrust;
-% %[STRUCT]=FINAL_STR_ANALYSIS(GEOMETRY,FORCES,2);
-% % % 
-% [STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,1); 
-% [STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,2); 
-% 
-%  %% ATTACHMENTS:
-% PlotFlag =1;
-% LOAD.Cl=FORCES.Cl;
-% LOAD.Cd=FORCES.Cd;
-% LOAD.nx_c = 2;
-% LOAD.nz_c = 2;
-% [CLAMP] = Attachments_FINAL(GEOMETRY,LOAD,PlotFlag);
+[STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,1,SaveFlag); 
+[STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,2,SaveFlag); 
+
+ %% ATTACHMENTS:
+PlotFlag =1;
+LOAD.Cl=FORCES.Cl;
+LOAD.Cd=FORCES.Cd;
+LOAD.nx_c = 2;
+LOAD.nz_c = 2;
+[CLAMP] = Attachments_FINAL(GEOMETRY,LOAD,PlotFlag,SaveFlag);

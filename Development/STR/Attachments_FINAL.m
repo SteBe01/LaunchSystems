@@ -1,4 +1,4 @@
-function [CLAMP] = Attachments_FINAL(GEOMETRY,LOAD,PlotFlag)
+function [CLAMP] = Attachments_FINAL(GEOMETRY,LOAD,PlotFlag,SaveFlag)
 
 
 g0 = 9.80665; %m/s^2
@@ -150,6 +150,8 @@ xlim([0, sum(x_segments)]);
 grid on;
 end
 
-
+if SaveFlag==1
+exportgraphics(gcf, 'Load Diagram Attachments.pdf', 'ContentType','vector');
+end
 
 end % function

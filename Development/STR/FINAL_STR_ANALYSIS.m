@@ -1,4 +1,4 @@
-function [STRUCT]=FINAL_STR_ANALYSIS(GEOMETRY,FORCES,CASE)
+function [STRUCT]=FINAL_STR_ANALYSIS(GEOMETRY,FORCES,CASE,SaveFlag)
 
 b1 = GEOMETRY.b1; % fairing length
 b2 = GEOMETRY.b2; % forward skirt length

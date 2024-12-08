@@ -1,4 +1,4 @@
-function [STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,CASE)
+function [STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,CASE,SaveFlag)
 
 b1 = GEOMETRY.b1; % fairing length
 b2 = GEOMETRY.b2; % forward skirt length
@@ -106,7 +106,9 @@ x = [0, cumsum(x_segments)]; % Cumulative lengths for plotting
 % Axial Forces (P) at segment ends
 P_forces = [P2,P2];
 
-figure;
+figure();
+tiledlayout(3,1)
+nexttile
 hold on;
 for i = 1:length(x_segments)
     plot([x(i+1), x(i+1)], [D, P_forces(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
@@ -114,7 +116,7 @@ end
 stairs(x, [D, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
 xlabel('x [m]');
 ylabel('Axial Force [N]');
-title('Axial Force Diagram for Pitch-Up Maneuver');
+title('Axial Force Diagram for Max-Q');
 xlim([0, l_tot]);
 grid on;
 
@@ -124,7 +126,7 @@ x = [0, cumsum(x_segments)]; % Cumulative lengths for plotting
 
 % Axial Forces (P) at segment ends
 P_forces = -[R1,R2,R2];
-figure;
+nexttile
 hold on;
 for i = 1:length(x_segments)
      plot([x(i+1), x(i+1)], [0, P_forces(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
@@ -132,7 +134,7 @@ for i = 1:length(x_segments)
 stairs(x, [0, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
 xlabel('x [m]');
 ylabel('Shear Force [N]');
-title('Shear Force Diagram for Pitch-Up Maneuver');
+title('Shear Force Diagram for Max-Q');
 xlim([0, sum(x_segments)]);
 grid on;
 
@@ -160,7 +162,7 @@ x_M_1 = [sum(b1+b2+b3+b4+b5+b34),sum(b1+b2+b3+b4+b5+b34),l_tot,l_tot,sum(b1+b2+b
 y_M_1 = [0,min(M_moments),min(M_moments),0,0];
 
 % Plot the bending moment diagram
-figure;
+nexttile
 hold on;
 for i = 1:length(x_segments)
     plot([x(i+1), x(i+1)], [0, M_moments(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
@@ -172,10 +174,14 @@ hold on;
 plot(x_M_1,y_M_1,'Color','r','LineStyle','--','LineWidth', 1);
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
-title('Bending Moment Diagram for Pitch-Up Maneuver');
+title('Bending Moment Diagram for Max-Q');
 xlim([0, l_tot]);
 grid on;
 legend('', '', '', 'Bending Moment','Sizing Bending Moment','Location', 'eastoutside');
+
+if SaveFlag==1
+exportgraphics(gcf, 'Load Diagram.pdf', 'ContentType','vector');
+end
 
     case 2 
 STRUCT=2;
@@ -263,6 +269,8 @@ P_forces = [P1,P2,P3,P4,P5,P6,P7,P8,P10,P10];
 THICKNESS.P_forces = [D,P1,P2,P3,P3,P4,P5,P6,P7,P7,P8,P9,P10];
 
 figure;
+tiledlayout(3,1)
+nexttile
 hold on;
 for i = 1:length(x_segments)
     plot([x(i+1), x(i+1)], [D, P_forces(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
@@ -270,14 +278,14 @@ end
 stairs(x, [D, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
 xlabel('x [m]');
 ylabel('Axial Force [N]');
-title('Axial Force Diagram for Pitch-Up Maneuver');
+title('Axial Force Diagram for Max-Q');
 xlim([0, sum(x_segments)]);
 grid on;
 
 
 % Axial Forces (P) at segment ends
 P_forces = -[R1,R2,R3,R4,R5,R6,R7,R8,R10,R10];
-figure;
+nexttile
 hold on;
 for i = 1:length(x_segments)
      plot([x(i+1), x(i+1)], [0, P_forces(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
@@ -285,7 +293,7 @@ for i = 1:length(x_segments)
 stairs(x, [0, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
 xlabel('x [m]');
 ylabel('Shear Force [N]');
-title('Shear Force Diagram for Pitch-Up Maneuver');
+title('Shear Force Diagram for Max-Q');
 xlim([0, sum(x_segments)]);
 grid on;
 
@@ -306,7 +314,7 @@ y_M_2 = [0,M_moments(5),M_moments(5),0,0];
 x_M_1 = [sum(b1+b2+b3+b4+b5+b34),sum(b1+b2+b3+b4+b5+b34),l_tot,l_tot,sum(b1+b2+b3+b4+b5)];
 y_M_1 = [0,min(M_moments),min(M_moments),0,0];
 % Plot the bending moment diagram
-figure;
+nexttile
 hold on;
 for i = 1:length(x_segments)
     plot([x(i+1), x(i+1)], [0, M_moments(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
@@ -318,11 +326,13 @@ hold on;
 plot(x_M_1,y_M_1,'Color','r','LineStyle','--','LineWidth', 1);
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
-title('Bending Moment Diagram for Pitch-Up Maneuver');
+title('Bending Moment Diagram for Max-Q');
 xlim([0, sum(x_segments)]);
 grid on;
 legend('', '', '','','', '', '','', '','','Bending Moment','Sizing Bending Moment','Location', 'eastoutside');
-
+if SaveFlag==1
+exportgraphics(gcf, 'Load Diagram.pdf', 'ContentType','vector');
+end
 
     case 3
 
