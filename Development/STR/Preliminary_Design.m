@@ -284,15 +284,15 @@ legend('Cost Function','Fsolve solution');
 end
     
 
-% Body plot:
-
-figure() 
-plot([0 fair_length TR.Length],[0 TR.Diameter TR.Diameter]/2,'k',[0 fair_length TR.Length],-[0 TR.Diameter TR.Diameter]/2,'k');
-axis equal
-grid on
-title('Geometry');
-xlabel('Length [m]');
-ylabel('Radius [m]');
+% % Body plot:
+% 
+% figure() 
+% plot([0 fair_length TR.Length],[0 TR.Diameter TR.Diameter]/2,'k',[0 fair_length TR.Length],-[0 TR.Diameter TR.Diameter]/2,'k');
+% axis equal
+% grid on
+% title('Geometry');
+% xlabel('Length [m]');
+% ylabel('Radius [m]');
 
 % Plot to see where we are wrt Baseline
 
@@ -308,6 +308,11 @@ x_vec = linspace(0,1000,300);
 % title('Linear Interpolation of Payload Mass and Fairing Density');
 % legend('','Baseline','Team rocket');
 
+
+figure()
+tiledlayout(2,1);
+nexttile;
+hold on;
 plot(x_vec,y_rhop_line(x_vec));
 hold on;
 plot(x_rhop_eq(1,1),y_rhop_eq(1,1),'o','Color','#7E2F8E');
@@ -326,7 +331,7 @@ ylim([50,200]);
 grid on;
 
 x_vec = linspace(0,1000,300);
-figure()
+
 % plot(x_vec,y_rhope_line(x_vec));
 % hold on;
 % plot(x_rhope_eq,y_rhope_eq,'o');
@@ -336,7 +341,8 @@ figure()
 % ylabel('Density of Empty Fairing $[\frac{kg}{m^3}]$',Interpreter='latex');
 % title('Linear Interpolation of Payload Mass and Fairing Empty Density');
 % legend('','Baseline','Team rocket');
-
+nexttile;
+hold on;
 plot(x_vec,y_rhope_line(x_vec));
 hold on;
 plot(x_rhope_eq(1,1),y_rhope_eq(1,1),'o','Color','#7E2F8E');
@@ -353,9 +359,13 @@ legend('','LauncherOne','Pegasus','Electron','Team rocket');
 xlim([100,600]);
 ylim([50,250]);
 grid on;
+exportgraphics(gcf, 'Fairing_interp.pdf', 'ContentType','vector')
 
 x_vec = linspace(0,50000,300);
 figure()
+tiledlayout(2,1);
+nexttile;
+hold on;
 % plot(x_vec,y_rhol_line(x_vec));
 % hold on;
 % plot(x_rhol_eq,y_rhol_eq,'o');
@@ -383,7 +393,8 @@ legend('','LauncherOne','Pegasus','Electron','Team rocket');
 grid on;
 
 x_vec = linspace(0,50000,300);
-figure()
+nexttile;
+hold on;
 % plot(x_vec,y_rhole_line(x_vec));
 % hold on;
 % plot(x_rhole_eq,y_rhole_eq,'o');
@@ -407,6 +418,7 @@ ylabel('Density of Empty Launcher $[\frac{kg}{m^3}]$',Interpreter='latex');
 title('Linear Interpolation of GLOM and Launcher Empty Density');
 legend('','LauncherOne','Pegasus','Electron','Team rocket');
 grid on;
+exportgraphics(gcf, 'V_interp.pdf', 'ContentType','vector')
 
 
 %%
