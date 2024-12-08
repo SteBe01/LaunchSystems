@@ -178,7 +178,8 @@ title('Bending Moment Diagram for Max-Q');
 xlim([0, l_tot]);
 grid on;
 legend('', '', '', 'Bending Moment','Sizing Bending Moment','Location', 'eastoutside');
-
+yticks = get(gca, 'YTick'); % Get current tick values
+set(gca, 'YTickLabel', abs(yticks) / 1e5); % Display scaled values (0, 1, 2, ...)
 if SaveFlag==1
 exportgraphics(gcf, 'Load Diagram.pdf', 'ContentType','vector');
 end
@@ -330,6 +331,8 @@ title('Bending Moment Diagram for Max-Q');
 xlim([0, sum(x_segments)]);
 grid on;
 legend('', '', '','','', '', '','', '','','Bending Moment','Sizing Bending Moment','Location', 'eastoutside');
+yticks = get(gca, 'YTick'); % Get current tick values
+set(gca, 'YTickLabel', abs(yticks) / 1e5); % Display scaled values (0, 1, 2, ...)
 if SaveFlag==1
 exportgraphics(gcf, 'Load Diagram.pdf', 'ContentType','vector');
 end
