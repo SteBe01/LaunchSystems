@@ -101,4 +101,4 @@ LOAD.Cd=FORCES.Cd;
 LOAD.nx_c = 2;
 LOAD.nz_c = 2;
 %[CLAMP] = Attachments_FINAL(GEOMETRY,LOAD,PlotFlag,SaveFlag,h_it_case,M_it_case);
-[CLAMP] = Attachments_FINAL_PLOT(GEOMETRY,LOAD,PlotFlag,SaveFlag,h_it_case,M_it_case);
+%[CLAMP] = Attachments_FINAL_PLOT(GEOMETRY,LOAD,PlotFlag,SaveFlag,h_it_case,M_it_case);

@@ -116,7 +116,7 @@ end
 stairs(x, [D, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
 xlabel('x [m]');
 ylabel('Axial Force [N]');
-title('Axial Force Diagram for Max-Q');
+title('Axial Force Diagram for Max-Q with nx=6 and nz=1');
 xlim([0, DIFF]);
 grid on;
 
@@ -133,7 +133,7 @@ for i = 1:length(x_segments)
 stairs(x, [0, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
 xlabel('x [m]');
 ylabel('Shear Force [N]');
-title('Shear Force Diagram for Max-Q');
+title('Shear Force Diagram for Max-Q with nx=6 and nz=1');
 xlim([0, DIFF]);
 grid on;
 
@@ -160,6 +160,10 @@ y_M_2 = [0,M_inter_line(sum(b1+b2+b3+b4+b5+b34)),M_inter_line(sum(b1+b2+b3+b4+b5
 x_M_1 = [sum(b1+b2+b3+b4+b5+b34),sum(b1+b2+b3+b4+b5+b34),l_tot-b10,l_tot-b10,sum(b1+b2+b3+b4+b5)];
 y_M_1 = [0,min(M_moments),min(M_moments),0,0];
 
+M_min = min(M_moments);
+posmin=find(M_moments==M_min)
+M_moments(posmin)=1.5* min(M_moments);
+
 % Plot the bending moment diagram
 figure()
 for i = 1:length(x_segments)
@@ -172,7 +176,7 @@ hold on;
 plot(x_M_1,y_M_1,'Color','r','LineStyle','--','LineWidth', 1);
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
-title('Bending Moment Diagram for Max-Q');
+title('Bending Moment Diagram for Max-Q with nx=6 and nz=1');
 xlim([0, DIFF]);
 grid on;
 legend('', '', '', 'Bending Moment','Sizing Bending Moment','Location', 'eastoutside');
@@ -405,7 +409,7 @@ end
 stairs(x, [D, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
 xlabel('x [m]');
 ylabel('Axial Force [N]');
-title('Axial Force Diagram for Max-Q');
+title('Axial Force Diagram for Max-Q & nx=6, nz=1');
 xlim([0, DIFF]);
 grid on;
 
@@ -420,7 +424,7 @@ for i = 1:length(x_segments)
 stairs(x, [0, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
 xlabel('x [m]');
 ylabel('Shear Force [N]');
-title('Shear Force Diagram for Max-Q');
+title('Shear Force Diagram for Max-Q & nx=6, nz=1');
 xlim([0, DIFF]);
 grid on;
 
@@ -442,6 +446,12 @@ M_moments(2)= M_fit(1)*(b1+b2)+M_fit(2);
 
 M_moments(end-1)=M_moments(end-1)*1;
 M_moments(end)=0;
+
+M_moments=0.896.*M_moments;
+
+% M_min = min(M_moments);
+% posmin=find(M_moments==M_min);
+% M_moments(posmin)=1.1*min(M_moments);
 x_M_2 = [0,0,sum(b1+b2+b3+b4+b5+b34),sum(b1+b2+b3+b4+b5+b34),0];
 y_M_2 = [0,M_moments(5),M_moments(5),0,0];
 x_M_1 = [sum(b1+b2+b3+b4+b5+b34),sum(b1+b2+b3+b4+b5+b34),l_tot-b10,l_tot-b10,sum(b1+b2+b3+b4+b5)];
@@ -463,7 +473,7 @@ hold on;
 plot(x_M_1,y_M_1,'Color','r','LineStyle','--','LineWidth', 1);
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
-title('Bending Moment Diagram for Max-Q');
+title('Bending Moment Diagram for Max-Q & nx=6, nz=1');
 xlim([0, DIFF]);
 grid on;
 legend('', '', '','','', '', '','', '','Bending Moment','Sizing Bending Moment','Location', 'best');

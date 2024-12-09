@@ -5,12 +5,12 @@ params.dispStat = true;
 
 %% Load MAT files
 
-STR_mat = load("..\MAT_Files\STR_mat.mat").outMat;
+STR_mat = load("../MAT_Files/STR_mat.mat").outMat;
 stages.stg1.STR_mat = STR_mat(:,:,1);
 stages.stg2.STR_mat = STR_mat(:,:,2);
 stages.stg2.STR_mat_no_fairing = STR_mat(:,:,3);
 
-PRP_mat = load("..\MAT_Files\PRP_mat.mat").throttle;
+PRP_mat = load("../MAT_Files/PRP_mat.mat").throttle;
 stages.stg1.Thrust = PRP_mat.TT;
 stages.stg2.Thrust = PRP_mat.TT.*1.05;
 stages.stg1.m_dot = PRP_mat.m_dot;
@@ -131,7 +131,7 @@ params.pitch.final_altitude = 303964.84375;
 
 %% Second stage re-burn
 
-params.lastBurn = false;
+params.lastBurn = true;
 % params.h_reign = 399e3;
 params.h_reign = 399.75e3;
 params.h_final = 400e3;
