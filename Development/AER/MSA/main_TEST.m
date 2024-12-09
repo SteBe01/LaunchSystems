@@ -3,8 +3,8 @@ clc
 close all
 
 %% INPUT:
-Mach_v = 0.1:0.1:8;
-alpha_v = 0:2:10;           % deg
+Mach_v = 0.2:0.1:8;
+alpha_v = 0:2:4;           % deg
 alpha_v = deg2rad(alpha_v);     % rad
 h = 20000;
 
@@ -113,7 +113,7 @@ title('CL vs mach')
 figure
 hold on
 plot(Mach_v, CD, '.-', Color='b', LineWidth=2)
-plot(Mach_v, CD, '--', Color='k', LineWidth=2)
+plot(Mach_v, CD1, '--', Color='k', LineWidth=2)
 title('CD vs mach')
 
 figure
