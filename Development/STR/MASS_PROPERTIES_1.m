@@ -15,7 +15,7 @@ R2 = GEOMETRY.Diam_2/2;
 
 if R1==R2
 
-x_com_frustum = GEOMERTY.b6/2;
+x_com_frustum = GEOMETRY.b6/2;
 
 elseif R1~=R2
 
