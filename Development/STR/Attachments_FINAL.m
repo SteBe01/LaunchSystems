@@ -50,14 +50,14 @@ b = 2*l_constraint/3;
 c = l_constraint/3;
 d = (L_tot-(l_cone+z+a+b+c))/2;
 X_COM3 = l_cone+z+a+b+c+d;
-e =d;
+e =d-GEOMETRY.b10;
 CHECK=l_cone+z+a+b+c+d+e-L_tot;
 if CHECK>10^-3
 
 fprintf('ERROR IN LENGTH');
 
 end
-
+DIFF = 20;
 P1 =  D + F1_x+F2_x+F3_x;
 CLAMP.P1=P1;
 
@@ -83,7 +83,7 @@ stairs(x, [D, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
 xlabel('x [m]');
 ylabel('Axial Force [N]');
 title('Axial Force Diagram for Worst Case Carrier Maneuver');
-xlim([0,L_tot]);
+xlim([0,DIFF]);
 grid on;
 
 
@@ -108,7 +108,7 @@ stairs(x, [0, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
 xlabel('x [m]');
 ylabel('Shear Force [N]');
 title('Shear Force Diagram for Worst Case Carrier Maneuver');
-xlim([0,L_tot]);
+xlim([0,DIFF]);
 grid on;
 
 
@@ -136,6 +136,7 @@ M_moments(end-1)=-M_moments(end-1);
 M_moments(end)=0;
 
 
+
 % Plot the bending moment diagram
 nexttile;
 hold on;
@@ -146,17 +147,11 @@ plot(x,[0, M_moments], 'LineWidth', 2, 'Color', 'b'); % Step-style plot
 xlabel('x [m]');
 ylabel('Bending Moment [Nm]');
 title('Bending Moment Diagram for Worst Case Carrier Maneuver');
-xlim([0, sum(x_segments)]);
+xlim([0, DIFF]);
 grid on;
-%yticks = get(gca, 'YTick');                         
-% yticklabels = arrayfun(@(v) sprintf('%d \\times 10^5', abs(v) / 1e5), yticks, 'UniformOutput', false);
-% set(gca, 'YTickLabel', yticklabels);
 yticks = get(gca, 'YTick'); % Get current tick values
-
 % Convert tick values to scientific notation strings with "e" notation and absolute values
-yticklabels = arrayfun(@(y) sprintf('%d', abs(y)), yticks, 'UniformOutput', false);
-
-
+yticklabels = arrayfun(@(y) sprintf('%0.2e', abs(y)), yticks, 'UniformOutput', false);
 % Set the formatted tick labels to the y-axis
 set(gca, 'YTickLabel', yticklabels);
 
@@ -200,7 +195,7 @@ yCG = 0; %[m]
 %silhouette plot:
 nexttile;
 hold on;
-plot(x, y, '-k', LineWidth=1); grid on; axis equal; hold on;
+plot(x, y, '-k', LineWidth=1, HandleVisibility='off'); grid on; axis equal;hold on;
 % plot([diam1/2, -diam1/2], [h1.til_tank-h1.dome_rp1,h1.til_tank-h1.dome_rp1], '--k');
 % plot([diam2/2, -diam2/2], [h1.attach,h1.attach], '--k');
 % plot([diam2/2, -diam2/2], [h3.tot-2*diam2,h3.tot-2*diam2], '--k');
@@ -210,15 +205,15 @@ plot(xCG, yCG, '+r');
 cap1 = @(k) sqrt(r1^2 - k.^2)/AR;
 y1 = linspace(-r1, r1, 1e4);
 x1 = @(k) h9 - ( h2 - cap1(k) );
-plot(x1(y1), y1, '-k');
+plot(x1(y1), y1, '-k', HandleVisibility='off');
 y2 = y1;
 x2 = @(k) h9 - ( h2 + h_it.stg1.cyl_lox + cap1(k) );
-plot(x2(y2), y2, '-k');
+plot(x2(y2), y2, '-k', HandleVisibility='off');
 AR_1 = ( r1 + h_it.stg1.C2 ) / ( h_it.stg1.dome_lox + h_it.stg1.C2);
 cap1_AR_1 = @(k) sqrt( ( r1 + h_it.stg1.C2 )^2 - k.^2)/AR_1;
 y3 = y1;%linspace(-r1 - h_it(r).stg1.C2, r1 + h_it(r).stg1.C2, 1e4); 
 x3 = @(k) h9 - ( h2 + h_it.stg1.cyl_lox + cap1_AR_1(k) );
-plot(x3(y3), y3, '-k');
+plot(x3(y3), y3, '-k', HandleVisibility='off');
 y4 = y1;
 x4 = @(k) h9 - ( h3 + cap1(k) );
 plot(x4(y4), y4, '-k');
@@ -228,23 +223,23 @@ x5 = @(k) h9 - ( h5 - cap2(k) );
 plot(x5(y5), y5, '-k');
 y6 = y5;
 x6 = @(k) h9 - ( h5 + h_it.stg2.cyl_lox + cap2(k) );
-plot(x6(y6), y6, '-k');
+plot(x6(y6), y6, '-k', HandleVisibility='off');
 AR_2 = ( r2 + h_it.stg2.C2 ) / ( h_it.stg2.dome_lox + h_it.stg2.C2);
 cap2_AR_2 = @(k) sqrt( ( r2 + h_it.stg2.C2 )^2 - k.^2)/AR_2;
 y7 = y5;%linspace(-r2 - h_it(r).stg2.C2, r2 + h_it(r).stg2.C2, 1e4); 
 x7 = @(k) h9 - ( h5 + h_it.stg2.cyl_lox + cap2_AR_2(k) );
-plot(x7(y7), y7, '-k');
+plot(x7(y7), y7, '-k', HandleVisibility='off');
 y8 = y5;
 x8 = @(k) h9 - ( h6 + cap2(k) );
-plot(x8(y8), y8, '-k');
+plot(x8(y8), y8, '-k', HandleVisibility='off');
 
 %fairing plot:
 x9 = h9 - h8 * ones(2,1);
 y9 = [-r2; r2];
-plot(x9, y9, '--k',LineWidth=1);
+plot(x9, y9, '--k',LineWidth=1, HandleVisibility='off');
 x10 = h9 - h7 * ones(2,1);
 y10 = y9;
-plot(x10, y10, '--k',LineWidth=1);
+plot(x10, y10, '--k',LineWidth=1, HandleVisibility='off');
 
 %motor #i:
 xm = [0, 0, (h1-0.26)*0.5, h1-0.26, h1-0.19, h1, h1, h1-0.19, h1-0.26, (h1-0.26)*0.5, 0, 0];
@@ -258,16 +253,16 @@ alpha = linspace(0, 2*pi, M_it.n_mot1 + 1);
 for i = 1 : M_it.n_mot1
     xm1 = h9 - xm;
     ym1 = (r1 - 0.15)*cos(alpha(i)) - ym;
-    plot(xm1, ym1, '-','Color', grayColor, LineWidth=1);
+    plot(xm1, ym1, '-','Color', grayColor, LineWidth=1, HandleVisibility='off');
 end
 
 %second stage:
 xm2 = h9 - ( h4 + xm_2 - h1_2 );
 ym2 = ym;
-plot(xm2, ym2, '-','Color', grayColor, LineWidth=1);
+plot(xm2, ym2, '-','Color', grayColor, LineWidth=1, HandleVisibility='off');
 ystg2 = y9;
 xstg2 = h9 - h_it.stg1.tot * ones(2,1);
-plot(xstg2, ystg2, '-k',LineWidth=1);
+plot(xstg2, ystg2, '-k',LineWidth=1, HandleVisibility='off');
  
 %adapter:
 h_ad = r2 / 2;
@@ -275,14 +270,16 @@ r1_ad = r2 / 1.6;
 r2_ad = r2 / 1.2;
 X_a = (h9 - h7) - [0, 0, h_ad, h_ad, 0, 0];
 Y_a = [0, r2_ad, r1_ad, -r1_ad, -r2_ad, 0];
-plot(X_a, Y_a, '--r'); %adapter
+plot(X_a, Y_a, '--r', HandleVisibility='off'); %adapter
 
 %payload
 r_pl = 0.90 * r1_ad;
 theta = linspace(0, 2*pi, 3e1 + 1);
 ypl = r_pl * sin(theta);
 xpl = (h9 - h7 - h_ad * 0.3 - r_pl ) + r_pl * cos(theta);
-plot( xpl, ypl, '--b');
+plot( xpl, ypl, '--b', HandleVisibility='off');
+xlim([0;DIFF])
+legend('Global C.O.M.');
 
 end
 
