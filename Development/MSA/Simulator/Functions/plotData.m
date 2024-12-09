@@ -32,7 +32,8 @@ function plotData(T, Y, params, parout, idxStage)
     xline(T1(end), '--k', 'Staging')
 
     figure, hold on, grid on, title("Dynamic pressure wrt altitude for first stage"), xlabel("Altitude [km]"), ylabel("Qdyn [kPa]")
-    plot(Y1(1:end, 2)/1e3 - params.Re/1e3, parout.qdyn(1:parout.idxStg1)/1e3);
+    plot(T1, parout.qdyn(1:parout.idxStg1)/1e3);
+    % plot(Y1(1:end, 2)/1e3 - params.Re/1e3, parout.qdyn(1:parout.idxStg1)/1e3);
 
     figure
     subplot(4,1,1), hold on, grid on, title("$\xi$ evolution", 'Interpreter', 'latex'), ylabel("Xi [deg]")
