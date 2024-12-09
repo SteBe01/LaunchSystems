@@ -152,30 +152,30 @@ S_surface = S_w + S_t;
 
 
 %% PLOT GEOMETRIA:
-x_v_nose = linspace(0, ln);
-fun_nose = -dn/2/ln^2 .* x_v_nose.^2 + 2 * dn/2/ln .* x_v_nose;
-
-chord_root = 0.5;
-chord_tip = 0.25;
-b_mez = S_t/(chord_tip+chord_root);
-
-figure
-hold on
-grid minor
-plot(x(2:end), a(2:end)/2, 'k', x(2:end), -a(2:end)/2,'k', LineWidth=1.75)
-plot(x_v_nose, fun_nose, 'k', LineWidth=1.75)
-plot(x_v_nose, -fun_nose, 'k', LineWidth=1.75)
-plot([x(end), x(end), x(end)-chord_tip, x(end)-chord_root], [a(end)/2, a(end)/2+b_mez, a(end)/2+b_mez, a(end)/2], 'b', LineWidth=2)
-
-% plot([x(end), x(end), x(end)-2*A_w/sqrt(3*A_w)], [a(end)/2, a(end)/2+sqrt(3*A_w), a(end)/2], 'b', LineWidth=2)
-% plot([x(end), x(end), x(end)-2*A_w/sqrt(3*A_w)], [-a(end)/2, -a(end)/2-sqrt(3*A_w), -a(end)/2], 'b', LineWidth=2)
-% plot([x(end), x(end)-2*A_w/sqrt(4*A_w)], [0, 0], 'b', LineWidth=2)
-axis equal
-grid on
-set(gca, 'FontSize', 30)
-xlabel('x [m]', FontSize=35)
-ylabel('y [m]', FontSize=35)
-title('Launcher shape', FontSize=40)
+% x_v_nose = linspace(0, ln);
+% fun_nose = -dn/2/ln^2 .* x_v_nose.^2 + 2 * dn/2/ln .* x_v_nose;
+% 
+% chord_root = 0.5;
+% chord_tip = 0.25;
+% b_mez = S_t/(chord_tip+chord_root);
+% 
+% figure
+% hold on
+% grid minor
+% plot(x(2:end), a(2:end)/2, 'k', x(2:end), -a(2:end)/2,'k', LineWidth=1.75)
+% plot(x_v_nose, fun_nose, 'k', LineWidth=1.75)
+% plot(x_v_nose, -fun_nose, 'k', LineWidth=1.75)
+% plot([x(end), x(end), x(end)-chord_tip, x(end)-chord_root], [a(end)/2, a(end)/2+b_mez, a(end)/2+b_mez, a(end)/2], 'b', LineWidth=2)
+% 
+% % plot([x(end), x(end), x(end)-2*A_w/sqrt(3*A_w)], [a(end)/2, a(end)/2+sqrt(3*A_w), a(end)/2], 'b', LineWidth=2)
+% % plot([x(end), x(end), x(end)-2*A_w/sqrt(3*A_w)], [-a(end)/2, -a(end)/2-sqrt(3*A_w), -a(end)/2], 'b', LineWidth=2)
+% % plot([x(end), x(end)-2*A_w/sqrt(4*A_w)], [0, 0], 'b', LineWidth=2)
+% axis equal
+% grid on
+% set(gca, 'FontSize', 30)
+% xlabel('x [m]', FontSize=35)
+% ylabel('y [m]', FontSize=35)
+% title('Launcher shape', FontSize=40)
 
 
 
@@ -518,7 +518,7 @@ Re_x = V * d / nu;        % Reynolds number based on length
 
 % Variables:
 Tw_Taw = 1 + 0.9 * (gamma - 1)/2 * M.^2;            % Wall-to-adiabatic temperature ratio
-r = 0.88;                     % Recovery factor for supersonic flow
+r = 0.7;                     % Recovery factor for supersonic flow
 A = ( ( (gamma-1) * M.^2 ) ./ ( 2 .* Tw_Taw ) ).^0.5;
 B = ( 1 + (gamma-1)/2 * M.^2 ) ./ ( Tw_Taw ) - 1;
 C1 = ( 2*A.^2 - B ) ./ sqrt( B.^2 + 4*A.^2 );
@@ -527,16 +527,16 @@ C2 = B ./ sqrt( B.^2 + 4*A.^2 );
 Cf = [];
 for i = 1:length(M)
     f =@(x) log10(Re_x(i) .* x) - (1+2*r)/2 .* log10(Tw_Taw(i)) - ( 0.242 .* (asin(C1(i)) + asin(C2(i))) ) ./ ( A(i) .* x.^0.5 .* Tw_Taw(i).^0.5 );
-    Cf = [Cf, fsolve(f, 0.01)];
+    Cf = [Cf, fsolve(f, 0.01)] * 0.9;
 end
 
 % Mean turbulent skin friction global:
-A_wet_body = (l-ln) * d * pi + (ln * dn * pi)/2 + S_surface * 2;       % hp. cylindrical + 2 * superficie bagnata
+A_wet_body = (l-ln) * d * pi + sqrt(ln^2+(dn/2)^2) * pi * dn/2 + S_surface * 2;       % hp. cylindrical + 2 * superficie bagnata
 A_ref = pi * d^2 / 4;
 Cf_tot = Cf * A_wet_body/A_ref;
 
 
-Ca_f = Cf_tot * (1 + 0.5 / (l/d) * A_wet_body) / A_ref;
+Ca_f = Cf_tot;% * (1 + 0.5 / (l/d) * A_wet_body) / A_ref;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -546,9 +546,8 @@ Ca_f = Cf_tot * (1 + 0.5 / (l/d) * A_wet_body) / A_ref;
 % SUM:
 
 Ca = Ca_w + Ca_f + Ca_b;
-Ca = Ca * 1.1;      % there might be other types of drag sources (parasitic drag)
-
 Ca = Ca*cos(alpha)^2;
+
 end
 %% wavedragogive:
 function cdw = wavedragogive(diameter, lenght, Mach)
