@@ -137,7 +137,7 @@ title('Lift coefficent Cl [-]')
 figure
 hold on
 grid minor
-plot(Mach_v, CD*0.5, LineWidth=2)
+plot(Mach_v, CD, LineWidth=2)
 xlabel('Mach [-]')
 ylabel('Cd [-]')
 title('Drag Coefficient [-]')
