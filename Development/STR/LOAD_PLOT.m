@@ -31,7 +31,7 @@ FORCES.nz=1;
 h_it=load("h_it.mat");
 M_it=load("M_it.mat");
 
-n_choice = 74; % choice of case-> we chose 34
+n_choice = 34; % choice of case-> we chose 34
 
 h_it_case = h_it.h_it(1,n_choice);
 M_it_case=M_it.M_it(n_choice);
@@ -61,20 +61,20 @@ end
 [X_COM20] = MASS_PROPERTIES_2(GEOMETRY.m_prop_2,GEOMETRY);
 [X_COM20F] = MASS_PROPERTIES_2_NO_F(GEOMETRY.m_prop_1,GEOMETRY);
 
-plot(M_prop_vec_1,x_com1,'Color','b');
-hold on;
-plot(M_prop_vec_2,x_com2,'Color','r');
-hold on;
-plot(GEOMETRY.m_prop_1,X_COM10,'o');
-hold on;
-plot(GEOMETRY.m_prop_2,X_COM20,'o');
-plot(M_prop_vec_1,x_com1_nof,'Color','c');
-hold on;
-plot(M_prop_vec_2,x_com2_nof,'Color','#D95319');
-xlabel('Mass of Propellant [kg]');
-ylabel('X coord of COM wrt to nose [m]');
-legend('COM1','COM2','COM10','COM20','COM1 NO F','COM2 NO F','Location','eastoutside');
-grid on;
+% plot(M_prop_vec_1,x_com1,'Color','b');
+% hold on;
+% plot(M_prop_vec_2,x_com2,'Color','r');
+% hold on;
+% plot(GEOMETRY.m_prop_1,X_COM10,'o');
+% hold on;
+% plot(GEOMETRY.m_prop_2,X_COM20,'o');
+% plot(M_prop_vec_1,x_com1_nof,'Color','c');
+% hold on;
+% plot(M_prop_vec_2,x_com2_nof,'Color','#D95319');
+% xlabel('Mass of Propellant [kg]');
+% ylabel('X coord of COM wrt to nose [m]');
+% legend('COM1','COM2','COM10','COM20','COM1 NO F','COM2 NO F','Location','eastoutside');
+% grid on;
 %M_prop_t1=GEOMETRY.m_prop_1;
 %M_prop_t1=0;
 %M_prop_t2=0;
@@ -90,8 +90,8 @@ SaveFlag=1;
 FORCES.T=M_it_case.stg1.Thrust;
 %[STRUCT]=FINAL_STR_ANALYSIS(GEOMETRY,FORCES,2);
 % % 
-[STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,1,SaveFlag); 
-[STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,2,SaveFlag); 
+%[STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,1,SaveFlag,h_it_case,M_it_case); 
+[STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,2,SaveFlag,h_it_case,M_it_case); 
 
  %% ATTACHMENTS:
 PlotFlag =1;
@@ -99,4 +99,4 @@ LOAD.Cl=FORCES.Cl;
 LOAD.Cd=FORCES.Cd;
 LOAD.nx_c = 2;
 LOAD.nz_c = 2;
-[CLAMP] = Attachments_FINAL(GEOMETRY,LOAD,PlotFlag,SaveFlag);
+%[CLAMP] = Attachments_FINAL(GEOMETRY,LOAD,PlotFlag,SaveFlag,h_it_case,M_it_case);
