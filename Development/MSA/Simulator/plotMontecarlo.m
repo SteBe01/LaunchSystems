@@ -55,3 +55,44 @@ subplot(2,1,2);
 plot(1:N_sim, std_vel/1e3);
 yline(std(max_vel)/1e3);
 title("std orbit velocity error"); ylabel("Error std [km/s]"); xlabel("Number of simulations")
+
+%% Plot downrange over geoplot
+
+inclination = deg2rad(98);
+ang = inclination - pi/2;
+Rot_matrix = [cos(ang) -sin(ang); sin(ang) cos(ang)];
+lat0 = 34.751330;
+lon0 = -120.52023;
+h0 = 112.1;
+
+figure;
+
+downrange_end = zeros(N_sim, 1);
+coords_end = zeros(N_sim, 2);
+
+for ii = 1:N_sim
+    n = length(saveSim{ii}.t);
+    Rot_mat = repmat(Rot_matrix, 1,1,n);
+    downrange = -(nom_params.Re./(nom_params.Re+saveSim{ii}.Y(:,1)) .* saveSim{ii}.Y(:,1) + 500e3);
+    pos = pagemtimes(Rot_mat, reshape([downrange zeros(n,1)]', 2, 1, n));
+    pos = squeeze(pos)';
+    downrange_end(ii) = downrange(end);
+
+    coords = zeros(n, 2);
+    [coords(:,1), coords(:,2)] = ned2geodetic(pos(:,1), pos(:,2), h0*ones(n, 1), lat0, lon0, h0, wgs84Ellipsoid);
+
+    % geoplot(coords(:,1), coords(:,2), 'LineStyle', '-');
+    geoplot(coords(end,1), coords(end,2), 'LineStyle','none', 'Marker','.', 'MarkerSize',12);
+    hold on;
+    coords_end(ii, :) = coords(end,1:2);
+end
+geobasemap satellite
+
+coord_mean = mean(coords_end);
+coord_std = std(coords_end);
+geoplot(coord_mean(1), coord_mean(2), 'LineStyle','none', 'Marker','x', 'MarkerSize', 24);
+% semimajor = abs(max(downrange_end) - min(downrange_end))/1e5;
+% ecc = axes2ecc(semimajor,semimajor/3);
+% [lat1,lon1] = ellipse1(coord_mean(1),coord_mean(2),[semimajor ecc], 8);
+% geoplot(lat1,lon1,"LineWidth",2)
+% geobasemap satellite
