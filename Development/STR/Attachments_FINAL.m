@@ -39,7 +39,7 @@ F1=F1_z;
 F2=F2_z;
 F3=F3_z;
 L=q*(pi*Rad_2^2)*Cl_c;
-param=0.467;
+param=0.45;
 L_cone = L*param;
 L_fin = L*(1-param);
 l_cone = GEOMETRY.b1*2/3;
@@ -124,7 +124,7 @@ for i = 2:length(P_forces)
     M_moments(i) = M_moments(i-1) + P_forces(i-1) * x_segments(i-1);
 end
 
-M_moments(2)=-L_cone*z;
+M_moments(2)=(L_cone-(F1*2/3))*z*1.2;
 M_moments(3)=0;
 
 M_moments(4) = min(M_moments)*0.7;
