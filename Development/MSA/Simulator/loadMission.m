@@ -131,11 +131,17 @@ params.pitch.final_altitude = 303964.84375;
 
 %% Second stage re-burn
 
-params.lastBurn = true;
+params.lastBurn = false;
 % params.h_reign = 399e3;
 params.h_reign = 399.75e3;
 params.h_final = 400e3;
 params.xi_err = deg2rad(1);
+
+%% Parachute parameters
+
+params.fs_h1 = 60e3;
+params.fs_h2 = 9e3;
+params.fs_h3 = 1e3;
 
 end
 

@@ -24,6 +24,8 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     % If propellant mass is negative, set it to zero
     m_prop_left = m_prop_left*(m_prop_left >= 0); 
 
+    t_wait = 3;
+
     % Pre-define derivative vector
     dY = zeros(8,1);
 
@@ -98,9 +100,9 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     D = qdyn*S*Cd;                            % [N]       - Drag force acting on the rocket
     L = qdyn*S*Cl;                            % [N]       - Lift force acting on the rocket
     
-    h1 = 60e3 + Re;
-    h2 = 9e3 + Re;
-    h3 = 1e3 + Re;
+    h1 = params.fs_h1 + Re;
+    h2 = params.fs_h2 + Re;
+    h3 = params.fs_h3 + Re;
     Cd1 = 0.6;
     Cd2 = 0.8;
     Cd3 = 0.8;
@@ -125,8 +127,13 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     D_par = qdyn*S_par*Cd_par;
 
     % Thrust & mass estimation
-    T = 0;
-    m_dot = 0;
+    if t > t_wait && m_prop_left > 0
+        T = -(Thrust + stage.A_eng*(Pe-P))*stage.N_mot*0.01;
+        m_dot = m_dot_interp*0.01;
+    else
+        T = 0;
+        m_dot = 0;
+    end
 
     % m = stage.m0 - stage.m_prop + m_prop_left;
     m = (stage.m0-stages.stg2.m0) - stage.m_prop + m_prop_left;

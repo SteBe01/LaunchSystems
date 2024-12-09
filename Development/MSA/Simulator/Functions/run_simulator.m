@@ -22,7 +22,7 @@ function [T, Y, idxStage, parout] = run_simulator(stages, params, init, full_fli
 
     %% Second stage simulation
     if full_flight && ie~=2
-        options_stg2 = odeset('RelTol', 1e-8, 'MaxStep', 0.1);%, 'Events', @(t, y) orbit_insertion(t, y)); %@(t,y) orbit_revolution(t, y, params));
+        options_stg2 = odeset('RelTol', 1e-8, 'MaxStep', 0.1, 'Events', @(t, y) orbit_insertion(t, y)); %@(t,y) orbit_revolution(t, y, params));
         [T2, Y2] = ode113(@(t,y) dyn(t, y, stages.stg2, params, 2), [0 t_max], [Y1(end,1:end-1) stages.stg2.m_prop], options_stg2);
         clear dyn
 
