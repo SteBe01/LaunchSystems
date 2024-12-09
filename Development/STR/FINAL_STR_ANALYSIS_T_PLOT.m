@@ -111,7 +111,7 @@ P_forces = [P2,P2];
 
 figure();
 for i = 1:length(x_segments)
-    plot([x(i+1), x(i+1)], [D, P_forces(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
+    plot([x(i+1), x(i+1)], [0, P_forces(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
 end
 stairs(x, [D, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
 xlabel('x [m]');
@@ -404,7 +404,7 @@ P_forces = [P1,P2,P3,P4,P5,P6,P7,P9,P9];
 figure()
 hold on;
 for i = 1:length(x_segments)
-    plot([x(i+1), x(i+1)], [D, P_forces(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
+    plot([x(i+1), x(i+1)], [0, P_forces(i)], '--', 'LineWidth', 1,'Color', 'b'); % Dashed vertical lines
 end
 stairs(x, [D, P_forces] ,'LineWidth', 2, 'Color', 'b'); % Step-style plot
 xlabel('x [m]');
