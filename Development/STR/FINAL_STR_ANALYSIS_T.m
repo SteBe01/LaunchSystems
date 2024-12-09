@@ -182,14 +182,12 @@ legend('', '', '', 'Bending Moment','Sizing Bending Moment','Location', 'eastout
 % yticklabels = arrayfun(@(v) sprintf('%d \\times 10^5', abs(v) / 1e5), yticks, 'UniformOutput', false);
 % set(gca, 'YTickLabel', yticklabels);
 yticks = get(gca, 'YTick'); % Get current tick values
-
 % Convert tick values to scientific notation strings with "e" notation and absolute values
 yticklabels = arrayfun(@(y) sprintf('%0.2e', abs(y)), yticks, 'UniformOutput', false);
-
 % Set the formatted tick labels to the y-axis
 set(gca, 'YTickLabel', yticklabels);
 if SaveFlag==1
-exportgraphics(gcf, 'Load Diagram.pdf', 'ContentType','vector');
+exportgraphics(gcf,'Load Diagram.pdf', 'ContentType','vector');
 end
 
     case 2 
