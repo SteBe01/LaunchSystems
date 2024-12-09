@@ -86,7 +86,7 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     interpValues = params.coeffs({1:4, M, rad2deg(alpha), (h - Re)});
     Cd = interpValues(1)*params.CD_mult;
     Cl = interpValues(2)*params.CL_mult;
-    Cd = 1;
+    Cd = 0.25;
     Cl = 0;
     % xcp = interpValues(3);
     xcp = 4;
@@ -100,15 +100,15 @@ function [dY, parout] = dyn_fs_reentry(t,y, stages, params, varargin)
     D = qdyn*S*Cd;                            % [N]       - Drag force acting on the rocket
     L = qdyn*S*Cl;                            % [N]       - Lift force acting on the rocket
     
-    h1 = params.fs_h1 + Re;
-    h2 = params.fs_h2 + Re;
-    h3 = params.fs_h3 + Re;
+    h1 = 60e3 + Re;
+    h2 = 10e3 + Re;
+    h3 = 1.5e3 + Re;
     Cd1 = 0.6;
-    Cd2 = 0.8;
+    Cd2 = 0.5;
     Cd3 = 0.8;
     S1 = 20;
-    S2 = 44.8;
-    S3 = 498.8;
+    S2 = 66.493224852071010;
+    S3 = 1.899806424344886e+02;
 
     if h < h3
         Cd_par = Cd3;
