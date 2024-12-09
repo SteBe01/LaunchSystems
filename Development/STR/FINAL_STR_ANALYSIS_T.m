@@ -315,6 +315,12 @@ for i = 2:length(P_forces)
     M_moments(i) = M_moments(i-1) + P_forces(i-1) * x_segments(i-1);
 end
 
+M_interp_2 = [0;M_moments(3)];
+x_interp_2 = [b1*2/3;sum(b1+b2+b3)];
+M_fit =polyfit(x_interp_2,M_interp_2,1);
+M_moments(2)= M_fit(1)*(b1+b2)+M_fit(2);
+
+
 M_moments(end)=0;
 x_M_2 = [0,0,sum(b1+b2+b3+b4+b5+b34),sum(b1+b2+b3+b4+b5+b34),0];
 y_M_2 = [0,M_moments(5),M_moments(5),0,0];
