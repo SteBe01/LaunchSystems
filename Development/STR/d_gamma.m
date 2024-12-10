@@ -126,11 +126,14 @@ a = 3.2513;
 b = 0.5195;   
 c = 0.5348;
 
-gZ = linspace(0.1, 1e4, 1e5);
+gZ = linspace(0.1, 1500, 1e5);
 
 f = @(x) c*(a+x.^2).^b;
 
-loglog(gZ, f(gZ));grid on;
+close all
+loglog(gZ, f(gZ), LineWidth=1);grid on;axis equal;
+ylabel('$k_x$', 'Interpreter','latex');
+xlabel('$\gamma Z$','Interpreter','latex');
 
 %%
 

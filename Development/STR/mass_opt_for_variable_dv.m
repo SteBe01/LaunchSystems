@@ -19,6 +19,9 @@ loads.nz = 1.0;%transversal acceleration load factor [-]
 loads.K = 1.50; %loads resistance safety factor [-]
 FoS1 = 1.50; %FoS of first stage [-]
 FoS2 = 1.50; %FoS of first stage [-]
+S_tail = 1; %[m^2]
+S_ft2 = S_tail * 10.7639; %[ft^2]
+m_tail = (5*0.453592) * S_ft2^1.09; %[kg] mass of the tail of the rocket
 
 a = 0.5; %0.71; %balancing factor for iterative method
 n = 1;
@@ -57,7 +60,8 @@ for j = 1:n
         M1.rhorp1 = 820;  %[kg/m^3] density of rp1
         M1.rholox = 1140; %[kg/m^3] density of lox
         M1.avionics = 75 * 0.2; %[kg] from Edberg-Costa
-        M1.other = 250; %[kg] 
+        M1.other = 0; %218; %[kg] 
+        M1.wing = m_tail; %[kg]
         M1.stg = 1; %[#] stage ID
         h1.motor = 0.75; %[m] height of the motor
         h1.h0 = 0; %[m] starting height
@@ -72,6 +76,7 @@ for j = 1:n
         M2.rholox = 1140; %[kg/m^3] density of lox
         M2.avionics = 75 * 0.8; %[kg] from Edberg-Costa
         M2.other = 0; %[kg] 
+        M2.wing = 0; %[m^2]
         M2.stg = 2; %[#] stage ID
         h2.motor = 0.89; %[m] height of the motor
         h2.h0 = 12; %[m] starting height
@@ -262,6 +267,7 @@ for j = 1:n
         M.i = i;
         M.stg1 = M1;
         M.stg2 = M2;
+        M.wing = M1.wing;
         
         %height
         h.fairing = fairing.L; %[m] height of the fairing
@@ -1096,14 +1102,14 @@ th.C3 = C3.th; %[m] thickness of third connector (aft skirt)
 
 %TOTAL MASSES:
 M.tanks = M.tank_lox + M.tank_rp1; %[kg] mass of the two empty tanks
-M.str = M.tanks + M.motor + M.fairing + M.avionics + M.T_struct + M.wiring + M.other + C1.m + C2.m + C3.m; %[kg] inert mass of stage (motors, tanks, connectors, stage fairing, wiring, avionics, structures)
+M.str = M.tanks + M.motor + M.fairing + M.avionics + M.T_struct + M.wiring + M.other + M.wing + C1.m + C2.m + C3.m; %[kg] inert mass of stage (motors, tanks, connectors, stage fairing, wiring, avionics, structures)
 if M.stg == 1
     M.recovery = ( 0.07 / ( 1 - 0.07 ) ) * M.str; %[kg]
     M.str = M.str + M.recovery; %[kg]
 else
     M.recovery = 0; %[kg]
 end
-M.tot = M.tot_lox + M.tot_rp1 + M.motor + M.fairing + M.avionics + M.T_struct + M.wiring + M.recovery + M.other + C1.m + C2.m + C3.m; %[kg] total mass of motors, tanks, propellant, connectors, wiring, avionics, structures
+M.tot = M.tot_lox + M.tot_rp1 + M.motor + M.fairing + M.avionics + M.T_struct + M.wiring + M.recovery + M.other + M.wing + C1.m + C2.m + C3.m; %[kg] total mass of motors, tanks, propellant, connectors, wiring, avionics, structures
 M.eps = M.str / M.tot;
 M.C1 = C1;
 M.C2 = C2;
@@ -1298,13 +1304,14 @@ switch id
 end
 
 %compute critical loads expressions
-kx = @(th) k_x(nu, L, min(r), th, gP(th));
-Pcr = @(th) k2 * kx(th) * 2 * pi^3 * D(th) * min(r)   / L^2 +...   %if cyl and p=0 (only metals)
+kxP = @(th) k_x(nu, L, min(r), th, gP(th));
+kxM = @(th) k_x(nu, L, min(r), th, gM(th));
+Pcr = @(th) k2 * kxP(th) * 2 * pi^3 * D(th) * min(r)   / L^2 +...   %if cyl and p=0 (only metals)
          + (1-k2) * ( 2*pi    * E * th.^2 .* ( gP(th) ./ sqrt( 3 * (1-nu^2) ) + dg(th) ) + p * pi * min(r)^2 ); %in any other case (only metals)
-Mcr = @(th) k2 * kx(th)   *   pi^3 * D(th) * min(r)^2 / L^2 +...   %if cyl and p=0 (only metals)
+Mcr = @(th) k2 * kxM(th)   *   pi^3 * D(th) * min(r)^2 / L^2 +...   %if cyl and p=0 (only metals)
          + (1-k2) * pi*min(r) * E * th.^2 .* ( gM(th) ./ sqrt( 3 * (1-nu^2) ) + dg(th) ) + p * pi * min(r)^2 * k1;%in any other case (only metals)
 
-Mcr_unp = @(th) kx(th) * pi^3 * D(th) * min(r)^2 / L^2;   %if cyl and p=0 (only metals)
+Mcr_unp = @(th) kxM(th) * pi^3 * D(th) * min(r)^2 / L^2;   %if cyl and p=0 (only metals)
 
 %relation to be satisfied in combined stress condition (for AXIAL COMPRESSION + BENDING + INTERNAL PRESSURE)
 f1 = @(th) K*F_load./Pcr(th) + K*M_exp./Mcr(th) - 1; %this must be <0 to save the structure from failure
