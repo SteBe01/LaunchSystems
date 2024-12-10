@@ -19,7 +19,7 @@ loads.nz = 1.0;%transversal acceleration load factor [-]
 loads.K = 1.50; %loads resistance safety factor [-]
 FoS1 = 1.50; %FoS of first stage [-]
 FoS2 = 1.50; %FoS of first stage [-]
-S_tail = 1; %[m^2]
+S_tail = 2; %[m^2]
 S_ft2 = S_tail * 10.7639; %[ft^2]
 m_tail = (5*0.453592) * S_ft2^1.09; %[kg] mass of the tail of the rocket
 
@@ -60,7 +60,7 @@ for j = 1:n
         M1.rhorp1 = 820;  %[kg/m^3] density of rp1
         M1.rholox = 1140; %[kg/m^3] density of lox
         M1.avionics = 75 * 0.2; %[kg] from Edberg-Costa
-        M1.other = 0; %218; %[kg] 
+        M1.other = 256.8; %218; %[kg] 
         M1.wing = m_tail; %[kg]
         M1.stg = 1; %[#] stage ID
         h1.motor = 0.75; %[m] height of the motor
@@ -837,7 +837,7 @@ function [M, h, th] = inert_mass_common_dome(M, h, diam, AR, loads, mat_id, pres
 
 % considers thickness equal along the whole tank.
 % safety factor to be defined.
-% the volume is the volume of propellant to be contained: you cannot use
+% the volume is th volume of propellant to be contained: you cannot use
 % this function to evaluate blowdown architectures.
 
 %constants:
@@ -865,8 +865,8 @@ rholox = M.rholox; %[kg/m^3]
 rhorp1 = M.rhorp1; %[kg/m^3]
 
 %propellant volumes
-vlox = 1.10 * mlox / rholox; %[m^3] %added 10% margin
-vrp1 = 1.05 * mrp1 / rhorp1; %[m^3] %added 5% margin
+vlox = 1.08 * mlox / rholox; %[m^3] %added 10% margin
+vrp1 = 1.04 * mrp1 / rhorp1; %[m^3] %added 5% margin
 
 %recover dimensions:
 h_motor = h.motor; %[m] height of the motor
@@ -1114,6 +1114,8 @@ M.eps = M.str / M.tot;
 M.C1 = C1;
 M.C2 = C2;
 M.C3 = C3;
+M.skirts = C1.m + C2.m + C3.m; 
+M.tank_no_ins = M.tanks - M.lox_insulation; 
 M.mr = ( M.tot + m_sust ) / ( M.str + m_sust ); %[-] approx mass ratio of the stage
 M.n_final = M.Thrust / ( M.str + m_sust ) * 1/g; %[-] ending longitudinal acceleration
 
@@ -1667,7 +1669,7 @@ S_cone = pi * sqrt( d0^2 / 4 + L_nose^2 ) * d0/2; %[m^2] conical surface
 fairing.S = S_cyl + S_cone; %[m^2] total surface
 
 %compute mass (from "Launch and Entry Vehicle Design, Univ. Maryland, D.L.Akin")
-fairing.m = 4.95 * fairing.S ^ 1.15; %[kg]  
+fairing.m = 4.95 * fairing.S ^ 1.15;%9.89 * fairing.S; % %[kg]  
 
 %retrieve fairing parameters
 % fairing.M = nose.M + cyl.M; %[kg] total mass
