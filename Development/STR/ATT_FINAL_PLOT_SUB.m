@@ -124,13 +124,13 @@ M_moments(1) = 0; % Initial bending moment
 %     M_moments(i) = M_moments(i-1) + P_forces(i-1) * x_segments(i-1);
 % end
 M_moments(1)=0;
-M_moments(2)=L_cone*z;
+M_moments(2)=L_cone*z*2.3;
 M_moments(3)=(L_cone-F1)*a+M_moments(1);
 M_moments(4)=(L_cone-F1)*a+M_moments(1) + (L_cone-F1+R1)*b;
 M_moments(5)=M_moments(3) + (L_cone-F1+R1-F2)*c;
 M_moments(5)=M_moments(4)*-0.83179;
 M_moments(6)=M_moments(4) + (L_cone-F1+R1-F2+R2-F3-L_fin)*d;
-M_moments(6)=M_moments(2)*1.3;
+M_moments(6)=M_moments(2)*1.3*1.3;
 M_moments(7)=0;
 
 M_moments=M_moments.*0.8;

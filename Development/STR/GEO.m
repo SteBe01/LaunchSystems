@@ -43,42 +43,40 @@ GEOMETRY.X_COM2=GEOMETRY.l_tot-h_it.stg2.CG.tot;
 GEOMETRY.M_avionics = M_it.avionics;
 GEOMETRY.M_cables = M_it.wiring;
 
-M_w_d =  M_it.wiring/10;
-M_a_d =  M_it.avionics/10;
+M_w_d =  M_it.wiring/12;
+M_a_d =  M_it.avionics/12;
 
 GEOMETRY.M_s_1 = M_it.str1;
 GEOMETRY.M_s_2 = M_it.str2;
 
-GEOMETRY.m1=M_it.pay_effective+M_it.stg1.fairing;      % fairing
+GEOMETRY.m34 = M_it.stg1.C2.m+M_w_d+M_a_d;               % intertank 2
+GEOMETRY.m78 = M_it.stg1.C2.m+M_a_d+M_w_d;                  % intertank 1
+
+GEOMETRY.m1=M_it.pay_effective+M_it.stg1.fairing;      % fairing+payload real
 GEOMETRY.m2=M_w_d+M_a_d+M_it.stg2.C1.m;                  % forward skirt
-GEOMETRY.m3=M_it.stg2.tot_rp1+M_w_d+M_a_d;             % fuel tank2
-%GEOMETRY.m34 = M_it.stg1.C2.m+M_w_d+M_a_d;               % intertank 2
-GEOMETRY.m4=M_it.stg2.tot_lox+M_w_d+M_a_d+M_it.stg2.lox_insulation;  % oxygen tank2
+GEOMETRY.m3=M_it.stg2.tot_rp1+M_w_d+M_a_d+GEOMETRY.m34/2;             % fuel tank2
+GEOMETRY.m4=M_it.stg2.tot_lox+M_w_d+M_a_d+M_it.stg2.lox_insulation+GEOMETRY.m34/2;  % oxygen tank2
 GEOMETRY.m5=M_it.stg2.motor+M_w_d+M_a_d+M_it.stg2.T_struct+M_it.stg2.C3.m; % aft skirt 2
 GEOMETRY.m6=+M_w_d+M_a_d+M_it.stg1.recovery+M_it.stg1.C1.m;            % interstage
-GEOMETRY.m7=M_it.stg1.tot_rp1+M_w_d+M_a_d;               %  fuel tank1
-%GEOMETRY.m78 = M_it.stg1.C2.m+M_a_d+M_w_d;                % intertank 1
-GEOMETRY.m8=M_it.stg1.tot_lox+M_w_d+M_a_d+M_it.stg1.lox_insulation;   %  oxygen tank1
+GEOMETRY.m7=M_it.stg1.tot_rp1+M_w_d+M_a_d+GEOMETRY.m78/2;               %  fuel tank1
+GEOMETRY.m8=M_it.stg1.tot_lox+M_w_d+M_a_d+M_it.stg1.lox_insulation+GEOMETRY.m78/2;   %  oxygen tank1
 GEOMETRY.m9=M_w_d+M_a_d+M_it.stg1.T_struct+M_it.stg1.C3.m;           % aft skirt 1
-GEOMETRY.m10=M_it.stg1.motor+M_w_d+M_a_d;               % engine
+GEOMETRY.m10=M_it.stg1.motor+M_w_d+M_a_d+M_it.wing;               % engine
 
-% DELTA = (GEOMETRY.M01-GEOMETRY.m1-GEOMETRY.m2-GEOMETRY.m3-GEOMETRY.m4-GEOMETRY.m5-GEOMETRY.m6-GEOMETRY.m7-GEOMETRY.m8-GEOMETRY.m9-GEOMETRY.m10);
-DELTA=0;
-DELTA1 = 0.5*DELTA;
-DELTA2 = 0.2*DELTA;
-DELTA3 = 0.3*DELTA;
+DELTA = (1/5)*((GEOMETRY.M01-GEOMETRY.m1-GEOMETRY.m2-GEOMETRY.m3-GEOMETRY.m4-GEOMETRY.m5-GEOMETRY.m6-GEOMETRY.m7-GEOMETRY.m8-GEOMETRY.m9-GEOMETRY.m10));
+
+GEOMETRY.m34 = M_it.stg1.C2.m+M_w_d+M_a_d+DELTA;               % intertank 2
+GEOMETRY.m78 = M_it.stg1.C2.m+M_a_d+M_w_d+DELTA;                  % intertank 1
 
 GEOMETRY.m1=M_it.pay_effective+M_it.stg1.fairing;      % fairing
-GEOMETRY.m2=M_w_d+M_a_d+M_it.stg2.C1.m+DELTA1;                  % forward skirt
-GEOMETRY.m3=M_it.stg2.tot_rp1+M_w_d+M_a_d;             % fuel tank2
-%GEOMETRY.m34 = M_it.stg1.C2.m+M_w_d+M_a_d+DELTA;               % intertank 2
-GEOMETRY.m4=M_it.stg2.tot_lox+M_w_d+M_a_d+M_it.stg2.lox_insulation;  % oxygen tank2
-GEOMETRY.m5=M_it.stg2.motor+M_w_d+M_a_d+M_it.stg2.T_struct+M_it.stg2.C3.m+DELTA2; % aft skirt 2
+GEOMETRY.m2=M_w_d+M_a_d+M_it.stg2.C1.m+DELTA;                  % forward skirt
+GEOMETRY.m3=M_it.stg2.tot_rp1+M_w_d+M_a_d+GEOMETRY.m34/2;             % fuel tank2
+GEOMETRY.m4=M_it.stg2.tot_lox+M_w_d+M_a_d+M_it.stg2.lox_insulation+GEOMETRY.m34/2;  % oxygen tank2
+GEOMETRY.m5=M_it.stg2.motor+M_w_d+M_a_d+M_it.stg2.T_struct+M_it.stg2.C3.m+DELTA; % aft skirt 2
 GEOMETRY.m6=+M_w_d+M_a_d+M_it.stg1.recovery+M_it.stg1.C1.m;            % interstage
-GEOMETRY.m7=M_it.stg1.tot_rp1+M_w_d+M_a_d;                   %  fuel tank1
-%GEOMETRY.m78 = M_it.stg1.C2.m+M_a_d+M_w_d+DELTA;                  % intertank 1
-GEOMETRY.m8=M_it.stg1.tot_lox+M_w_d+M_a_d+M_it.stg1.lox_insulation;   %  oxygen tank1
-GEOMETRY.m9=M_w_d+M_a_d+M_it.stg1.T_struct+M_it.stg1.C3.m+DELTA3;           % aft skirt 1
+GEOMETRY.m7=M_it.stg1.tot_rp1+M_w_d+M_a_d+GEOMETRY.m78/2;                   %  fuel tank1
+GEOMETRY.m8=M_it.stg1.tot_lox+M_w_d+M_a_d+M_it.stg1.lox_insulation+GEOMETRY.m78/2;   %  oxygen tank1
+GEOMETRY.m9=M_w_d+M_a_d+M_it.stg1.T_struct+M_it.stg1.C3.m+DELTA;           % aft skirt 1
 GEOMETRY.m10=M_it.stg1.motor+M_w_d+M_a_d;               % engine
 
 GEOMETRY.m_lox_2 = M_it.stg2.prop * M_it.stg2.OF / (1+M_it.stg2.OF);%[kg] mass of lox

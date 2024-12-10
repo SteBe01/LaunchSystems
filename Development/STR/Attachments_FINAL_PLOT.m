@@ -122,14 +122,14 @@ for i = 2:length(P_forces)
     M_moments(i) = M_moments(i-1) + P_forces(i-1) * x_segments(i-1);
 end
 
-M_moments(2)=(L_cone-(F1*2/3))*z*1.2;
+M_moments(2)=(L_cone-(F1*2/3))*z*10^6;
 M_moments(3)=0;
 
 M_moments(4) = min(M_moments)*0.7;
 
 M_moments(5)=0;
 
-M_moments(end-1)=-M_moments(end-1);
+M_moments(end-1)=-M_moments(end-1)*15;
 
 M_moments(end)=0;
 

@@ -40,26 +40,26 @@ GEOMETRY = GEO(h_it_case,M_it_case);
 
 M_abs = abs(GEOMETRY.M01-GEOMETRY.m1-GEOMETRY.m2-GEOMETRY.m3-GEOMETRY.m4-GEOMETRY.m5-GEOMETRY.m6-GEOMETRY.m7-GEOMETRY.m8-GEOMETRY.m9-GEOMETRY.m10);
 
-M_prop_vec_1 = linspace(GEOMETRY.m_prop_1,0,1000);
-M_prop_vec_2 = linspace(GEOMETRY.m_prop_2,0,1000);
+% M_prop_vec_1 = linspace(GEOMETRY.m_prop_1,0,1000);
+% M_prop_vec_2 = linspace(GEOMETRY.m_prop_2,0,1000);
 
-x_com1=zeros(length(M_prop_vec_1),1);
-x_com2=zeros(length(M_prop_vec_1),1);
-x_com2_nof=zeros(length(M_prop_vec_1),1);
-x_com1_nof=zeros(length(M_prop_vec_1),1);
-for i=1:length(M_prop_vec_1)
+% x_com1=zeros(length(M_prop_vec_1),1);
+% x_com2=zeros(length(M_prop_vec_1),1);
+% x_com2_nof=zeros(length(M_prop_vec_1),1);
+% x_com1_nof=zeros(length(M_prop_vec_1),1);
+% for i=1:length(M_prop_vec_1)
+% 
+% [x_com1(i)] = MASS_PROPERTIES_1(M_prop_vec_1(i),GEOMETRY);
+% [x_com2(i)] = MASS_PROPERTIES_2(M_prop_vec_2(i),GEOMETRY);
+% [x_com2_nof(i)] = MASS_PROPERTIES_2_NO_F(M_prop_vec_2(i),GEOMETRY);
+% [x_com1_nof(i)] = MASS_PROPERTIES_1_NO_F(M_prop_vec_1(i),GEOMETRY);
+% 
+% end
 
-[x_com1(i)] = MASS_PROPERTIES_1(M_prop_vec_1(i),GEOMETRY);
-[x_com2(i)] = MASS_PROPERTIES_2(M_prop_vec_2(i),GEOMETRY);
-[x_com2_nof(i)] = MASS_PROPERTIES_2_NO_F(M_prop_vec_2(i),GEOMETRY);
-[x_com1_nof(i)] = MASS_PROPERTIES_1_NO_F(M_prop_vec_1(i),GEOMETRY);
-
-end
-
-[X_COM10] = MASS_PROPERTIES_1(GEOMETRY.m_prop_1,GEOMETRY);
-[X_COM10F] = MASS_PROPERTIES_1_NO_F(GEOMETRY.m_prop_1,GEOMETRY);
-[X_COM20] = MASS_PROPERTIES_2(GEOMETRY.m_prop_2,GEOMETRY);
-[X_COM20F] = MASS_PROPERTIES_2_NO_F(GEOMETRY.m_prop_1,GEOMETRY);
+% [X_COM10] = MASS_PROPERTIES_1(GEOMETRY.m_prop_1,GEOMETRY);
+% [X_COM10F] = MASS_PROPERTIES_1_NO_F(GEOMETRY.m_prop_1,GEOMETRY);
+% [X_COM20] = MASS_PROPERTIES_2(GEOMETRY.m_prop_2,GEOMETRY);
+% [X_COM20F] = MASS_PROPERTIES_2_NO_F(GEOMETRY.m_prop_1,GEOMETRY);
 
 % plot(M_prop_vec_1,x_com1,'Color','b');
 % hold on;
