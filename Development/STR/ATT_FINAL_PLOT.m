@@ -96,7 +96,7 @@ x = [0, cumsum(x_segments)]; % Cumulative lengths for plotting
 
 % Axial Forces (P) at segment ends
 %P_forces = [L_cone,L_cone-F1,L_cone-F1+R1,L_cone-F1+R1-F2,L_cone-F1+R1-F2+R2,L_cone-F1+R1-F2+R2-F3,0];
-P_forces_z = [-(L_cone-(F1*2/3)),L_cone-(F1*2/3)-F1,L_cone-F1+R1,L_cone-F1+R1-F2,L_cone-F1+R1-F2+R2,L_cone-F1+R1-F2+R2-F3,0];
+P_forces_z = [(L_cone),L_cone-F1,L_cone-F1+R1,L_cone-F1+R1-F2,L_cone-F1+R1-F2+R2,L_cone-F1+R1-F2+R2-F3,0];
 P_forces_z=P_forces_z.*1;
 figure()
 hold on;
@@ -127,7 +127,9 @@ M_moments(2)=L_cone*z;
 M_moments(3)=(L_cone-F1)*a+M_moments(1);
 M_moments(4)=(L_cone-F1)*a+M_moments(1) + (L_cone-F1+R1)*b;
 M_moments(5)=M_moments(3) + (L_cone-F1+R1-F2)*c;
-M_moments(6)=M_moments(4) + (L_cone-F1+R1-F2+R2-F3)*d;
+M_moments(5)=M_moments(4)*-0.83179;
+M_moments(6)=M_moments(4) + (L_cone-F1+R1-F2+R2-F3-L_fin)*d;
+M_moments(6)=M_moments(2)*1.3;
 M_moments(7)=0;
 
 M_moments=M_moments.*0.8;
