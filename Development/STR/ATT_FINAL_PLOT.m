@@ -96,7 +96,7 @@ x = [0, cumsum(x_segments)]; % Cumulative lengths for plotting
 
 % Axial Forces (P) at segment ends
 %P_forces = [L_cone,L_cone-F1,L_cone-F1+R1,L_cone-F1+R1-F2,L_cone-F1+R1-F2+R2,L_cone-F1+R1-F2+R2-F3,0];
-P_forces_z = [(L_cone),L_cone-F1,L_cone-F1+R1,L_cone-F1+R1-F2,L_cone-F1+R1-F2+R2,L_cone-F1+R1-F2+R2-F3,0];
+P_forces_z = [(L_cone),L_cone-F1,L_cone-F1+R1,L_cone-F1+R1-F2,L_cone-F1+R1-F2+R2,L_cone-F1+R1-F2+R2-F3,-L_fin];
 P_forces_z=P_forces_z.*1;
 figure()
 hold on;
@@ -112,7 +112,7 @@ grid on;
 
 
 
-P_forces = [L_cone,L_cone-F1,-(L_cone-F1+R1),-(L_cone-F1+R1-F2),-(L_cone-F1+R1-F2+R2),(L_cone-F1+R1-F2+R2-F3),0];
+P_forces = [L_cone,L_cone-F1,-(L_cone-F1+R1),-(L_cone-F1+R1-F2),-(L_cone-F1+R1-F2+R2),(L_cone-F1+R1-F2+R2-F3),-L_fin];
 x_segments = [l_cone,z,a,b,c,d,e];
 x = [0, cumsum(x_segments)]; % Cumulative lengths for plotting
     % Calculate the bending moment
