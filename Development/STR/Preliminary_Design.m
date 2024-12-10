@@ -1,4 +1,4 @@
-function [Launcher_Prel_Des,Baseline] = Preliminary_Design(IS,EPSILON,Delta_V, M_pay,lambda0,Plot_switch)
+function [Launcher_Prel_Des,Baseline] = Preliminary_Design(IS,EPSILON,Delta_V, M_pay,lambda0,Plot_switch,LAUNCHER)
 
 options = optimoptions('fsolve', 'Display', 'none');
 g0 = 9.80665; %m/s^2
@@ -308,6 +308,7 @@ x_vec = linspace(0,1000,300);
 % title('Linear Interpolation of Payload Mass and Fairing Density');
 % legend('','Baseline','Team rocket');
 
+if LAUNCHER==1
 
 figure()
 tiledlayout(2,1);
@@ -446,9 +447,152 @@ xlabel('Average Diameter [m]',Interpreter='latex');
 ylabel('Fineness Ratio [-]',Interpreter='latex');
 title('Linear Interpolation of Fineness Ratio');
 legend('','LauncherOne','Pegasus','Electron','Team rocket');
-xlim([0.5,3]);
+xlim([0.5,2.7]);
 ylim([10,20]);
 grid on;
+exportgraphics(gcf, 'FINENESS.pdf', 'ContentType','vector')
+end
+figure()
+tiledlayout(2,1);
+nexttile;
+hold on;
+plot(x_vec,y_rhop_line(x_vec));
+hold on;
+plot(x_rhop_eq(1,1),y_rhop_eq(1,1),'o','Color','#7E2F8E');
+hold on;
+plot(x_rhop_eq(1,2),y_rhop_eq(1,2),'o','Color','g');
+hold on;
+plot(x_rhop_eq(1,3),y_rhop_eq(1,3),'o','Color','r');
+hold on;
+plot(TR.M_pay_max_mission,(V_rhop_eq(1)*TR.M_pay_max_mission + V_rhop_eq(2)),'^','Color','#A2142F');
+xlabel('Maximum Payload Mass $[kg]$',Interpreter='latex');
+ylabel('Density of Fairing $[\frac{kg}{m^3}]$',Interpreter='latex');
+title('Linear Interpolation of Payload Mass and Fairing Density');
+legend('','LauncherOne','Pegasus','Electron','Team rocket');
+xlim([100,600]);
+ylim([50,200]);
+grid on;
+
+x_vec = linspace(0,1000,300);
+
+% plot(x_vec,y_rhope_line(x_vec));
+% hold on;
+% plot(x_rhope_eq,y_rhope_eq,'o');
+% hold on;
+% plot(TR.M_pay_max_mission,(V_rhope_eq(1)*TR.M_pay_max_mission + V_rhope_eq(2)),'^');
+% xlabel('Maximum Payload Mass $[kg]$',Interpreter='latex');
+% ylabel('Density of Empty Fairing $[\frac{kg}{m^3}]$',Interpreter='latex');
+% title('Linear Interpolation of Payload Mass and Fairing Empty Density');
+% legend('','Baseline','Team rocket');
+nexttile;
+hold on;
+plot(x_vec,y_rhope_line(x_vec));
+hold on;
+plot(x_rhope_eq(1,1),y_rhope_eq(1,1),'o','Color','#7E2F8E');
+hold on;
+plot(x_rhope_eq(1,2),y_rhope_eq(1,2),'o','Color','g');
+hold on;
+plot(x_rhope_eq(1,3),y_rhope_eq(1,3),'o','Color','r');
+hold on;
+plot(TR.M_pay_max_mission,(V_rhope_eq(1)*TR.M_pay_max_mission + V_rhope_eq(2)),'^','Color','#A2142F');
+xlabel('Maximum Payload Mass $[kg]$',Interpreter='latex');
+ylabel('Density of Empty Fairing $[\frac{kg}{m^3}]$',Interpreter='latex');
+title('Linear Interpolation of Payload Mass and Fairing Empty Density');
+legend('','LauncherOne','Pegasus','Electron','Team rocket');
+xlim([100,600]);
+ylim([50,250]);
+grid on;
+exportgraphics(gcf, 'Fairing_interp_JEENO.pdf', 'ContentType','vector')
+
+x_vec = linspace(0,50000,300);
+figure()
+tiledlayout(2,1);
+nexttile;
+hold on;
+% plot(x_vec,y_rhol_line(x_vec));
+% hold on;
+% plot(x_rhol_eq,y_rhol_eq,'o');
+% hold on;
+% plot(TR.M.M01,(V_rhol_eq(1)*TR.M.M01 + V_rhol_eq(2)),'^');
+% xlabel('GLOM $[kg]$',Interpreter='latex');
+% ylabel('Density of Launcher $[\frac{kg}{m^3}]$',Interpreter='latex');
+% title('Linear Interpolation of GLOM and Launcher Density');
+% legend('','Baseline','Team rocket');
+plot(x_vec,y_rhol_line(x_vec));
+hold on;
+plot(x_rhol_eq(1,1),y_rhol_eq(1,1),'o','Color','#7E2F8E');
+hold on;
+plot(x_rhol_eq(2,1),y_rhol_eq(2,1),'o','Color','g');
+hold on;
+plot(x_rhol_eq(3,1),y_rhol_eq(3,1),'o','Color','r');
+hold on;
+plot(TR.M.M01,(V_rhol_eq(1)*TR.M.M01 + V_rhol_eq(2)),'^','Color','#A2142F');
+xlabel('GLOM $[kg]$',Interpreter='latex');
+ylabel('Density of Launcher $[\frac{kg}{m^3}]$',Interpreter='latex');
+title('Linear Interpolation of GLOM and Launcher Density');
+legend('','LauncherOne','Pegasus','Electron','JEENO');
+% xlim([0.5,3.5]);
+% ylim([400,1400]);
+grid on;
+
+x_vec = linspace(0,50000,300);
+nexttile;
+hold on;
+% plot(x_vec,y_rhole_line(x_vec));
+% hold on;
+% plot(x_rhole_eq,y_rhole_eq,'o');
+% hold on;
+% plot(TR.M.M01,(V_rhole_eq(1)*TR.M.M01 + V_rhole_eq(2)),'^');
+% xlabel('GLOM $[kg]$',Interpreter='latex');
+% ylabel('Density of Empty Launcher $[\frac{kg}{m^3}]$',Interpreter='latex');
+% title('Linear Interpolation of GLOM and Launcher Empty Density');
+% legend('','Baseline','Team rocket');
+plot(x_vec,y_rhole_line(x_vec));
+hold on;
+plot(x_rhole_eq(1,1),y_rhole_eq(1,1),'o','Color','#7E2F8E');
+hold on;
+plot(x_rhole_eq(2,1),y_rhole_eq(2,1),'o','Color','g');
+hold on;
+plot(x_rhole_eq(3,1),y_rhole_eq(3,1),'o','Color','r');
+hold on;
+plot(TR.M.M01,(V_rhole_eq(1)*TR.M.M01 + V_rhole_eq(2)),'^','Color','#A2142F');
+xlabel('GLOM $[kg]$',Interpreter='latex');
+ylabel('Density of Empty Launcher $[\frac{kg}{m^3}]$',Interpreter='latex');
+title('Linear Interpolation of GLOM and Launcher Empty Density');
+legend('','LauncherOne','Pegasus','Electron','JEENO');
+grid on;
+exportgraphics(gcf, 'V_interp_JEENO.pdf', 'ContentType','vector')
+
+
+%%
+
+y_fn_eq = [L1.fn_ratio1;P.fn_ratio;El.fn_ratio];
+x_fn_eq = [L1.D;P.D;El.D];
+V_fn_eq = polyfit(x_fn_eq,y_fn_eq,1);
+y_fn_line = @(x) V_fn_eq(1)*x + V_fn_eq(2);
+
+%DIAM = 1.3;
+
+x_vec = linspace(0,4,300);
+figure()
+plot(x_vec,y_fn_line(x_vec));
+hold on;
+plot(x_fn_eq(1,1),y_fn_eq(1,1),'o','Color','#7E2F8E');
+hold on;
+plot(x_fn_eq(2,1),y_fn_eq(2,1),'o','Color','g');
+hold on;
+plot(x_fn_eq(3,1),y_fn_eq(3,1),'o','Color','r');
+hold on;
+%plot(DIAM,(V_fn_eq(1)*DIAM + V_fn_eq(2)),'^','Color','#A2142F');
+plot(TR.Diameter,(V_fn_eq(1)*TR.Diameter + V_fn_eq(2)),'^','Color','#A2142F');
+xlabel('Average Diameter [m]',Interpreter='latex');
+ylabel('Fineness Ratio [-]',Interpreter='latex');
+title('Linear Interpolation of Fineness Ratio');
+legend('','LauncherOne','Pegasus','Electron','JEENO');
+xlim([0.5,2.7]);
+ylim([10,20]);
+grid on;
+exportgraphics(gcf, 'FINENESS_JEENO.pdf', 'ContentType','vector')
 
 end
 

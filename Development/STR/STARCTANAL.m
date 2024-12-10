@@ -102,7 +102,9 @@ EPSILON = [Base.El.eps_1;Base.El.eps_2];
 
 M_pay = 250;
 
-[TR,Base] = Preliminary_Design(IS,EPSILON,TR.Delta_V_tot,M_pay,lambda0,1);
+LAUNCHER=2; % 1 for TEAM ROCKET, 2: for JEENO
+
+[TR,Base] = Preliminary_Design(IS,EPSILON,TR.Delta_V_tot,M_pay,lambda0,1,LAUNCHER);
 % 
 % Ms2_stage_ratio = TR.M.Ms2/TR.M.Ms1;
 % Ms1_stage_ratio = 1- TR.M.Ms2/TR.M.Ms1;
