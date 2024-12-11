@@ -14,20 +14,17 @@ M.adapter = 0.0755 * M.pay + 50; %[kg] estimated mass from Edberg-Costa
 M.pay_effective = M.pay + M.adapter; %[kg] Edberg-Costa includes adapter mass in the payload
 % M.pay_effective = M.pay; %[kg] Edberg-Costa includes adapter mass in the payload
 OF = 2.58; %[-] Ox/Fu ratio for LOX-RP1
-loads.nx = 6;%8;%6;  %longitudinal acceleration load factor [-]
-loads.nz = 1; %1.2;%1; %transversal acceleration load factor [-]
+loads.nx = 6; %longitudinal acceleration load factor [-]
+loads.nz = 1.0;%transversal acceleration load factor [-]
 loads.K = 1.50; %loads resistance safety factor [-]
 FoS1 = 1.50; %FoS of first stage [-]
 FoS2 = 1.50; %FoS of first stage [-]
-S_tail = 2; %[m^2]
-S_ft2 = S_tail * 10.7639; %[ft^2]
-m_tail = (5*0.453592) * S_ft2^1.09; %[kg] mass of the tail of the rocket
 
 a = 0.5; %0.71; %balancing factor for iterative method
 n = 1;
-m = 100;
+m = 34;
 dv_it = linspace(9.725, 9.725, n);
-diam1_it = linspace(1, 1.6, m);
+diam1_it = linspace(1.2, 1.2, m);
 Nmax = 200; %maximum number of iterations for the while loop
 
 % M_it = zeros(n*m,1);
@@ -60,12 +57,11 @@ for j = 1:n
         M1.rhorp1 = 820;  %[kg/m^3] density of rp1
         M1.rholox = 1140; %[kg/m^3] density of lox
         M1.avionics = 75 * 0.2; %[kg] from Edberg-Costa
-        M1.other = 185.7; %3 * 64.2; %256.8; %218; %[kg] 
-        M1.wing = m_tail; %[kg]
+        M1.other = 250; %[kg] 
         M1.stg = 1; %[#] stage ID
         h1.motor = 0.75; %[m] height of the motor
         h1.h0 = 0; %[m] starting height
-        mat1 = 10; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7, 8 for Al 6061 T6, 9 for 300M Steel alloy, 10 for Al 2219, 11 for Carbon/Epoxy (MatWeb) %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+        mat1 = 10; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7, 8 for Al 6061 T6, 9 for 300M Steel alloy, 10 for Al 2219 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
         press1 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
         
         %stage 2
@@ -76,11 +72,10 @@ for j = 1:n
         M2.rholox = 1140; %[kg/m^3] density of lox
         M2.avionics = 75 * 0.8; %[kg] from Edberg-Costa
         M2.other = 0; %[kg] 
-        M2.wing = 0; %[m^2]
         M2.stg = 2; %[#] stage ID
         h2.motor = 0.89; %[m] height of the motor
         h2.h0 = 12; %[m] starting height
-        mat2 = 11; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7, 8 for Al 6061 T6, 9 for 300M Steel alloy, 10 for Al 2219, 11 for Carbon/Epoxy (MatWeb)  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
+        mat2 = 11; % 1 for Ti, 2 for Al 2XXX, 3 for Steel, 4 for Carbon Fiber Toray M46J, 5 for Al 7075 T6, 6 for Al 2090, 7 for CF Hexcel® HexTow® IM7 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% in future versions can be optimized the material selection in function
         press2 = 2; % 0 for unpressurized, 1 for pressure-fed, 2 for pump-fed, 3 for blowdown
         
         %fairing:
@@ -267,7 +262,6 @@ for j = 1:n
         M.i = i;
         M.stg1 = M1;
         M.stg2 = M2;
-        M.wing = M1.wing;
         
         %height
         h.fairing = fairing.L; %[m] height of the fairing
@@ -837,7 +831,7 @@ function [M, h, th] = inert_mass_common_dome(M, h, diam, AR, loads, mat_id, pres
 
 % considers thickness equal along the whole tank.
 % safety factor to be defined.
-% the volume is th volume of propellant to be contained: you cannot use
+% the volume is the volume of propellant to be contained: you cannot use
 % this function to evaluate blowdown architectures.
 
 %constants:
@@ -865,8 +859,8 @@ rholox = M.rholox; %[kg/m^3]
 rhorp1 = M.rhorp1; %[kg/m^3]
 
 %propellant volumes
-vlox = 1.08 * mlox / rholox; %[m^3] %added 10% margin
-vrp1 = 1.04 * mrp1 / rhorp1; %[m^3] %added 5% margin
+vlox = 1.10 * mlox / rholox; %[m^3] %added 10% margin
+vrp1 = 1.05 * mrp1 / rhorp1; %[m^3] %added 5% margin
 
 %recover dimensions:
 h_motor = h.motor; %[m] height of the motor
@@ -1102,14 +1096,14 @@ th.C3 = C3.th; %[m] thickness of third connector (aft skirt)
 
 %TOTAL MASSES:
 M.tanks = M.tank_lox + M.tank_rp1; %[kg] mass of the two empty tanks
-M.str = M.tanks + M.motor + M.fairing + M.avionics + M.T_struct + M.wiring + M.other + M.wing + C1.m + C2.m + C3.m; %[kg] inert mass of stage (motors, tanks, connectors, stage fairing, wiring, avionics, structures)
+M.str = M.tanks + M.motor + M.fairing + M.avionics + M.T_struct + M.wiring + M.other + C1.m + C2.m + C3.m; %[kg] inert mass of stage (motors, tanks, connectors, stage fairing, wiring, avionics, structures)
 if M.stg == 1
     M.recovery = ( 0.07 / ( 1 - 0.07 ) ) * M.str; %[kg]
     M.str = M.str + M.recovery; %[kg]
 else
     M.recovery = 0; %[kg]
 end
-M.tot = M.tot_lox + M.tot_rp1 + M.motor + M.fairing + M.avionics + M.T_struct + M.wiring + M.recovery + M.other + M.wing + C1.m + C2.m + C3.m; %[kg] total mass of motors, tanks, propellant, connectors, wiring, avionics, structures
+M.tot = M.tot_lox + M.tot_rp1 + M.motor + M.fairing + M.avionics + M.T_struct + M.wiring + M.recovery + M.other + C1.m + C2.m + C3.m; %[kg] total mass of motors, tanks, propellant, connectors, wiring, avionics, structures
 M.eps = M.str / M.tot;
 M.C1 = C1;
 M.C2 = C2;
@@ -1306,14 +1300,13 @@ switch id
 end
 
 %compute critical loads expressions
-kxP = @(th) k_x(nu, L, min(r), th, gP(th));
-kxM = @(th) k_x(nu, L, min(r), th, gM(th));
-Pcr = @(th) k2 * kxP(th) * 2 * pi^3 * D(th) * min(r)   / L^2 +...   %if cyl and p=0 (only metals)
+kx = @(th) k_x(nu, L, min(r), th, gP(th));
+Pcr = @(th) k2 * kx(th) * 2 * pi^3 * D(th) * min(r)   / L^2 +...   %if cyl and p=0 (only metals)
          + (1-k2) * ( 2*pi    * E * th.^2 .* ( gP(th) ./ sqrt( 3 * (1-nu^2) ) + dg(th) ) + p * pi * min(r)^2 ); %in any other case (only metals)
-Mcr = @(th) k2 * kxM(th)   *   pi^3 * D(th) * min(r)^2 / L^2 +...   %if cyl and p=0 (only metals)
+Mcr = @(th) k2 * kx(th)   *   pi^3 * D(th) * min(r)^2 / L^2 +...   %if cyl and p=0 (only metals)
          + (1-k2) * pi*min(r) * E * th.^2 .* ( gM(th) ./ sqrt( 3 * (1-nu^2) ) + dg(th) ) + p * pi * min(r)^2 * k1;%in any other case (only metals)
 
-Mcr_unp = @(th) kxM(th) * pi^3 * D(th) * min(r)^2 / L^2;   %if cyl and p=0 (only metals)
+Mcr_unp = @(th) kx(th) * pi^3 * D(th) * min(r)^2 / L^2;   %if cyl and p=0 (only metals)
 
 %relation to be satisfied in combined stress condition (for AXIAL COMPRESSION + BENDING + INTERNAL PRESSURE)
 f1 = @(th) K*F_load./Pcr(th) + K*M_exp./Mcr(th) - 1; %this must be <0 to save the structure from failure
@@ -1669,7 +1662,7 @@ S_cone = pi * sqrt( d0^2 / 4 + L_nose^2 ) * d0/2; %[m^2] conical surface
 fairing.S = S_cyl + S_cone; %[m^2] total surface
 
 %compute mass (from "Launch and Entry Vehicle Design, Univ. Maryland, D.L.Akin")
-fairing.m = 4.95 * fairing.S ^ 1.15;%9.89 * fairing.S; % %[kg]  
+fairing.m = 4.95 * fairing.S ^ 1.15; %[kg]  
 
 %retrieve fairing parameters
 % fairing.M = nose.M + cyl.M; %[kg] total mass

@@ -84,10 +84,10 @@ plot(x8(y8), y8, '-k');
 %fairing plot:
 x9 = h9 - h8 * ones(2,1);
 y9 = [-r2; r2];
-plot(x9, y9, '--k',LineWidth=1);
+plot(x9, y9, '-k',LineWidth=1);
 x10 = h9 - h7 * ones(2,1);
 y10 = y9;
-plot(x10, y10, '--k',LineWidth=1);
+plot(x10, y10, '-k',LineWidth=1);
 
 %motor #i:
 xm = [0, 0, (h1-0.26)*0.5, h1-0.26, h1-0.19, h1, h1, h1-0.19, h1-0.26, (h1-0.26)*0.5, 0, 0];
@@ -118,13 +118,25 @@ r1_ad = r2 / 1.6;
 r2_ad = r2 / 1.2;
 X_a = (h9 - h7) - [0, 0, h_ad, h_ad, 0, 0];
 Y_a = [0, r2_ad, r1_ad, -r1_ad, -r2_ad, 0];
-plot(X_a, Y_a, '--r'); %adapter
+plot(X_a, Y_a, '-r'); %adapter
 
 %payload
 r_pl = 0.90 * r1_ad;
 theta = linspace(0, 2*pi, 3e1 + 1);
 ypl = r_pl * sin(theta);
 xpl = (h9 - h7 - h_ad * 0.3 - r_pl ) + r_pl * cos(theta);
-plot( xpl, ypl, '--b');
+plot( xpl, ypl, '-b');
+
+%fins 
+l_base = 0.75;
+l_edge = 0.40;
+h_fins = 0.87;
+y_fins = [r1; r1+h_fins; r1+h_fins; r1];
+x_fins = h9 - h1 - [0; 0; l_edge; l_base];
+plot( x_fins,  y_fins, '-g', LineWidth=1);
+plot( x_fins, -y_fins, '-g', LineWidth=1);
+x_fins_profile = h9 - h1 - [0; l_base];
+y_fins_profile = [0; 0];
+plot( x_fins_profile, y_fins_profile, '-g', LineWidth=1.5);
 
 
