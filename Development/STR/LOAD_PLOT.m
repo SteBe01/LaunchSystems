@@ -93,15 +93,19 @@ FORCES.T=M_it_case.stg1.Thrust;
 %[STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,1,SaveFlag,h_it_case,M_it_case); 
 %[STRUCT]=FINAL_STR_ANALYSIS_T(GEOMETRY,FORCES,2,SaveFlag,h_it_case,M_it_case); 
 %[STRUCT]=FINAL_STR_ANALYSIS_T_PLOT(GEOMETRY,FORCES,2,SaveFlag,h_it_case,M_it_case); 
-[STRUCT]=FINAL_STR_ANALYSIS_T_PLOT_SUB(GEOMETRY,FORCES,2,SaveFlag,h_it_case,M_it_case);
+%[STRUCT]=FINAL_STR_ANALYSIS_T_PLOT_SUB(GEOMETRY,FORCES,2,SaveFlag,h_it_case,M_it_case);
 
- %% ATTACHMENTS:
+%  %% ATTACHMENTS:
 PlotFlag =1;
 LOAD.Cl=FORCES.Cl;
 LOAD.Cd=FORCES.Cd;
 LOAD.nx_c = 2;
 LOAD.nz_c = 2;
-%[CLAMP] = Attachments_FINAL(GEOMETRY,LOAD,PlotFlag,SaveFlag,h_it_case,M_it_case);
-%[CLAMP] = Attachments_FINAL_PLOT(GEOMETRY,LOAD,PlotFlag,SaveFlag,h_it_case,M_it_case);
-%[CLAMP] = ATT_FINAL_PLOT(GEOMETRY,LOAD,PlotFlag,SaveFlag,h_it_case,M_it_case);
-[CLAMP] = ATT_FINAL_PLOT_SUB(GEOMETRY,LOAD,PlotFlag,SaveFlag,h_it_case,M_it_case);
+% %[CLAMP] = Attachments_FINAL(GEOMETRY,LOAD,PlotFlag,SaveFlag,h_it_case,M_it_case);
+% %[CLAMP] = Attachments_FINAL_PLOT(GEOMETRY,LOAD,PlotFlag,SaveFlag,h_it_case,M_it_case);
+% %[CLAMP] = ATT_FINAL_PLOT(GEOMETRY,LOAD,PlotFlag,SaveFlag,h_it_case,M_it_case);
+%[CLAMP] = ATT_FINAL_PLOT_SUB(GEOMETRY,LOAD,PlotFlag,SaveFlag,h_it_case,M_it_case);
+
+%% 
+DIFF =20;
+PLOT_ROCKET_FULL(M_it_case,h_it_case,DIFF);

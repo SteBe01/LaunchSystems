@@ -4,6 +4,7 @@ GEOMETRY.M_pay = M_it.pay;
 GEOMETRY.m_fair = M_it.fairing;
 GEOMETRY.OF1 = M_it.stg1.OF;
 GEOMETRY.OF2 = M_it.stg1.OF;
+GEOMETRY.m_fin =64.4;
 % GEOMETRY.l_tot= h_it.tot;
 % GEOMETRY.b1 = h_it.fairing;  % fairing length
 % GEOMETRY.b2 = h_it.stg2.C1;  % forward skirt length
@@ -61,7 +62,7 @@ GEOMETRY.m6=+M_w_d+M_a_d+M_it.stg1.recovery+M_it.stg1.C1.m;            % interst
 GEOMETRY.m7=M_it.stg1.tot_rp1+M_w_d+M_a_d+GEOMETRY.m78/2;               %  fuel tank1
 GEOMETRY.m8=M_it.stg1.tot_lox+M_w_d+M_a_d+M_it.stg1.lox_insulation+GEOMETRY.m78/2;   %  oxygen tank1
 GEOMETRY.m9=M_w_d+M_a_d+M_it.stg1.T_struct+M_it.stg1.C3.m;           % aft skirt 1
-GEOMETRY.m10=M_it.stg1.motor+M_w_d+M_a_d+M_it.wing;               % engine
+GEOMETRY.m10=M_it.stg1.motor+M_w_d+M_a_d+GEOMETRY.m_fin;               % engine
 
 DELTA = (1/5)*((GEOMETRY.M01-GEOMETRY.m1-GEOMETRY.m2-GEOMETRY.m3-GEOMETRY.m4-GEOMETRY.m5-GEOMETRY.m6-GEOMETRY.m7-GEOMETRY.m8-GEOMETRY.m9-GEOMETRY.m10));
 

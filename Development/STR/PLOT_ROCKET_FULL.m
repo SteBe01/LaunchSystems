@@ -37,7 +37,7 @@ xCG = h9 - hCG; %[m] total rocket CoM position (in "x" coordinates)
 yCG = 0; %[m]
 
 %silhouette plot:
-plot(x, y, '-k', LineWidth=1, HandleVisibility='off'); grid on; hold on;
+plot(x, y, '-k', LineWidth=1, HandleVisibility='off'); grid on; axis equal;hold on;
 % plot([diam1/2, -diam1/2], [h1.til_tank-h1.dome_rp1,h1.til_tank-h1.dome_rp1], '--k');
 % plot([diam2/2, -diam2/2], [h1.attach,h1.attach], '--k');
 % plot([diam2/2, -diam2/2], [h3.tot-2*diam2,h3.tot-2*diam2], '--k');
@@ -113,14 +113,14 @@ r1_ad = r2 / 1.6;
 r2_ad = r2 / 1.2;
 X_a = (h9 - h7) - [0, 0, h_ad, h_ad, 0, 0];
 Y_a = [0, r2_ad, r1_ad, -r1_ad, -r2_ad, 0];
-plot(X_a, Y_a, '-k', HandleVisibility='off'); %adapter
+plot(X_a, Y_a, '-b'); %adapter
 
 %payload
 r_pl = 0.90 * r1_ad;
 theta = linspace(0, 2*pi, 3e1 + 1);
 ypl = r_pl * sin(theta);
 xpl = (h9 - h7 - h_ad * 0.3 - r_pl ) + r_pl * cos(theta);
-plot( xpl, ypl, '-k', HandleVisibility='off');
+plot( xpl, ypl, '-','Color','#A2142F');
 
 %fins 
 l_base = 0.75;
@@ -128,11 +128,11 @@ l_edge = 0.40;
 h_fins = 0.87;
 y_fins = [r1; r1+h_fins; r1+h_fins; r1];
 x_fins = h9 - h1 - [0; 0; l_edge; l_base];
-plot( x_fins,  y_fins, '-k', LineWidth=1);
-plot( x_fins, -y_fins, '-k', LineWidth=1);
+plot( x_fins,  y_fins, '-g', LineWidth=1);
+plot( x_fins, -y_fins, '-g', LineWidth=1);
 x_fins_profile = h9 - h1 - [0; l_base];
 y_fins_profile = [0; 0];
-plot( x_fins_profile, y_fins_profile, '-k', LineWidth=1.5,HandleVisibility='off');
+plot( x_fins_profile, y_fins_profile, '-g', LineWidth=1.5);
 xlim([0;DIFF]);
 ylim([-max(y_fins)-0.01;max(y_fins)+0.01]);
-legend('Global C.O.M.');
+legend('Global C.O.M.','Adapter','Payload','Tail fins','Location','eastoutside');
