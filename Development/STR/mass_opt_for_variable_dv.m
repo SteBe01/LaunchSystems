@@ -15,7 +15,7 @@ M.pay_effective = M.pay + M.adapter; %[kg] Edberg-Costa includes adapter mass in
 % M.pay_effective = M.pay; %[kg] Edberg-Costa includes adapter mass in the payload
 OF = 2.58; %[-] Ox/Fu ratio for LOX-RP1
 loads.nx = 6;%8;%6;  %longitudinal acceleration load factor [-]
-loads.nz = 1; %1.2;%1; %transversal acceleration load factor [-]
+loads.nz = 0.8; %1.2;%1; %transversal acceleration load factor [-]
 loads.K = 1.50; %loads resistance safety factor [-]
 FoS1 = 1.50; %FoS of first stage [-]
 FoS2 = 1.50; %FoS of first stage [-]
@@ -60,7 +60,7 @@ for j = 1:n
         M1.rhorp1 = 820;  %[kg/m^3] density of rp1
         M1.rholox = 1140; %[kg/m^3] density of lox
         M1.avionics = 75 * 0.2; %[kg] from Edberg-Costa
-        M1.other = 185.7; %3 * 64.2; %256.8; %218; %[kg] 
+        M1.other = 0; %185.7; %3 * 64.2; %256.8; %218; %[kg] 
         M1.wing = m_tail; %[kg]
         M1.stg = 1; %[#] stage ID
         h1.motor = 0.75; %[m] height of the motor
@@ -865,8 +865,8 @@ rholox = M.rholox; %[kg/m^3]
 rhorp1 = M.rhorp1; %[kg/m^3]
 
 %propellant volumes
-vlox = 1.08 * mlox / rholox; %[m^3] %added 10% margin
-vrp1 = 1.04 * mrp1 / rhorp1; %[m^3] %added 5% margin
+vlox = 1.04 * mlox / rholox; %[m^3] %added 10% margin
+vrp1 = 1.01 * mrp1 / rhorp1; %[m^3] %added 5% margin
 
 %recover dimensions:
 h_motor = h.motor; %[m] height of the motor

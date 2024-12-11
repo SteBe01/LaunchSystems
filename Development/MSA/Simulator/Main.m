@@ -1,6 +1,6 @@
 %% Simulator
 
-clear, clc
+clear clc
 close all
 clear dyn
 clear stage_Separation
