@@ -186,7 +186,7 @@ El.V_empty = 4.08099; % [m^3]
 El.rho_empty = El.M01/El.V_empty;
 El.V_fair_El.Ltot = 2.5; % [m]
 El.fn_nose = El.V_fair_El.Ltot/El.D_fair_base_ext_El; % [-]
-El.D = 1.3;
+El.D = 1.2;
 
 % Interpolate values from the 3 baselines as before:
 
