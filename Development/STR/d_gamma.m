@@ -83,8 +83,9 @@ figure(4);
 loglog(param, d_g(param), '.');grid on;axis equal;hold on;
 ylabel('$\Delta\gamma$', 'Interpreter','latex');
 xlabel('$\frac{p}{E}\left (\frac{r_1}{t \cos{\alpha}}\right )^2$','Interpreter','latex');
+title('$\Delta\gamma$ variation with $\frac{p}{E}\left (\frac{r_1}{t \cos{\alpha}}\right )^2$','Interpreter','latex')
 
-
+%%
 %retake to confirm that our parameters fall in the casistics
 param = @(p, th) p./mat.E * (r/th)^2;%[-]
 d_g = @(p, th) ( a * param(p, th) + b )./( c * param(p, th) + d );
