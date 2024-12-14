@@ -195,7 +195,8 @@ set(gca, 'YTickLabel', yticklabels);
 %fundamental parameters recovery
 nexttile
 hold on;
-PLOT_ROCKET(M_it,h_it,DIFF);
+%PLOT_ROCKET(M_it,h_it,DIFF);
+PLOT_ROCKET_DIAGRAM(M_it,h_it,DIFF);
 
 if SaveFlag==1
 exportgraphics(gcf,'Load Diagram.pdf', 'ContentType','vector');
@@ -378,7 +379,8 @@ set(gca, 'YTickLabel', yticklabels);
 
 nexttile
 hold on;
-PLOT_ROCKET(M_it,h_it,DIFF);
+%PLOT_ROCKET(M_it,h_it,DIFF);
+PLOT_ROCKET_DIAGRAM(M_it,h_it,DIFF);
 
 
 

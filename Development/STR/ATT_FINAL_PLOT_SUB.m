@@ -160,8 +160,8 @@ set(gca, 'YDir','reverse')
 % Plot the bending moment diagram
 nexttile
 hold on;
-PLOT_ROCKET(M_it,h_it,DIFF);
-
+%PLOT_ROCKET(M_it,h_it,DIFF);
+PLOT_ROCKET_DIAGRAM(M_it,h_it,DIFF);
 
 % %fundamental parameters recovery
 % AR = h_it.stg1.R_lox / h_it.stg1.dome_lox; %[-] aspect ratio of the tanks
