@@ -9,7 +9,7 @@ theta_vect = Y(:,5) + pi/2 - atan2(Y(:,2),Y(:,1));
 delta_vect = 5*parout.delta_vec;
 
 n_start = 1;
-step_size = 5;
+step_size = 2;
 n_end = 1500;
 
 Xcg = 180;
@@ -18,20 +18,22 @@ Xcg = 180;
 k = 0;
 TR_body_vect(1:length(n_start:step_size:n_end), 1) = {NaN(1,1)};
 TR_engine_vect(1:length(n_start:step_size:n_end), 1) = {NaN(1,1)};
+Time_vect = zeros(length(n_start:step_size:n_end));
 for ii = n_start:step_size:n_end
     k = k + 1;
     [TR_body, TR_engine] = animation_frame(theta_vect(ii), delta_vect(ii), Xcg);
     TR_body_vect{k} = TR_body;
     TR_engine_vect{k} = TR_engine;
+    Time_vect(k) = T(ii);
 end
 
 % animation
 figure, hold on, axis equal, grid on
-for ii = 1:length(TR_engine_vect)
+for ii = 1:length(TR_engine_vect)-1
     fig1 = trisurf(TR_body_vect{ii}, 'FaceColor','black','EdgeColor','interp');
     fig2 = trisurf(TR_engine_vect{ii}, 'FaceColor','black','EdgeColor','interp');
 
-    pause(0.05)
+    pause((Time_vect(ii)-Time_vect(ii+1))/10)
     drawnow
 
     view(0,0)
