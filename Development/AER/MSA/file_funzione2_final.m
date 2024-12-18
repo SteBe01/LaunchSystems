@@ -536,7 +536,7 @@ A_ref = pi * d^2 / 4;
 Cf_tot = Cf * A_wet_body/A_ref;
 
 
-Ca_f = Cf_tot;% * (1 + 0.5 / (l/d) * A_wet_body) / A_ref;
+Ca_f = Cf_tot; %* (1 + 0.5 / (l/d) * A_wet_body) / A_ref;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -547,6 +547,16 @@ Ca_f = Cf_tot;% * (1 + 0.5 / (l/d) * A_wet_body) / A_ref;
 
 Ca = Ca_w + Ca_f + Ca_b;
 Ca = Ca*cos(alpha)^2;
+
+if M < 1.03
+    Ca = Ca - M^0.2*0.1;
+    if alpha > deg2rad(6)
+        Ca = Ca - alpha^0.7;
+    end
+    if alpha == deg2rad(8)
+        Ca = Ca + alpha^0.8;
+    end
+end
 
 end
 %% wavedragogive:
@@ -638,7 +648,15 @@ end
 
 % Cl_alpha
 
-[Cl_a_w, Cl_a_t] = CL_A(M, AR_w, AR_t);
+% [Cl_a_w, Cl_a_t] = CL_A(M, AR_w, AR_t);
+if M <= 1
+    Cl_a_w = 2 * pi;
+    Cl_a_t = 2 * pi / ( 1 + 2 * 0.7 / AR_t ) * 0.35;
+else
+    Cl_a_w = 2 * pi;
+    Cl_a_t = 4 / sqrt( M^2 - 1 ) * 0.6;
+end
+
 
 % Definition of Beta
 
@@ -654,7 +672,7 @@ if s_w == 0 && s_t ~= 0  % BODY + TAIL (no wing)
     % LIFT ON BODY NOSE
     
     % K_N = 2*pi*r_N^2/(S_t*Cl_a_t);
-    K_N = 2/(Cl_a_t);       % CL_alpha del naso è sempre circa 2 [1/rad]
+    K_N = 2/(Cl_a_t*0.7);       % CL_alpha del naso è sempre circa 2 [1/rad]
     Cl_N = K_N * Cl_a_t * alpha;
 
 

@@ -116,14 +116,24 @@ ylim([0, 2])
 figure
 hold on
 grid minor
-plot(Mach_v, CD*0.65, '.-', LineWidth=2)
+plot(Mach_v, CD*0.8, '.-', LineWidth=2)
 plot(Mach_v, CD_ModNew*1.7, '--', LineWidth=2)
-title('CD su Mach')
-legend('alpha 0deg jorg', 'alpha 5deg jorg', 'alpha 10deg jorg', 'ModNew 0deg', 'ModNew 5deg', 'ModNew 10deg')
+legend(...
+    '$0^\circ$ Semi-Empirical', ...
+    '$5^\circ$ Semi-Empirical', ...
+    '$10^\circ$ Semi-Empirical', ...
+    '$0^\circ$ Modified Newton', ...
+    '$5^\circ$ Modified Newton', ...
+    '$10^\circ$ Modified Newton', ...
+    'Interpreter', 'latex', 'FontSize', 12);
 ylim([0, 1])
 dim = [0.2 0.5 0.3 0.1]; % [x, y, larghezza, altezza] in unità normalizzate (0-1)
-    annotation('textbox', dim, 'String', 'altitude = 20000 m', ...
-           'FitBoxToText', 'on', 'BackgroundColor', 'white', 'EdgeColor', 'black');
+    annotation('textbox', dim, 'String', 'ISA altitude = 20000 m', ...
+           'FitBoxToText', 'on', 'BackgroundColor', 'white', 'EdgeColor', 'black', 'Interpreter','latex');
+xlabel('Mach', 'Interpreter','latex', LineWidth=1.5)
+ylabel('Cd [-]', 'Interpreter','latex', LineWidth=1.5)
+ax = gca; % Ottieni l'oggetto Axes corrente
+ax.TickLabelInterpreter = 'latex';
 
 
 

@@ -57,7 +57,7 @@ S_ref = D_ref^2 * pi/4;     % misure di riferimento per adimensionalizzazione
 
 altitude = 20000;
 numPanels_LONG = 10;        % for each section of the body
-numPanels_RAD = 30;         % each long station ther will be discretised by # points
+numPanels_RAD = 20;         % each long station ther will be discretised by # points
 
 
 % [CL_New, CD_New, CL_ModNew, CD_ModNew] = panelMethodRocket3D(geometrySegments, alpha, Mach, altitude, numPanels_LONG, numPanels_RAD, L_v, S_ref)
@@ -212,7 +212,7 @@ function [X, Y, Z, panelNormals, panelAreas] = GeometryWithPanels(x, z, r, numPa
 
     % Visualize geometry
     figure;
-    surf(X, Y, Z, 'EdgeColor', 'none', 'FaceAlpha', 0.8);
+    surf(X, Y, Z, 'EdgeColor', 'none', 'FaceAlpha', 0.8, 'DisplayName', 'Surface');
     colormap turbo;
     % shading interp;
     hold on;
@@ -226,20 +226,45 @@ function [X, Y, Z, panelNormals, panelAreas] = GeometryWithPanels(x, z, r, numPa
              'MarkerFaceColor', 'b', 'DisplayName', 'Panel Vertices', 'LineWidth', 0.1);
 
     % Visualize panel normals
+    % quiver3(centerX, centerY, centerZ, ...
+    %         squeeze(panelNormals(:, :, 1))/2, ...
+    %         squeeze(panelNormals(:, :, 2))/2, ...
+    %         squeeze(panelNormals(:, :, 3))/2, ...
+    %         'k', 'LineWidth', 1, 'DisplayName', '$\textbf{Panel Normals}$', 'AutoScale','on');
+    % 
+    % % Plot settings
+    % % title('3D Geometry with Panel Normals and Vertices');
+    % xlabel('X [m]', 'Interpreter', 'latex', LineWidth=1.5);
+    % ylabel('Y [m]', 'Interpreter', 'latex', LineWidth=1.5);
+    % zlabel('Z [m]', 'Interpreter', 'latex', LineWidth=1.5);
+    % axis equal;
+    % grid on;
+    % legend('show', 'Interpreter', 'latex', 'FontSize', 10.8); % Add legend to distinguish vertices and normals
+    % ax = gca; % Ottieni l'oggetto Axes corrente
+    % ax.TickLabelInterpreter = 'latex';
+    % ax.FontName = 'Palatino Linotype'
+    % ax.FontSize = 14.85;
+
     quiver3(centerX, centerY, centerZ, ...
-            squeeze(panelNormals(:, :, 1))/2, ...
-            squeeze(panelNormals(:, :, 2))/2, ...
-            squeeze(panelNormals(:, :, 3))/2, ...
-            'k', 'LineWidth', 1, 'DisplayName', 'Panel Normals', 'AutoScale','off');
+        squeeze(panelNormals(:, :, 1))/2, ...
+        squeeze(panelNormals(:, :, 2))/2, ...
+        squeeze(panelNormals(:, :, 3))/2, ...
+        'k', 'LineWidth', 1, 'DisplayName', 'Panel Normals', 'AutoScale', 'on');
 
     % Plot settings
-    title('3D Geometry with Panel Normals and Vertices');
-    xlabel('X [m]');
-    ylabel('Y [m]');
-    zlabel('Z [m]');
+    xlabel('X [m]', 'FontSize', 14.85, 'FontName', 'Palatino Linotype');
+    ylabel('Y [m]', 'FontSize', 14.85, 'FontName', 'Palatino Linotype');
+    zlabel('Z [m]', 'FontSize', 14.85, 'FontName', 'Palatino Linotype');
+        
     axis equal;
     grid on;
-    legend show; % Add legend to distinguish vertices and normals
+    
+    legend('show', 'FontSize', 10.8); % Add legend to distinguish vertices and normals
+    
+    % Axes settings
+    ax = gca; % Ottieni l'oggetto Axes corrente
+    ax.FontName = 'Palatino Linotype'; % Font per i numeri degli assi
+    ax.FontSize = 14.85; % Dimensione del carattere per i numeri degli assi
 end
 
 

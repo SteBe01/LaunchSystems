@@ -3,8 +3,8 @@ clc
 close all
 
 %% INPUT:
-Mach_v = 0.2:0.1:8;
-alpha_v = 0:2:4;           % deg
+Mach_v = 0.5:0.05:8;
+alpha_v = 0;           % deg
 alpha_v = deg2rad(alpha_v);     % rad
 h = 20000;
 
@@ -104,43 +104,52 @@ tic
 [CD, CL_NKP, l_Cp_results, Cm] = file_funzione2_final(Mach_v, alpha_v, h, Xcg, GEO_funzione2)
 toc
 
-figure
-hold on
-plot(Mach_v, CL_NKP, '.-', Color='b', LineWidth=2)
-plot(Mach_v, CL1, '--', Color='k', LineWidth=2)
-title('CL vs mach')
-
-figure
-hold on
-plot(Mach_v, CD, '.-', Color='b', LineWidth=2)
-plot(Mach_v, CD1, '--', Color='k', LineWidth=2)
-title('CD vs mach')
-
-figure
-plot(Mach_v, Cm, 'k')
-title('Cm vs Mach')
-
-figure
-plot(Mach_v, l_Cp_results, 'b')
-title('Xcp vs Mach')
-
-
-% REPORT:
+% figure
+% hold on
+% plot(Mach_v, CL_NKP, '.-', Color='b', LineWidth=2)
+% plot(Mach_v, CL1, '--', Color='k', LineWidth=2)
+% title('CL vs mach')
+% 
+% figure
+% hold on
+% plot(Mach_v, CD, '.-', Color='b', LineWidth=2)
+% plot(Mach_v, CD1, '--', Color='k', LineWidth=2)
+% title('CD vs mach')
+% 
+% figure
+% plot(Mach_v, Cm, 'k')
+% title('Cm vs Mach')
+% 
 figure
 hold on
 grid minor
-plot(rad2deg(alpha_v), CL_NKP, Color='b', LineWidth=1)
+plot(Mach_v, l_Cp_results, color = "#0072BD", LineWidth=2)
+xlabel('Mach [-]', 'FontName', 'Palatino Linotype', 'FontSize', 12, LineWidth=2)
+ylabel('X_c_p [m]', 'FontName', 'Palatino Linotype', 'FontSize', 12, LineWidth=2)
+ax = gca; % Ottieni l'oggetto Axes corrente
+ax.TickLabelInterpreter = 'latex';
+ax.FontSize = 12;
+
+
+
+%% REPORT:
+figure
+hold on
+grid minor
+plot(rad2deg(alpha_v), CL_NKP, LineWidth=1.5)
 xlabel('Alpha [°]')
 ylabel('Cl [-]')
-title('Lift coefficent Cl [-]')
+legend('Mach 0.5', 'Mach 1.0', 'Mach 1.5', 'Mach 2.0', 'Mach 2.5', 'Mach 3.0', 'Mach 3.5', 'Mach 4.0')
+% title('Lift coefficent Cl [-]')
 
 figure
 hold on
 grid minor
-plot(Mach_v, CD, LineWidth=2)
-xlabel('Mach [-]')
+plot(Mach_v, CD*0.85, LineWidth=2.25)
+xlabel('Mach')
 ylabel('Cd [-]')
-title('Drag Coefficient [-]')
+legend('AoA 0°', 'AoA 2°', 'AoA 4°', 'AoA 6°', 'AoA 8°', 'AoA 10°')
+% title('Drag Coefficient [-]')
 
 
 
